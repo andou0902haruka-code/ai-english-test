@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TOEFL Speaking 実践テスト</title>
+<style>
+  * { box-sizing: border-box; }
+  body { font-family: -apple-system, "Hiragino Sans", sans-serif; max-width: 760px; margin: 2em auto; padding: 0 1.2em; color: #222; background: #fafbfc; }
+  h1 { font-size: 1.5em; border-bottom: 2px solid #4a90d9; padding-bottom: 0.3em; }
+  .sub { color: #666; margin-bottom: 1.5em; font-size: 0.92em; }
+
+  /* --- メニュー --- */
+  .menu-btn { display: block; width: 100%; text-align: left; background: #fff; border: 1px solid #dbe4ee; border-radius: 10px; padding: 1em 1.2em; margin: 0.7em 0; cursor: pointer; font-size: 1em; }
+  .menu-btn:hover { border-color: #4a90d9; }
+  .menu-btn .title { font-weight: 700; font-size: 1.05em; }
+  .menu-btn .desc { color: #666; font-size: 0.85em; margin-top: 0.3em; }
+  .topic-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6em; margin-top: 0.8em; }
+  .topic-grid .menu-btn { margin: 0; }
+
+  /* --- 進捗 --- */
+  .progress-wrap { display: none; align-items: center; gap: 0.8em; margin-bottom: 1em; }
+  .progress-wrap.show { display: flex; }
+  .progress-bar { flex: 1; height: 8px; background: #e3e9f0; border-radius: 4px; overflow: hidden; }
+  .progress-fill { height: 100%; background: #4a90d9; width: 0%; transition: width 0.3s; }
+  .progress-label { font-size: 0.85em; color: #666; white-space: nowrap; }
+
+  /* --- カード --- */
+  .card { display: none; background: #fff; border: 1px solid #e0e6ed; border-radius: 12px; padding: 1.4em 1.5em; margin-bottom: 1em; }
+  .card.show { display: block; }
+  .topic-tag { display: inline-block; background: #eef4fc; color: #2c5da0; font-size: 0.8em; padding: 3px 10px; border-radius: 10px; margin-bottom: 0.8em; }
+
+  .phase-label { font-weight: 700; font-size: 1.05em; margin-bottom: 0.6em; }
+  .timer { font-size: 2.2em; font-weight: 700; text-align: center; margin: 0.4em 0; font-variant-numeric: tabular-nums; }
+  .timer.prep { color: #e08a3a; }
+  .timer.response { color: #d24545; }
+  .timer-bar { height: 6px; background: #eee; border-radius: 3px; overflow: hidden; margin-bottom: 1em; }
+  .timer-fill { height: 100%; background: #4a90d9; transition: width 1s linear; }
+  .timer-fill.prep { background: #e08a3a; }
+  .timer-fill.response { background: #d24545; }
+
+  .big-btn { display: block; width: 100%; background: #4a90d9; color: #fff; border: none; border-radius: 8px; padding: 0.9em; font-size: 1em; font-weight: 700; cursor: pointer; margin: 0.6em 0; }
+  .big-btn:hover { background: #3a7bc0; }
+  .big-btn.secondary { background: #fff; color: #4a90d9; border: 1px solid #4a90d9; }
+  .big-btn.secondary:hover { background: #f0f6fc; }
+  .big-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .rec-indicator { display: none; align-items: center; justify-content: center; gap: 0.5em; color: #d24545; font-weight: 700; margin: 0.6em 0; }
+  .rec-indicator.show { display: flex; }
+  .rec-dot { width: 12px; height: 12px; border-radius: 50%; background: #d24545; animation: pulse 1s infinite; }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+  .transcript-toggle { text-align: center; margin: 0.6em 0; }
+  .transcript-toggle a { color: #888; font-size: 0.85em; cursor: pointer; text-decoration: underline; }
+  .question-text { display: none; background: #f7f9fb; border-radius: 8px; padding: 0.8em 1em; margin: 0.6em 0; font-size: 0.95em; line-height: 1.5; }
+  .question-text.show { display: block; }
+
+  .play-row { display: flex; align-items: center; gap: 10px; margin: 0.6em 0; }
+  .play-btn { flex-shrink: 0; background: #4a90d9; color: #fff; border: none; border-radius: 50%; width: 40px; height: 40px; font-size: 14px; cursor: pointer; }
+  .play-btn.playing { background: #e05c3a; }
+  .play-btn.small { width: 28px; height: 28px; font-size: 11px; }
+
+  .review-section { border-top: 1px dashed #ddd; margin-top: 1.2em; padding-top: 1.2em; }
+  .my-recording { background: #f7f9fb; border-radius: 8px; padding: 0.8em 1em; margin: 0.6em 0; }
+  .model-answer { background: #eef8f0; border-left: 4px solid #4a9d5c; border-radius: 6px; padding: 0.9em 1em; margin: 0.6em 0; font-size: 0.95em; line-height: 1.6; }
+  .model-answer .en { }
+  .key-phrase { background: #fff3c4; padding: 0 3px; border-radius: 3px; }
+
+  .rate-row { display: flex; align-items: center; justify-content: space-between; margin: 0.5em 0; }
+  .rate-row .label { font-size: 0.9em; color: #444; }
+  .stars { font-size: 1.3em; cursor: pointer; letter-spacing: 2px; }
+  .stars span { color: #ccc; }
+  .stars span.on { color: #f0ad4e; }
+
+  .footer-nav { display: flex; gap: 0.6em; margin-top: 1em; }
+  .footer-nav .big-btn { flex: 1; }
+
+  /* --- 結果画面 --- */
+  #resultsScreen { display: none; background: #fff; border: 1px solid #e0e6ed; border-radius: 12px; padding: 1.6em; text-align: center; }
+  #resultsScreen.show { display: block; }
+  #resultsScreen .score { font-size: 2.4em; margin: 0.3em 0; }
+  .avg-row { display: flex; justify-content: space-between; text-align: left; padding: 0.5em 0; border-bottom: 1px solid #eee; }
+  .phrase-list { text-align: left; font-size: 0.9em; color: #444; margin-top: 1em; }
+  .phrase-list li { margin: 0.3em 0; }
+
+  .note { font-size: 0.8em; color: #999; margin-top: 2em; text-align: center; }
+</style>
+</head>
+<body>
+
+<h1>🎤 TOEFL Speaking 実践テスト</h1>
+<div class="sub">音声だけで問題を聞き、準備15秒→解答45秒の本番形式で練習します。解答後に模範解答と自己評価で振り返ります。</div>
+
+<div class="progress-wrap" id="progressWrap">
+  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+  <div class="progress-label" id="progressLabel">Q1/4</div>
+</div>
+
+<!-- メニュー画面 -->
+<div id="menuScreen">
+  <button class="menu-btn" onclick="startQuiz('mock')">
+    <div class="title">🎯 ミニ模試（4問・トピックおまかせ）</div>
+    <div class="desc">4つのトピックからランダムに1問ずつ出題。本番に近い流れで通しで練習します。</div>
+  </button>
+  <button class="menu-btn" onclick="showTopicPicker()">
+    <div class="title">📚 トピック別に練習</div>
+    <div class="desc">1つのトピックのQ1〜Q4をまとめて練習します。</div>
+  </button>
+  <div id="topicPicker" style="display:none;">
+    <div class="topic-grid" id="topicGrid"></div>
+  </div>
+</div>
+
+<!-- 進行中カード -->
+<div class="card" id="quizCard">
+  <div class="topic-tag" id="topicTag"></div>
+
+  <!-- フェーズ1: 質問再生 -->
+  <div id="phaseListen">
+    <div class="phase-label">🔊 質問を聞いてください</div>
+    <div class="play-row" style="justify-content:center;">
+      <button class="play-btn" id="qPlayBtn" onclick="toggleQuestionAudio()">▶</button>
+    </div>
+    <div class="transcript-toggle"><a onclick="toggleTranscript()">文字で見る（本番では表示されません）</a></div>
+    <div class="question-text" id="questionText"></div>
+    <button class="big-btn" onclick="startPrep()">準備を始める（15秒）→</button>
+  </div>
+
+  <!-- フェーズ2: 準備 -->
+  <div id="phasePrep" style="display:none;">
+    <div class="phase-label">📝 準備時間</div>
+    <div class="timer prep" id="prepTimer">15</div>
+    <div class="timer-bar"><div class="timer-fill prep" id="prepFill" style="width:100%;"></div></div>
+    <div class="question-text show" id="questionTextPrep"></div>
+  </div>
+
+  <!-- フェーズ3: 解答（録音） -->
+  <div id="phaseSpeak" style="display:none;">
+    <div class="phase-label">🗣 解答してください</div>
+    <div class="timer response" id="respTimer">45</div>
+    <div class="timer-bar"><div class="timer-fill response" id="respFill" style="width:100%;"></div></div>
+    <div class="rec-indicator" id="recIndicator"><div class="rec-dot"></div>録音中...</div>
+    <div id="micWarning" style="display:none; color:#b0631a; font-size:0.85em; background:#fff3e8; border-radius:6px; padding:0.6em 0.8em; margin-top:0.6em;">
+      ⚠️ マイクを使用できませんでした（ローカルファイルではマイク録音がブロックされるブラウザがあります）。タイマーのみで練習を続けられます。
+    </div>
+  </div>
+
+  <!-- フェーズ4: 振り返り -->
+  <div id="phaseReview" style="display:none;">
+    <div class="review-section" style="border-top:none; margin-top:0; padding-top:0;">
+      <div class="phase-label">✅ 振り返り</div>
+
+      <div class="my-recording" id="myRecordingBox" style="display:none;">
+        <div style="font-size:0.85em; color:#666; margin-bottom:0.4em;">🎙 あなたの解答</div>
+        <audio controls id="myRecordingPlayer" style="width:100%;"></audio>
+      </div>
+
+      <div class="model-answer">
+        <div style="font-size:0.85em; color:#4a9d5c; font-weight:700; margin-bottom:0.4em;">📗 模範解答</div>
+        <div class="play-row">
+          <button class="play-btn small" id="aPlayBtn" onclick="toggleAnswerAudio()">▶</button>
+          <div class="en" id="modelAnswerText" style="font-size:0.95em;"></div>
+        </div>
+      </div>
+
+      <div style="margin-top:1em;">
+        <div class="rate-row"><span class="label">Delivery（発音・流暢さ）</span><span class="stars" data-cat="delivery">★★★★</span></div>
+        <div class="rate-row"><span class="label">Language Use（語彙・文法）</span><span class="stars" data-cat="language">★★★★</span></div>
+        <div class="rate-row"><span class="label">Topic Development（内容の展開）</span><span class="stars" data-cat="topic">★★★★</span></div>
+      </div>
+
+      <div class="footer-nav">
+        <button class="big-btn" onclick="nextQuestion()" id="nextBtn">次の問題へ →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 結果画面 -->
+<div id="resultsScreen">
+  <div>🎉 お疲れさまでした！</div>
+  <div class="score" id="finalScore">4問 完了</div>
+  <div id="avgSummary"></div>
+  <div class="phrase-list">
+    <div style="font-weight:700; margin-bottom:0.4em;">💡 模範解答で見つけた使える表現</div>
+    <ul id="phraseList"></ul>
+  </div>
+  <div class="footer-nav" style="margin-top:1.2em;">
+    <button class="big-btn secondary" onclick="backToMenu()">🏠 メニューに戻る</button>
+  </div>
+</div>
+
+<div class="note">音声: edge-tts (en-US-AndrewNeural) ／ マイク録音はブラウザの対応状況により利用できない場合があります</div>
+
+<script>
+const AUDIO_DIR = 'audio/';
+
+const TOPICS = [
+  {
+    id: 'job', name: '仕事について',
+    questions: [
+      {
+        id: 'job1', qAudio: 'q_job1', aAudio: 'a_job1',
+        q: "Thank you for participating. Today, I'd like to ask you some questions about exploring future careers and workplace choices. First, can you describe a job or type of career you are interested in and explain what attracts you to it?",
+        a: "I'm really interested in a career in graphic design because I've always loved creating visual art. What attracts me to it is <span class='key-phrase'>the chance to be creative every day</span> and bring ideas to life through design. Plus, I like how graphic design lets me work on different kinds of projects, like ads, logos, or web pages. There's also a growing demand for designers in today's digital world, which makes it a stable and exciting field to be in."
+      },
+      {
+        id: 'job2', qAudio: 'q_job2', aAudio: 'a_job2',
+        q: "Good points. When thinking about your future job, would you rather work in an office setting or have a job that allows you to work remotely from different locations? Why?",
+        a: "I would prefer to work remotely from different locations rather than in an office setting. First, remote work offers flexibility, allowing me to set my schedule and work in environments that inspire me, like a cozy café or a beautiful park. This freedom can boost my productivity and creativity. Also, <span class='key-phrase'>working remotely means I can travel and explore new places without being tied to a fixed location</span>. For me, this kind of flexibility and variety in my work setting is a major advantage."
+      },
+      {
+        id: 'job3', qAudio: 'q_job3', aAudio: 'a_job3',
+        q: "I see. Some workplaces offer flexible schedules, allowing employees to choose when they work, but this can sometimes make teamwork more difficult. Do you think flexible schedules are a good idea in most workplaces? Why or why not?",
+        a: "I think flexible schedules are a good idea in most workplaces. They allow employees to balance work and personal life better, which can lead to higher job satisfaction and less burnout. Happy employees tend to be more productive and committed. <span class='key-phrase'>Although it might make teamwork harder sometimes</span>, technology like communication apps can help keep everyone connected. So, I believe the benefits of flexibility, like boosting morale and reducing stress, outweigh the challenges."
+      },
+      {
+        id: 'job4', qAudio: 'q_job4', aAudio: 'a_job4',
+        q: "Thank you. Jobs continue to change with new technology and communication tools. Do you think traditional office jobs will become less common or remain the standard over the next decade? Why or why not?",
+        a: "I believe traditional office jobs will become less common over the next decade. First, technology allows many people to work from home, which can save time and money on commuting. Tools like video calls and collaboration software make it easy to stay connected and productive from anywhere. Also, <span class='key-phrase'>younger workers are looking for flexibility in their jobs</span>, which remote work can offer. So, I think we'll see more people working remotely rather than in traditional office settings."
+      }
+    ]
+  },
+  {
+    id: 'music', name: '音楽',
+    questions: [
+      {
+        id: 'music1', qAudio: 'q_music1', aAudio: 'a_music1',
+        q: "Thank you for participating. Today, I'd like to ask you some questions about music and how it fits into your everyday life. First, can you tell me about the types of music you listen to most often, and why you enjoy them?",
+        a: "I mostly listen to pop and rock music because <span class='key-phrase'>they really energize me and put me in a good mood</span>. Pop music is easy to sing along to, which makes it fun, especially when I'm driving or working out. Rock music, on the other hand, gives me a boost of adrenaline with its strong beats and powerful guitar riffs. Plus, both genres have a wide variety of artists and styles, so I never get bored listening to them. Overall, they make my day more lively and enjoyable."
+      },
+      {
+        id: 'music2', qAudio: 'q_music2', aAudio: 'a_music2',
+        q: "I see. When you listen to music during your daily routine, do you prefer listening alone with headphones or sharing music with others, like friends or family? Why?",
+        a: "I prefer listening to music alone with headphones, especially during my daily routine. It helps me focus and really enjoy the music without distractions. With headphones, I can choose exactly what I want to listen to, so <span class='key-phrase'>it's like creating my own personal soundtrack for the day</span>. It also keeps me in my own world, which helps me concentrate better on my tasks. So, for me, music is more enjoyable and effective when I listen to it privately."
+      },
+      {
+        id: 'music3', qAudio: 'q_music3', aAudio: 'a_music3',
+        q: "Interesting. After a long or stressful day, many people listen to music to relax. Do you think listening to music is an effective way to cope with stress compared to other activities, such as exercising or watching television? Why or why not?",
+        a: "I think listening to music is an effective way to cope with stress. Music has a unique ability to change my mood and calm my mind almost instantly. It's accessible, so I can listen to it anywhere, anytime. <span class='key-phrase'>Unlike watching TV, music doesn't require my full attention, and unlike exercise, it doesn't demand physical effort.</span> Plus, I can choose different kinds of music to match or improve my mood. So for me, music is definitely one of the best ways to relieve stress."
+      },
+      {
+        id: 'music4', qAudio: 'q_music4', aAudio: 'a_music4',
+        q: "Good points. Finally, some workplaces and schools allow background music during activities, while others do not. Do you think listening to music during work or study is helpful or distracting? Why or why not?",
+        a: "I think listening to music while working or studying can be really helpful. Music can put me in a good mood and make tasks feel less boring. For instance, upbeat music might give me energy and keep me focused. Also, some tunes can block out background noise, which helps concentration. However, <span class='key-phrase'>it's important to choose the right type of music</span> — instrumental or soft music is usually best, as lyrics can be distracting. Overall, I think the right kind of music can really boost productivity and focus."
+      }
+    ]
+  },
+  {
+    id: 'event', name: 'イベント鑑賞',
+    questions: [
+      {
+        id: 'event1', qAudio: 'q_event1', aAudio: 'a_event1',
+        q: "Thanks for joining the study. Today, I'd like to ask you some questions about attending events such as concerts, exhibitions, or performances. First, can you tell me about a memorable event you attended and what made it special for you?",
+        a: "One memorable event I attended was a Coldplay concert last summer. It was special mainly because of <span class='key-phrase'>the incredible energy and connection with the audience</span>. Everyone was singing along and dancing, creating this amazing sense of unity. Plus, the band put on a fantastic show with spectacular lights and visuals that made the whole experience unforgettable. It felt like a once-in-a-lifetime moment, surrounded by great music and positive vibes. It truly left a lasting impression on me."
+      },
+      {
+        id: 'event2', qAudio: 'q_event2', aAudio: 'a_event2',
+        q: "Thank you. When you have the choice, do you prefer attending large events with big crowds or smaller, more intimate gatherings? Why?",
+        a: "I prefer attending smaller, more intimate gatherings. I feel like <span class='key-phrase'>it's easier to connect with people on a personal level</span> in a smaller setting. I can have real conversations without all the noise and distractions that come with big crowds. Plus, I think it makes for a more relaxed atmosphere where everyone gets a chance to participate and feel included. So, I believe smaller gatherings create more meaningful and enjoyable experiences."
+      },
+      {
+        id: 'event3', qAudio: 'q_event3', aAudio: 'a_event3',
+        q: "Good points. A venue might choose to allow only seated tickets instead of standing room at concerts to improve safety and comfort. Do you think this is a good policy for all events? Why or why not?",
+        a: "I think allowing only seated tickets at concerts is a good policy for all events. Having everyone seated can really improve safety because there's less crowding and pushing, so the chances of accidents go down. Plus, it can make the experience more comfortable, as everyone has their own space to enjoy the show. Also, <span class='key-phrase'>people might have a better view overall</span>, since they're not blocked by taller individuals standing in front. So overall, I think seated tickets make events safer and a lot more enjoyable for everyone."
+      },
+      {
+        id: 'event4', qAudio: 'q_event4', aAudio: 'a_event4',
+        q: "Interesting. For my final question, I'd like to ask about the importance of attending events in person. Should people make an effort to go to live events rather than just watch recordings or streams online? Why or why not?",
+        a: "I think people should make an effort to attend live events in person when they can. <span class='key-phrase'>Being there in person creates a different energy and excitement</span> that I just can't get from a recording. For example, at a concert, feeling the music and the crowd can make the experience unforgettable. Plus, attending live events is a great way to meet others who share my interests, which can lead to new friendships. So, I believe going to events in person is definitely worthwhile."
+      }
+    ]
+  },
+  {
+    id: 'travel', name: '旅行（新しい場所）',
+    questions: [
+      {
+        id: 'travel1', qAudio: 'q_travel1', aAudio: 'a_travel1',
+        q: "Thanks for joining the study. Today, I'd like to ask you some questions about traveling to new places. First, can you tell me about a memorable trip you took to a place you had never visited before?",
+        a: "Sure! One of my most memorable trips was to Tokyo, Japan. I'd never been there before, and it was an amazing experience. What stood out to me was <span class='key-phrase'>the blend of traditional and modern culture</span>, like visiting ancient temples right next to skyscrapers. The food was incredible, especially trying sushi at a local market. I also enjoyed exploring the vibrant city streets and experiencing the unique pace of life there. Overall, Tokyo really left a strong impression on me, and I'd love to go back someday."
+      },
+      {
+        id: 'travel2', qAudio: 'q_travel2', aAudio: 'a_travel2',
+        q: "I see. When visiting a new destination, do you prefer to travel alone or with companions? Why?",
+        a: "I prefer to travel with companions when visiting a new destination. Having friends or family with me makes the experience a lot more enjoyable, since we can share exciting moments and memories together. It's also safer, and I can help each other out if something goes wrong. Also, <span class='key-phrase'>exploring new places with others often leads to interesting conversations and discoveries</span>, because everyone notices different things. So, traveling with companions definitely makes trips more fun and memorable for me."
+      },
+      {
+        id: 'travel3', qAudio: 'q_travel3', aAudio: 'a_travel3',
+        q: "Good points. Airports often introduce rules about baggage limits that might make travel less comfortable but help speed up security checks. Do you think such policies are necessary for travel? Why or why not?",
+        a: "I think baggage limit policies are necessary for travel. They help speed up security checks, which is crucial for making airports more efficient. When there are fewer bags to check, the security staff can work faster, and that cuts down the wait time for everyone. Plus, <span class='key-phrase'>limiting baggage ensures that there's enough space in cabins</span>, making boarding and deplaning quicker and smoother. Overall, these rules make traveling more streamlined and less stressful for both passengers and staff."
+      },
+      {
+        id: 'travel4', qAudio: 'q_travel4', aAudio: 'a_travel4',
+        q: "Interesting. Do you think that traveling to new places will become more common or less common in the next ten years? Explain your thoughts.",
+        a: "I think traveling to new places will become more common in the next ten years. First, technology is making travel easier and a lot more affordable, especially with things like online booking and budget airlines. People have more access to information about destinations, which sparks interest. Plus, <span class='key-phrase'>remote work is on the rise, allowing people to travel while working</span>. And since people are always looking for new experiences and cultures, their desire to travel keeps growing. So, I believe travel will become a bigger part of our lives."
+      }
+    ]
+  }
+];
+
+const PREP_SECONDS = 15;
+const RESPONSE_SECONDS = 45;
+
+let sessionQuestions = [];
+let currentIndex = 0;
+let ratings = []; // {delivery, language, topic}
+let collectedPhrases = [];
+
+let mediaRecorder = null;
+let recordedChunks = [];
+let micAvailable = false;
+let recordedUrl = null;
+
+let prepInterval = null;
+let respInterval = null;
+
+// ---- 音声再生（質問・模範解答共通） ----
+let currentAudio = null;
+let currentBtn = null;
+function resetPlayBtn(btn, icon) { btn.textContent = icon; btn.classList.remove('playing'); }
+function playAudioBtn(btn, src, icon) {
+  const isSameBtn = (currentBtn === btn);
+  if (currentAudio) { currentAudio.pause(); currentAudio.currentTime = 0; }
+  if (currentBtn) { resetPlayBtn(currentBtn, currentBtn.dataset.icon || '▶'); currentBtn = null; }
+  if (isSameBtn) { currentAudio = null; return; }
+  const audio = new Audio(src);
+  currentAudio = audio; currentBtn = btn; btn.dataset.icon = icon;
+  btn.textContent = '■'; btn.classList.add('playing');
+  audio.onended = audio.onerror = () => { resetPlayBtn(btn, icon); if (currentBtn === btn) { currentBtn = null; currentAudio = null; } };
+  audio.play();
+}
+function toggleQuestionAudio() {
+  const q = sessionQuestions[currentIndex];
+  playAudioBtn(document.getElementById('qPlayBtn'), AUDIO_DIR + q.qAudio + '.mp3', '▶');
+}
+function toggleAnswerAudio() {
+  const q = sessionQuestions[currentIndex];
+  playAudioBtn(document.getElementById('aPlayBtn'), AUDIO_DIR + q.aAudio + '.mp3', '▶');
+}
+
+// ---- メニュー ----
+function showTopicPicker() {
+  const grid = document.getElementById('topicGrid');
+  grid.innerHTML = '';
+  TOPICS.forEach(t => {
+    const btn = document.createElement('button');
+    btn.className = 'menu-btn';
+    btn.innerHTML = `<div class="title">${t.name}</div><div class="desc">Q1〜Q4（全4問）</div>`;
+    btn.onclick = () => startQuiz('topic', t.id);
+    grid.appendChild(btn);
+  });
+  document.getElementById('topicPicker').style.display = 'block';
+}
+
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function startQuiz(mode, topicId) {
+  if (mode === 'mock') {
+    sessionQuestions = TOPICS.map(t => {
+      const q = t.questions[Math.floor(Math.random() * t.questions.length)];
+      return Object.assign({}, q, { topicName: t.name });
+    });
+    sessionQuestions = shuffle(sessionQuestions);
+  } else {
+    const t = TOPICS.find(x => x.id === topicId);
+    sessionQuestions = t.questions.map(q => Object.assign({}, q, { topicName: t.name }));
+  }
+  currentIndex = 0;
+  ratings = [];
+  collectedPhrases = [];
+  document.getElementById('menuScreen').style.display = 'none';
+  document.getElementById('resultsScreen').classList.remove('show');
+  document.getElementById('progressWrap').classList.add('show');
+  document.getElementById('quizCard').classList.add('show');
+  renderQuestion();
+}
+
+function backToMenu() {
+  document.getElementById('resultsScreen').classList.remove('show');
+  document.getElementById('progressWrap').classList.remove('show');
+  document.getElementById('menuScreen').style.display = 'block';
+  document.getElementById('topicPicker').style.display = 'none';
+}
+
+// ---- 出題フロー ----
+function renderQuestion() {
+  clearInterval(prepInterval); clearInterval(respInterval);
+  const q = sessionQuestions[currentIndex];
+  document.getElementById('topicTag').textContent = q.topicName + ` ／ Q${(currentIndex % 4) + 1}`;
+  document.getElementById('progressLabel').textContent = `Q${currentIndex + 1}/${sessionQuestions.length}`;
+  document.getElementById('progressFill').style.width = `${(currentIndex / sessionQuestions.length) * 100}%`;
+
+  document.getElementById('questionText').textContent = q.q;
+  document.getElementById('questionText').classList.remove('show');
+  document.getElementById('questionTextPrep').textContent = q.q;
+  document.getElementById('modelAnswerText').innerHTML = q.a;
+
+  document.getElementById('phaseListen').style.display = 'block';
+  document.getElementById('phasePrep').style.display = 'none';
+  document.getElementById('phaseSpeak').style.display = 'none';
+  document.getElementById('phaseReview').style.display = 'none';
+  document.getElementById('myRecordingBox').style.display = 'none';
+  document.getElementById('micWarning').style.display = 'none';
+  resetStars();
+
+  const qBtn = document.getElementById('qPlayBtn');
+  resetPlayBtn(qBtn, '▶');
+  const aBtn = document.getElementById('aPlayBtn');
+  resetPlayBtn(aBtn, '▶');
+
+  // 自動再生（ブラウザによりブロックされる場合は手動再生ボタンで対応）
+  setTimeout(() => { try { toggleQuestionAudio(); } catch(e){} }, 300);
+}
+
+function toggleTranscript() {
+  document.getElementById('questionText').classList.toggle('show');
+}
+
+function startPrep() {
+  if (currentAudio) { currentAudio.pause(); }
+  document.getElementById('phaseListen').style.display = 'none';
+  document.getElementById('phasePrep').style.display = 'block';
+  let remaining = PREP_SECONDS;
+  document.getElementById('prepTimer').textContent = remaining;
+  document.getElementById('prepFill').style.width = '100%';
+  prepInterval = setInterval(() => {
+    remaining--;
+    document.getElementById('prepTimer').textContent = remaining;
+    document.getElementById('prepFill').style.width = `${(remaining / PREP_SECONDS) * 100}%`;
+    if (remaining <= 0) {
+      clearInterval(prepInterval);
+      startResponse();
+    }
+  }, 1000);
+}
+
+async function startResponse() {
+  document.getElementById('phasePrep').style.display = 'none';
+  document.getElementById('phaseSpeak').style.display = 'block';
+  let remaining = RESPONSE_SECONDS;
+  document.getElementById('respTimer').textContent = remaining;
+  document.getElementById('respFill').style.width = '100%';
+
+  await tryStartRecording();
+
+  respInterval = setInterval(() => {
+    remaining--;
+    document.getElementById('respTimer').textContent = remaining;
+    document.getElementById('respFill').style.width = `${(remaining / RESPONSE_SECONDS) * 100}%`;
+    if (remaining <= 0) {
+      clearInterval(respInterval);
+      stopRecordingAndReview();
+    }
+  }, 1000);
+}
+
+async function tryStartRecording() {
+  recordedChunks = [];
+  micAvailable = false;
+  try {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) throw new Error('no mediaDevices');
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    mediaRecorder = new MediaRecorder(stream);
+    mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) recordedChunks.push(e.data); };
+    mediaRecorder.start();
+    micAvailable = true;
+    document.getElementById('recIndicator').classList.add('show');
+  } catch (e) {
+    document.getElementById('micWarning').style.display = 'block';
+  }
+}
+
+function stopRecordingAndReview() {
+  document.getElementById('recIndicator').classList.remove('show');
+  if (micAvailable && mediaRecorder && mediaRecorder.state !== 'inactive') {
+    mediaRecorder.onstop = () => {
+      const blob = new Blob(recordedChunks, { type: 'audio/webm' });
+      recordedUrl = URL.createObjectURL(blob);
+      document.getElementById('myRecordingPlayer').src = recordedUrl;
+      document.getElementById('myRecordingBox').style.display = 'block';
+      mediaRecorder.stream.getTracks().forEach(t => t.stop());
+      showReview();
+    };
+    mediaRecorder.stop();
+  } else {
+    showReview();
+  }
+}
+
+function showReview() {
+  document.getElementById('phaseSpeak').style.display = 'none';
+  document.getElementById('phaseReview').style.display = 'block';
+}
+
+// ---- 星評価 ----
+function resetStars() {
+  document.querySelectorAll('.stars').forEach(el => {
+    const cat = el.dataset.cat;
+    renderStars(el, 0);
+  });
+}
+function renderStars(el, value) {
+  el.innerHTML = '';
+  for (let i = 1; i <= 4; i++) {
+    const s = document.createElement('span');
+    s.textContent = '★';
+    if (i <= value) s.classList.add('on');
+    s.onclick = () => { el.dataset.value = i; renderStars(el, i); };
+    el.appendChild(s);
+  }
+}
+document.querySelectorAll('.stars').forEach(el => renderStars(el, 0));
+
+function nextQuestion() {
+  const r = {};
+  document.querySelectorAll('.stars').forEach(el => { r[el.dataset.cat] = parseInt(el.dataset.value || '0', 10); });
+  ratings.push(r);
+
+  const q = sessionQuestions[currentIndex];
+  const div = document.createElement('div');
+  div.innerHTML = q.a;
+  div.querySelectorAll('.key-phrase').forEach(k => collectedPhrases.push(k.textContent));
+
+  if (recordedUrl) { URL.revokeObjectURL(recordedUrl); recordedUrl = null; }
+
+  currentIndex++;
+  if (currentIndex >= sessionQuestions.length) {
+    showResults();
+  } else {
+    renderQuestion();
+  }
+}
+
+function showResults() {
+  document.getElementById('quizCard').classList.remove('show');
+  document.getElementById('progressWrap').classList.remove('show');
+  document.getElementById('resultsScreen').classList.add('show');
+  document.getElementById('finalScore').textContent = `${sessionQuestions.length}問 完了`;
+
+  const cats = { delivery: 'Delivery', language: 'Language Use', topic: 'Topic Development' };
+  let html = '';
+  Object.keys(cats).forEach(c => {
+    const vals = ratings.map(r => r[c] || 0);
+    const avg = vals.length ? (vals.reduce((a, b) => a + b, 0) / vals.length) : 0;
+    html += `<div class="avg-row"><span>${cats[c]}</span><span>${'★'.repeat(Math.round(avg))}${'☆'.repeat(4 - Math.round(avg))} (${avg.toFixed(1)})</span></div>`;
+  });
+  document.getElementById('avgSummary').innerHTML = html;
+
+  const list = document.getElementById('phraseList');
+  list.innerHTML = '';
+  [...new Set(collectedPhrases)].forEach(p => {
+    const li = document.createElement('li');
+    li.textContent = p;
+    list.appendChild(li);
+  });
+}
+</script>
+</body>
+</html>

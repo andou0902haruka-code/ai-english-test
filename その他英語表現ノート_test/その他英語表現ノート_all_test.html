@@ -1,0 +1,1179 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>その他英語表現ノート 総合テスト</title>
+<style>
+:root{--bg:#f5f7fa;--card:#ffffff;--text:#222;--sub:#666;--accent:#3b6ef0;--accent2:#22a06b;--danger:#e0453c;--border:#e2e6ee;}
+*{box-sizing:border-box;}
+body{font-family:'Hiragino Kaku Gothic ProN','Yu Gothic',sans-serif;background:var(--bg);color:var(--text);margin:0;padding:0;line-height:1.6;}
+#app{max-width:720px;margin:0 auto;padding:16px;}
+.hidden{display:none !important;}
+.card{background:var(--card);border-radius:14px;padding:20px;box-shadow:0 2px 10px rgba(0,0,0,0.06);margin-bottom:16px;}
+h1{font-size:1.4rem;text-align:center;margin:20px 0;}
+h2{font-size:1.15rem;margin:0 0 8px;}
+.sub{color:var(--sub);font-size:0.9rem;}
+.format-cards{display:flex;flex-direction:column;gap:14px;margin-top:20px;}
+.format-card{background:var(--card);border:2px solid var(--border);border-radius:14px;padding:18px;cursor:pointer;transition:.15s;}
+.format-card:hover{border-color:var(--accent);transform:translateY(-2px);}
+.format-card .emoji{font-size:1.6rem;margin-right:6px;}
+.format-card .count{color:var(--accent);font-weight:bold;font-size:0.85rem;margin-top:6px;}
+.btn{display:inline-block;background:var(--accent);color:#fff;border:none;padding:10px 18px;border-radius:8px;font-size:0.95rem;cursor:pointer;text-align:center;}
+.btn:disabled{background:#b7c2d6;cursor:not-allowed;}
+.btn.secondary{background:#eef1f7;color:var(--text);}
+.btn.block{display:block;width:100%;margin-top:10px;}
+.link{color:var(--accent);cursor:pointer;text-decoration:underline;font-size:0.9rem;}
+.mode-cards{display:flex;flex-direction:column;gap:12px;margin-top:14px;}
+.mode-card{border:2px solid var(--border);border-radius:12px;padding:14px;}
+.mode-card .title{font-weight:bold;}
+.mode-card .desc{color:var(--sub);font-size:0.85rem;margin:4px 0 10px;}
+.category-list{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0;}
+.category-btn{border:1.5px solid var(--border);background:#fff;border-radius:20px;padding:6px 12px;font-size:0.85rem;cursor:pointer;}
+.category-btn.selected{background:var(--accent);color:#fff;border-color:var(--accent);}
+.footer-links{text-align:center;margin-top:18px;}
+header.test-header{display:flex;flex-direction:column;gap:6px;margin-bottom:14px;}
+.header-top{display:flex;justify-content:space-between;align-items:center;}
+.format-badge{background:#eef1f7;border-radius:20px;padding:3px 10px;font-size:0.8rem;}
+.progress-bar{background:#e2e6ee;border-radius:6px;height:8px;overflow:hidden;}
+.progress-fill{background:var(--accent);height:100%;transition:.2s;}
+.q-meta{display:flex;gap:8px;align-items:center;margin-bottom:10px;flex-wrap:wrap;}
+.type-badge{background:#eaf1ff;color:var(--accent);border-radius:6px;padding:2px 8px;font-size:0.78rem;font-weight:bold;}
+.cat-badge{background:#eefaf2;color:var(--accent2);border-radius:6px;padding:2px 8px;font-size:0.78rem;}
+.bookmark-row{display:flex;align-items:center;gap:6px;font-size:0.85rem;color:var(--sub);margin:6px 0;}
+.trash-link{float:right;font-size:0.78rem;color:var(--sub);cursor:pointer;text-decoration:underline;}
+.hint-box{background:#f8f9fc;border-left:4px solid var(--accent);padding:10px 14px;border-radius:6px;margin:10px 0;font-size:0.95rem;}
+.q-text{font-size:1.1rem;margin:10px 0;}
+input[type=text],textarea{width:100%;padding:10px;border:1.5px solid var(--border);border-radius:8px;font-size:1rem;font-family:inherit;}
+textarea{min-height:80px;resize:vertical;}
+.choices label{display:block;border:1.5px solid var(--border);border-radius:8px;padding:10px 12px;margin:8px 0;cursor:pointer;}
+.choices label:hover{border-color:var(--accent);}
+.choices input{margin-right:8px;}
+.tile-area{min-height:60px;border:2px dashed var(--border);border-radius:8px;padding:10px;margin:10px 0;display:flex;flex-wrap:wrap;gap:8px;}
+.tile-area.empty::before{content:"タップして単語を選んでください";color:var(--sub);font-size:0.9rem;}
+.tile{background:var(--accent);color:#fff;border-radius:6px;padding:6px 12px;cursor:pointer;font-size:0.95rem;}
+.tile-pool{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0;}
+.tile-pool .tile{background:#eef1f7;color:var(--text);border:1.5px solid var(--border);}
+.correction-text{font-size:1.1rem;margin:10px 0;}
+.correction-text .wrong{text-decoration:underline wavy var(--danger);text-decoration-thickness:2px;color:var(--danger);font-weight:bold;}
+.match-columns{display:flex;gap:10px;margin:10px 0;}
+.match-col{flex:1;display:flex;flex-direction:column;gap:8px;}
+.match-item{border:1.5px solid var(--border);border-radius:8px;padding:8px 10px;cursor:pointer;font-size:0.9rem;text-align:center;background:#fff;}
+.match-item.selected{border-color:var(--accent);background:#eaf1ff;}
+.match-item.paired{background:#eefaf2;border-color:var(--accent2);color:var(--accent2);}
+.match-item.disabled{opacity:0.4;cursor:default;}
+.feedback{border-radius:10px;padding:14px;margin-top:14px;}
+.feedback.correct{background:#eefaf2;border:1.5px solid var(--accent2);}
+.feedback.wrong{background:#fdeceb;border:1.5px solid var(--danger);}
+.feedback .result-title{font-weight:bold;font-size:1.05rem;margin-bottom:6px;}
+.feedback .answer-line{margin:6px 0;}
+.play-btn{background:#fff;border:1.5px solid var(--accent);color:var(--accent);border-radius:20px;padding:5px 14px;font-size:0.85rem;cursor:pointer;margin:4px 0;}
+.play-btn.playing{background:var(--accent);color:#fff;}
+.source-thumbs{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0;}
+.source-thumb{width:90px;height:90px;object-fit:cover;border-radius:8px;cursor:zoom-in;border:1px solid var(--border);}
+.info-block{font-size:0.88rem;margin-top:8px;color:#444;}
+.trash-report{margin-top:10px;font-size:0.85rem;}
+.next-btn-row{margin-top:14px;}
+.img-modal{position:fixed;inset:0;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;z-index:999;}
+.img-modal img{max-width:92%;max-height:92%;border-radius:6px;}
+.img-modal-close{position:absolute;top:16px;right:24px;color:#fff;font-size:2rem;cursor:pointer;}
+.result-score{text-align:center;font-size:2.4rem;font-weight:bold;color:var(--accent);margin:10px 0;}
+.result-stars{text-align:center;font-size:1.6rem;color:#f5a623;}
+.result-msg{text-align:center;margin:8px 0 20px;}
+.trash-item{border:1.5px solid var(--border);border-radius:10px;padding:12px;margin-bottom:10px;}
+.trash-item .excerpt{font-size:0.9rem;color:#444;margin:6px 0;}
+@media (prefers-color-scheme: dark){
+  :root{--bg:#15181f;--card:#1f232c;--text:#eaecf1;--sub:#9aa2b1;--border:#333844;}
+  .choices label,.match-item,.category-btn{background:#1f232c;}
+  .tile-pool .tile{background:#2a2f3a;color:#eaecf1;}
+  .hint-box{background:#232734;}
+  .type-badge{background:#22283a;}
+  .cat-badge{background:#1c2e26;}
+  .feedback.correct{background:#17301f;}
+  .feedback.wrong{background:#331d1c;}
+  .play-btn{background:#1f232c;}
+}
+:root[data-theme="dark"]{--bg:#15181f;--card:#1f232c;--text:#eaecf1;--sub:#9aa2b1;--border:#333844;}
+:root[data-theme="light"]{--bg:#f5f7fa;--card:#ffffff;--text:#222;--sub:#666;--border:#e2e6ee;}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- 出題形式選択画面 -->
+<div id="screen-format">
+  <h1>その他英語表現ノート<br>総合テスト</h1>
+  <p class="sub" style="text-align:center;">3つの出題形式から選んでください</p>
+  <div class="format-cards">
+    <div class="format-card" onclick="showModeSelect('fillchoice')">
+      <div><span class="emoji">✏️</span><strong>穴埋め・選択肢</strong></div>
+      <div class="sub">日本語ヒントから空所を埋める／正しい英語表現を4択で選ぶ</div>
+      <div class="count" id="count-fillchoice"></div>
+      <button class="btn block">この形式で挑戦</button>
+    </div>
+    <div class="format-card" onclick="showModeSelect('order')">
+      <div><span class="emoji">📝</span><strong>並べ替え・誤り訂正</strong></div>
+      <div class="sub">日本語ヒントから正しい語順を組み立てる／文法ミスを見抜く</div>
+      <div class="count" id="count-order"></div>
+      <button class="btn block">この形式で挑戦</button>
+    </div>
+    <div class="format-card" onclick="showModeSelect('write')">
+      <div><span class="emoji">✍️</span><strong>自由記述・マッチング</strong></div>
+      <div class="sub">日本語から英文をゼロから書く／日英フレーズを対応づける</div>
+      <div class="count" id="count-write"></div>
+      <button class="btn block">この形式で挑戦</button>
+    </div>
+  </div>
+</div>
+
+<!-- モード選択画面 -->
+<div id="screen-mode" class="hidden">
+  <p><span class="link" onclick="showFormatSelect()">← 出題形式選択に戻る</span></p>
+  <h2 id="mode-title"></h2>
+  <p class="sub" id="mode-sub"></p>
+  <div class="mode-cards">
+    <div class="mode-card">
+      <div class="title">🎲 ランダム20問(おまかせ)</div>
+      <div class="desc">前回の復習30%＋未出題70%で自動選出</div>
+      <button class="btn" onclick="startTest(currentFormat,'random')">このモードで始める</button>
+    </div>
+    <div class="mode-card">
+      <div class="title">📚 全問題に挑戦</div>
+      <div class="desc" id="mode-all-desc"></div>
+      <button class="btn" onclick="startTest(currentFormat,'all')">このモードで始める</button>
+    </div>
+    <div class="mode-card">
+      <div class="title">🗂 ジャンル別に挑戦</div>
+      <div class="category-list" id="category-list"></div>
+      <button class="btn" id="btn-category-start" disabled onclick="startCategoryMode()">選んだジャンルで始める</button>
+    </div>
+    <div class="mode-card">
+      <div class="title">🔖 復習リストから挑戦</div>
+      <div class="desc" id="mode-bookmark-desc"></div>
+      <button class="btn" id="btn-bookmark-start" onclick="startTest(currentFormat,'bookmark')">復習リストで始める</button>
+    </div>
+  </div>
+  <div class="footer-links">
+    <span class="link" id="trash-link-mode" onclick="showTrashScreen()"></span>
+  </div>
+</div>
+
+<!-- ゴミ箱画面 -->
+<div id="screen-trash" class="hidden">
+  <p><span class="link" onclick="showModeSelect(currentFormat)">← モード選択に戻る</span></p>
+  <h2 id="trash-title">🗑 ゴミ箱</h2>
+  <div id="trash-list"></div>
+</div>
+
+<!-- 問題画面 -->
+<div id="screen-question" class="hidden">
+  <header class="test-header">
+    <div class="header-top">
+      <span class="format-badge" id="current-format-badge"></span>
+      <span id="q-position">Q 1/20</span>
+      <span class="link" onclick="showModeSelect(currentFormat)">スタート画面に戻る</span>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+  </header>
+  <div class="card" id="question-card"></div>
+</div>
+
+<!-- 結果画面 -->
+<div id="screen-result" class="hidden">
+  <div class="card" style="text-align:center;">
+    <h2 id="result-format-title"></h2>
+    <div class="result-score" id="result-score"></div>
+    <div class="sub" id="result-rate"></div>
+    <div class="result-stars" id="result-stars"></div>
+    <div class="result-msg" id="result-msg"></div>
+    <button class="btn block" onclick="retryTest()">もう一度同じ形式・モードで挑戦する</button>
+    <button class="btn secondary block" onclick="showFormatSelect()">別の形式に挑戦する</button>
+    <button class="btn secondary block" onclick="showFormatSelect()">🏠 最初から</button>
+  </div>
+</div>
+
+</div>
+
+<div class="img-modal hidden" id="imgModal" onclick="closeImageModal()">
+  <span class="img-modal-close" onclick="closeImageModal()">&times;</span>
+  <img id="imgModalImg" src="" alt="出典画像">
+</div>
+
+<script>
+const FILLCHOICE_QUESTIONS = [
+// ===== 語彙 =====
+{id:1,type:"fill",category:"語彙",question:"He tried to _____ his fear of public speaking.",hint:"「〜を克服する」という意味の動詞を入れよう。",fullSentence:"He tried to overcome his fear of public speaking.",answer:"overcome",source:"IMG_0775",explanation:"overcome=「(困難など)を克服する」。get over(口語)とほぼ同義。",relatedInfo:"get over ~ も同様に「〜を乗り越える」の意味で使われる。"},
+{id:2,type:"choice",category:"語彙",question:"「膨大な数の」という意味の語はどれ?",hint:"a myriad of problems のように使う。",fullSentence:"She faced a myriad of problems at work.",answer:"myriad",choices:["myriad","subtle","mediocre","gradual"],source:"IMG_0777",explanation:"myriad=「無数の、膨大な」。a myriad of ~ の形で頻出。",relatedInfo:"countless, numerous も似た意味。"},
+{id:3,type:"fill",category:"語彙",question:"His explanation was too _____; it ignored many important details.",hint:"「単純化しすぎた」という意味の形容詞。",fullSentence:"His explanation was too simplistic; it ignored many important details.",answer:"simplistic",source:"IMG_0779",explanation:"simplistic=「単純化しすぎた」。simpleより否定的なニュアンス。",relatedInfo:"an oversimplified explanation とも言い換えられる。"},
+{id:4,type:"choice",category:"語彙",question:"「並外れた、平凡以下の」という意味の語はどれ?",hint:"品質が「並」であることを表す形容詞。",fullSentence:"The quality of the product was mediocre.",answer:"mediocre",choices:["mediocre","gradual","genuine","subtle"],source:"IMG_0777",explanation:"mediocre=「平凡な、二流の」。ネガティブな評価を表す。",relatedInfo:"average(平均的な)よりマイナスの含みが強い。"},
+{id:5,type:"fill",category:"語彙",question:"Genetic _____ has raised many ethical questions.",hint:"「遺伝子工学」という意味の複合語の後半部分。",fullSentence:"Genetic engineering has raised many ethical questions.",answer:"engineering",source:"IMG_0776",explanation:"genetic engineering=「遺伝子工学」。genetic=遺伝子の。",relatedInfo:"engineering単体では「工学」の意味。"},
+{id:6,type:"choice",category:"語彙",question:"「先住民の、原始の」に近い、対義語がmodernとなる語はどれ?",hint:"ancient→mediaeval→modern の流れで覚えた語。",fullSentence:"The ancient temple was built over a thousand years ago.",answer:"ancient",choices:["ancient","alien","subordinate","orthodox"],source:"IMG_0746",explanation:"ancient=「古代の」。mediaeval(中世の)、modern(現代の)と時代の流れで覚える。",relatedInfo:"attach A to B「AをBに愛着させる」もこのページの内容。"},
+{id:7,type:"fill",category:"語彙",question:"The volcano has been _____ for over a century.",hint:"「休止状態の」という意味ではなく、ここでは「慢性の」に近い形容詞と対になる語。",fullSentence:"His illness is chronic, not acute.",answer:"chronic",source:"IMG_0748",explanation:"chronic=「慢性の」⇔acute=「急性の」。",relatedInfo:"invest in ~「〜に投資する」もこのページの表現。"},
+{id:8,type:"choice",category:"語彙",question:"「相続人」という意味の語はどれ?",hint:"heiress(女性形)という語もある。",fullSentence:"He is the heir to a large fortune.",answer:"heir",choices:["heir","subordinate","physicist","kinship"],source:"IMG_0763",explanation:"heir=「相続人、後継者」。",relatedInfo:"scientific(科学的な), unceremoniously(儀礼なしに)も同ページの語彙。"},
+{id:9,type:"fill",category:"語彙",question:"There is a general _____ that the plan will succeed.",hint:"「受容、承認」という意味の名詞。",fullSentence:"There is a general acceptance that the plan will succeed.",answer:"acceptance",source:"IMG_0778",explanation:"acceptance=「受容、承認」。until there is a general acceptanceの形。",relatedInfo:"consequently=「その結果として」も関連表現。"},
+{id:10,type:"choice",category:"語彙",question:"「不一致、食い違い」という意味の語はどれ?",hint:"discrepancy between A and B の形でよく使う。",fullSentence:"There was a discrepancy between the two reports.",answer:"discrepancy",choices:["discrepancy","dissatisfaction","comprehension","connotation"],source:"IMG_0772",explanation:"discrepancy=「不一致、食い違い」。",relatedInfo:"crack(ひび), dissatisfaction(不満)も同ページの語。"},
+{id:11,type:"fill",category:"語彙",question:"The word has a negative _____ in this context.",hint:"「言外の意味、含意」という意味の名詞。",fullSentence:"The word has a negative connotation in this context.",answer:"connotation",source:"IMG_0777",explanation:"connotation=「言外の意味、含意」。denotation(明示的な意味)と対比される。",relatedInfo:"denotation=辞書的な意味、connotation=感情的な含み。"},
+{id:12,type:"choice",category:"語彙",question:"「〜をひどく嫌う」という意味の動詞はどれ?",hint:"hateよりも強い嫌悪を表す。",fullSentence:"I detest people who lie to me.",answer:"detest",choices:["detest","interpret","outpace","translate"],source:"IMG_0777",explanation:"detest=「〜をひどく嫌う」。hateの強意版。",relatedInfo:"outpace=「〜を追い越す」も同ページの語。"},
+{id:13,type:"fill",category:"語彙",question:"The changes in society have been _____ rather than sudden.",hint:"「徐々の」という意味の形容詞。",fullSentence:"The changes in society have been gradual rather than sudden.",answer:"gradual",source:"IMG_0778",explanation:"gradual=「徐々の」。副詞形はgradually。",relatedInfo:"diverse(多様な)とは反対の性質を表す語。"},
+{id:14,type:"choice",category:"語彙",question:"「反対者、提唱者」のうち提唱者を意味する語はどれ?",hint:"opponentの対義語にあたる。",fullSentence:"She is a strong advocate for education reform.",answer:"advocate",choices:["advocate","opponent","subordinate","alien"],source:"IMG_0780",explanation:"advocate=「提唱者」⇔opponent=「反対者」。proponent, supporter, championも類義語。",relatedInfo:"alternative=「代わりの、代替の」もこのページの語。"},
+{id:15,type:"fill",category:"語彙",question:"Please _____ the reason for your absence.",hint:"「〜を明確に述べる」という意味の動詞。",fullSentence:"Please articulate the reason for your absence.",answer:"articulate",source:"IMG_0763",explanation:"articulate=「〜をはっきり述べる」。形容詞としても使われ「明確な」の意味を持つ。",relatedInfo:"definite=「明確な、確定した」も類似の語。"},
+{id:16,type:"choice",category:"語彙",question:"「束、包み」という意味の語はどれ?",hint:"a bundle of letters のように使う。",fullSentence:"He found a bundle of old letters in the attic.",answer:"bundle",choices:["bundle","flock","herd","crowd"],source:"IMG_0774",explanation:"a bundle of ~=「〜の束」。bundle up=「〜を束ねる、着込む」の意味もある。",relatedInfo:"flock(羊などの群れ), herd(牛などの群れ), crowd(人混み)と使い分ける。"},
+{id:17,type:"fill",category:"語彙",question:"Sheep often _____ together for safety.",hint:"「群れ」を意味する名詞。動物によって使い分ける。",fullSentence:"A flock of sheep grazed on the hillside.",answer:"flock",source:"IMG_0780",explanation:"flock=「(羊・鳥の)群れ」、herd=「(牛などの)群れ」、pack=「(狼などの)群れ」で使い分ける。",relatedInfo:"graze=「(牛などが)草を食べる」もこのページの語。"},
+{id:18,type:"choice",category:"語彙",question:"「途方もない、法外な」に近い「例外的な、免除された」という意味の語はどれ?",hint:"exempt from ~の形で使う。",fullSentence:"Students are exempt from this rule.",answer:"exempt",choices:["exempt","vacancy","admission","interest"],source:"IMG_0763",explanation:"exempt=「免除された」。be exempt from ~=「〜を免除されている」。",relatedInfo:"vacancy=「空き、欠員」、admission=「入場、入学許可」も同ページ。"},
+{id:19,type:"fill",category:"語彙",question:"The government plans to _____ the country's industry.",hint:"「〜を工業化する」という意味の動詞。",fullSentence:"The government plans to industrialize the country's industry.",answer:"industrialize",source:"IMG_0748",explanation:"industrialize=「〜を工業化する」。infrastructure=「インフラ、基盤整備」も同ページ。",relatedInfo:"liquefy=「〜を液化する」も同じページの科学系語彙。"},
+{id:20,type:"choice",category:"語彙",question:"「気候」という意味の語はどれ?",hint:"climate changeという表現でおなじみ。",fullSentence:"Climate change is one of the biggest challenges of our time.",answer:"climate",choices:["climate","deposits","cubic","onshore"],source:"IMG_0748",explanation:"climate=「気候」。deposits=「堆積物、鉱床」、onshore=「陸上の、沿岸の」も同ページの語彙。",relatedInfo:"throughout=「〜の至る所で、〜の間中」も関連表現。"},
+{id:21,type:"fill",category:"語彙",question:"There is a strong sense of _____ among the villagers.",hint:"「血縁関係」という意味の名詞。",fullSentence:"There is a strong sense of kinship among the villagers.",answer:"kinship",source:"IMG_0763",explanation:"kinship=「血縁関係、親族関係」。",relatedInfo:"heir(相続人)とも関連する語彙。"},
+{id:22,type:"choice",category:"語彙",question:"「進化的な」という意味の形容詞はどれ?",hint:"evolutionと関連する形容詞。",fullSentence:"This is an evolutionary process that takes many generations.",answer:"evolutionary",choices:["evolutionary","genetic","physicist","subordinate"],source:"IMG_0775",explanation:"evolutionary=「進化の、進化的な」。genetic=「遺伝子の」も同ページの語。",relatedInfo:"physicist=「物理学者」も同ページに登場。"},
+{id:23,type:"fill",category:"語彙",question:"The manager tends to be _____ to his subordinates' opinions.",hint:"「〜を無視する」という意味の動詞の現在分詞形が入る。",fullSentence:"The manager tends to be disturbingly indifferent to his subordinates' opinions.",answer:"disturbingly",source:"IMG_0775",explanation:"disturbing=「不安にさせる、厄介な」。副詞形disturbinglyもよく使われる。",relatedInfo:"ignore=「〜を無視する」も同ページの語彙。"},
+{id:24,type:"choice",category:"語彙",question:"「無限に、際限なく」に近い「際限なく続く」を意味する形容詞に近いのはどれ?",hint:"straightforward=「率直な、簡単な」も同ページの語。",fullSentence:"His explanation was straightforward and easy to understand.",answer:"straightforward",choices:["straightforward","mobility","version","excuse"],source:"IMG_0763",explanation:"straightforward=「率直な、わかりやすい」。",relatedInfo:"mobility=「機動性、流動性」も同ページの語。"},
+{id:25,type:"fill",category:"語彙",question:"The company has taken a _____ approach to solving this issue.",hint:"「科学的な」という意味の形容詞。",fullSentence:"The company has taken a scientific approach to solving this issue.",answer:"scientific",source:"IMG_0763",explanation:"scientific=「科学的な」。",relatedInfo:"tower=「そびえ立つ」も動詞として同ページに登場。"},
+
+// ===== 熟語・句動詞 =====
+{id:26,type:"fill",category:"熟語・句動詞",question:"She managed to _____ out the problem on her own.",hint:"「(問題)を解決する」という意味の句動詞。work outの形。",fullSentence:"She managed to work out the problem on her own.",answer:"work",source:"IMG_0744",explanation:"work out=「(問題など)を解決する」。address/tackle/work onも類義。",relatedInfo:"solve the problem という言い方も同じ意味。"},
+{id:27,type:"choice",category:"熟語・句動詞",question:"「〜を尊敬する」という意味の句動詞はどれ?",hint:"look down onの反対の意味。",fullSentence:"Many young students look up to their teacher.",answer:"look up to",choices:["look up to","look down on","look over","look after"],source:"IMG_0746",explanation:"look up to=「〜を尊敬する」⇔look down on=「〜を軽蔑する」。",relatedInfo:"be traced back to ~=「〜にさかのぼる」もこのページの表現。"},
+{id:28,type:"fill",category:"熟語・句動詞",question:"He devoted _____ to his research for over ten years.",hint:"再帰代名詞を使った「〜に専念する」という表現。",fullSentence:"He devoted himself to his research for over ten years.",answer:"himself",source:"IMG_0746",explanation:"devote oneself to ~=「〜に専念する」。devotion(献身)という名詞形も覚えておこう。",relatedInfo:"devote A to B=「AをBに捧げる」の形でも使われる。"},
+{id:29,type:"choice",category:"熟語・句動詞",question:"「〜を提出する」という意味の句動詞はどれ?",hint:"レポートなどを提出する時に使う。",fullSentence:"You must hand in your report by Friday.",answer:"hand in",choices:["hand in","carry out","bring back","turn down"],source:"IMG_0754",explanation:"hand in=「〜を提出する」。submitとほぼ同義。",relatedInfo:"carry out=「(計画など)を実行する」も同じページの句動詞。"},
+{id:30,type:"fill",category:"熟語・句動詞",question:"The committee decided to _____ out his proposal.",hint:"「〜を断る」という意味の句動詞。",fullSentence:"The committee decided to turn down his proposal.",answer:"turn",source:"IMG_0754",explanation:"turn down=「〜を断る」。refuse, rejectも類義語。",relatedInfo:"complain about ~=「〜について不満を言う」も関連表現。"},
+{id:31,type:"choice",category:"熟語・句動詞",question:"「(単語)を辞書で調べる」という意味の句動詞はどれ?",hint:"look up the word のように使う。",fullSentence:"I looked up the word in the dictionary.",answer:"look up",choices:["look up","pick up","wake up","bring up"],source:"IMG_0754",explanation:"look up ~=「(単語など)を調べる」。",relatedInfo:"pick up ~=「〜を拾う、車で迎えに行く」も類似の形の句動詞。"},
+{id:32,type:"fill",category:"熟語・句動詞",question:"It's not worth _____ to that noise any longer.",hint:"「〜を聞く価値がある」の形。listeningが入る。",fullSentence:"It's not worth listening to that noise any longer.",answer:"listening",source:"IMG_0764",explanation:"It is worth ~ing=「〜する価値がある」。worth listening to ~の形。",relatedInfo:"be worth V-ingの構文は非常によく使われる。"},
+{id:33,type:"choice",category:"熟語・句動詞",question:"「〜に強い信頼を置いている」という意味の熟語はどれ?",hint:"have faith in ~ の形。",fullSentence:"I have great faith in her ability.",answer:"have faith in",choices:["have faith in","have a high opinion of","be involved in","be required to"],source:"IMG_0764",explanation:"have faith in ~=「〜を信頼する」。have a high opinion of ~=「〜を高く評価する」も類義。",relatedInfo:"be involved in ~=「〜に関わっている」も同ページの表現。"},
+{id:34,type:"fill",category:"熟語・句動詞",question:"His mistake was _____ out by his colleague.",hint:"「指摘される」の受動態。point outの過去分詞。",fullSentence:"His mistake was pointed out by his colleague.",answer:"pointed",source:"IMG_0764",explanation:"point out ~=「〜を指摘する」。受動態でbe pointed outの形になる。",relatedInfo:"He had his mistake pointed out. のようにhave+O+過去分詞の形でも使われる。"},
+{id:35,type:"choice",category:"熟語・句動詞",question:"「(欠員などを)埋め合わせる」という意味の句動詞はどれ?",hint:"compensate for A の形。",fullSentence:"Nothing can compensate for the loss of a loved one.",answer:"compensate for",choices:["compensate for","search for","account for","stand for"],source:"IMG_0765",explanation:"compensate for ~=「〜を埋め合わせる、補う」。",relatedInfo:"stand for ~=「〜を表す、〜に立候補する」も別ページで登場する句動詞。"},
+{id:36,type:"fill",category:"熟語・句動詞",question:"The results are _____ related to the amount of exercise.",hint:"「〜と関連している」という意味の句動詞。",fullSentence:"The results are directly related to the amount of exercise.",answer:"related",source:"IMG_0761",explanation:"be related to ~=「〜と関連している」。equipments related to wind farmsのような形で使われる。",relatedInfo:"lead to ~ = cause to ~ 「〜を引き起こす」も関連する表現。"},
+{id:37,type:"choice",category:"熟語・句動詞",question:"「〜に立候補する」という意味の句動詞はどれ?",hint:"run for president のように使う。",fullSentence:"She decided to run for president of the club.",answer:"run for",choices:["run for","stand for","sit for","meet"],source:"IMG_0762",explanation:"run for ~=「〜に立候補する」。stand for ~=「〜を表す」の意味もあるので注意。",relatedInfo:"sit for an exam=「試験を受ける」も同ページの表現。"},
+{id:38,type:"fill",category:"熟語・句動詞",question:"You should _____ the correct order when assembling this.",hint:"「〜に従う」という意味の熟語。according to ~と混同しないよう注意。",fullSentence:"The game must be played according to the rule.",answer:"according",source:"IMG_0759",explanation:"according to ~=「〜に従って、〜によれば」。",relatedInfo:"according as S+V=「〜するにつれて」というSV形の使い方もある。"},
+{id:39,type:"choice",category:"熟語・句動詞",question:"「結局、とどのつまり」という意味の熟語はどれ?",hint:"文末や文頭で使われる決まり文句。",fullSentence:"After all, honesty pays in the long run.",answer:"after all",choices:["after all","as well as","in favor of","on account of"],source:"IMG_0776",explanation:"after all=「結局、とどのつまり」。",relatedInfo:"give reason for ~=「〜の理由を述べる」も同ページの表現。"},
+{id:40,type:"fill",category:"熟語・句動詞",question:"He is very _____ to succeed in this business.",hint:"「〜しそうである」という意味の熟語。be likely to Vの形。",fullSentence:"He is very likely to succeed in this business.",answer:"likely",source:"IMG_0776",explanation:"be likely to V=「〜しそうである」。",relatedInfo:"accept A as B=「AをBとして受け入れる」も同ページの表現。"},
+{id:41,type:"choice",category:"熟語・句動詞",question:"「〜を高く評価している」という意味の熟語はどれ?",hint:"hold A in high esteem の形。",fullSentence:"The community holds him in high esteem.",answer:"hold A in high esteem",choices:["hold A in high esteem","point out A","turn down A","look over A"],source:"IMG_0776",explanation:"hold A in high esteem=「Aを高く評価する、尊敬する」。",relatedInfo:"esteem単体では名詞・動詞両方で「尊敬(する)」の意味を持つ。"},
+{id:42,type:"fill",category:"熟語・句動詞",question:"It suddenly _____ on me that I had forgotten her birthday.",hint:"「(考えなどが)ふと心に浮かぶ」という意味の熟語。dawnが入る。",fullSentence:"It suddenly dawned on me that I had forgotten her birthday.",answer:"dawned",source:"IMG_0778",explanation:"it dawns on A that ~=「〜ということがAにふと分かる」。",relatedInfo:"pass unnoticed=「気づかれずに過ぎる」も同じページの表現。"},
+{id:43,type:"choice",category:"熟語・句動詞",question:"「気づかれずに過ぎる」という意味の熟語はどれ?",hint:"pass unnoticedの形。",fullSentence:"Her hard work did not pass unnoticed.",answer:"pass unnoticed",choices:["pass unnoticed","dawn on someone","follow suit","turn to"],source:"IMG_0778",explanation:"pass unnoticed=「気づかれずに過ぎる」。",relatedInfo:"consequently=「その結果として」も関連表現として同ページに登場。"},
+{id:44,type:"fill",category:"熟語・句動詞",question:"The article doesn't really _____ with what we already know.",hint:"「合致する」という意味の熟語。fit inの形。",fullSentence:"The article doesn't really fit in with what we already know.",answer:"fit",source:"IMG_0779",explanation:"fit in with ~=「〜と合致する、うまく合う」。",relatedInfo:"rather than=「〜よりむしろ」も同ページに登場する表現。"},
+{id:45,type:"choice",category:"熟語・句動詞",question:"「〜を提案する」という意味の動詞はどれ?",hint:"put forwardと同義の一語動詞。",fullSentence:"She decided to propose a new plan to the committee.",answer:"propose",choices:["propose","compose","oppose","expose"],source:"IMG_0779",explanation:"propose=「〜を提案する」。put forward ~も同義の句動詞。",relatedInfo:"compose=「〜を構成する、作曲する」も似た綴りだが意味が異なるので注意。"},
+{id:46,type:"fill",category:"熟語・句動詞",question:"We should not _____ corners when it comes to safety.",hint:"「手を抜く」という意味の熟語。cutが入る。",fullSentence:"We should not cut corners when it comes to safety.",answer:"cut",source:"IMG_0758",explanation:"cut corners=「手を抜く」。",relatedInfo:"regardless of ~=「〜にかかわらず」も同ページの表現。"},
+{id:47,type:"choice",category:"熟語・句動詞",question:"「〜を…とみなす」という意味の熟語はどれ?",hint:"regard A as B の形。",fullSentence:"They regard him as the best candidate.",answer:"regard A as B",choices:["regard A as B","replace A with B","content A with B","describe A of B"],source:"IMG_0758",explanation:"regard A as B=「AをBとみなす」。describe A as Bも似た構文。",relatedInfo:"replace A with B=「AをBに取り替える」も同ページの表現。"},
+{id:48,type:"fill",category:"熟語・句動詞",question:"We chose her _____ represent our team.",hint:"choose+O+to Vの形で不定詞を入れる。",fullSentence:"We chose her to represent our team.",answer:"to",source:"IMG_0768",explanation:"choose O to V=「OにVするよう選ぶ」。",relatedInfo:"except for John=「ジョンを除いて」も同ページの表現。"},
+{id:49,type:"choice",category:"熟語・句動詞",question:"「〜を…のせいにする」に近い、原因を表す熟語group「〜のおかげで」はどれ?",hint:"良い結果に使うことが多い表現。",fullSentence:"Thanks to your help, we finished the project on time.",answer:"thanks to",choices:["thanks to","in spite of","regardless of","contrary to"],source:"IMG_0751",explanation:"thanks to ~=「〜のおかげで」。because of, owing to, due to, by virtue of, on account ofも同義の表現群。",relatedInfo:"in spite of ~=「〜にもかかわらず」は逆接の意味になるので混同注意。"},
+{id:50,type:"fill",category:"熟語・句動詞",question:"You should refrain _____ smoking in this area.",hint:"「〜を控える」という意味の熟語。fromが入る。",fullSentence:"You should refrain from smoking in this area.",answer:"from",source:"IMG_0769",explanation:"refrain from ~ing=「〜するのを控える」。",relatedInfo:"be supposed to V=「〜することになっている」も同ページの重要表現。"},
+
+// ===== 文法パターン =====
+{id:51,type:"fill",category:"文法パターン",question:"It _____ that she knows the truth.",hint:"「〜だと言われている」の受動態構文。It seems / It is said thatどちらも可だが、ここではseemsを使う。",fullSentence:"It seems that she knows the truth.",answer:"seems",source:"IMG_0750",explanation:"It seems that S+V=「SはVするようだ」。She seems to know the truth.への書き換えも可能。",relatedInfo:"We often hear it said that S+V「よく〜と言われている」も同ページの構文。"},
+{id:52,type:"choice",category:"文法パターン",question:"「Aの大部分」を正しく表す表現はどれ?",hint:"most, most ofの使い分け問題。",fullSentence:"Most of the students in this class are diligent.",answer:"Most of the students",choices:["Most of the students","Most students of","Almost students","Most the students"],source:"IMG_0750",explanation:"most of the + 名詞=「〜の大部分」。most + 名詞(無冠詞)は「たいていの〜」という一般論になる。",relatedInfo:"almost all (of) the ~ もほぼ同義で使われる表現。"},
+{id:53,type:"fill",category:"文法パターン",question:"The older you get, the _____ time seems to go by.",hint:"比較級を使った「〜すればするほど…」の構文。fasterが入る。",fullSentence:"The older you get, the faster time seems to go by.",answer:"faster",source:"IMG_0756",explanation:"the 比較級 S+V, the 比較級 S+V=「〜すればするほど、ますます…」。",relatedInfo:"get close to = go near「〜に近づく」も同ページの表現。"},
+{id:54,type:"choice",category:"文法パターン",question:"「もし雨が降ったらどうしよう」を表す正しい表現はどれ?",hint:"What if構文。現実的な仮定にはif節の動詞を現在形にする。",fullSentence:"What if it rains tomorrow?",answer:"What if it rains tomorrow?",choices:["What if it rains tomorrow?","What if it rained tomorrow","So what rains tomorrow","What rains if tomorrow"],source:"IMG_0754",explanation:"What if S+V(現在形)?=現実的な未来の仮定「もし〜したらどうしよう」。",relatedInfo:"過去の事実に反する仮定にはWhat if S had+過去分詞?の形を使う。"},
+{id:55,type:"fill",category:"文法パターン",question:"No sooner had he arrived _____ the phone rang.",hint:"「〜するとすぐに…した」という意味の倒置構文。thanが入る。",fullSentence:"No sooner had he arrived than the phone rang.",answer:"than",source:"IMG_0755",explanation:"No sooner had S+過去分詞 than S+V(過去形)=「〜するとすぐに…した」。否定語が文頭に来ることで倒置が起こる。",relatedInfo:"Hardly had S+過去分詞 when S+V も同じ意味の構文。"},
+{id:56,type:"choice",category:"文法パターン",question:"「私は自分のミスを謝るまで泣き続けた」の意味に近い表現はどれ?",hint:"burst into tearsの構文。",fullSentence:"She burst into tears when she heard the news.",answer:"burst into tears",choices:["burst into tears","burst out crying suddenly","cry out loudly for help","turn into tears"],source:"IMG_0755",explanation:"burst into tears=burst out crying=「わっと泣き出す」。",relatedInfo:"a chance of ~ing=「〜する機会」も同ページの表現。"},
+{id:57,type:"fill",category:"文法パターン",question:"I regret _____ told him the secret.",hint:"「〜したことを後悔する」という意味。動名詞の完了形が入る。",fullSentence:"I regret having told him the secret.",answer:"having",source:"IMG_0756",explanation:"regret having done=「〜したことを後悔する」。regret to doは「残念ながら〜する」という意味になるので区別する。",relatedInfo:"had better V=「〜したほうがよい」も同ページの重要表現。"},
+{id:58,type:"choice",category:"文法パターン",question:"「間に合うように早く出発した」の「〜するために」を表す構文はどれ?",hint:"so as to VまたはIn order to Vの形。",fullSentence:"He left early so as not to be late.",answer:"so as not to be late",choices:["so as not to be late","so as to be late not","not so as to be late","as so not to be late"],source:"IMG_0756",explanation:"so as (not) to V = in order (not) to V=「(〜しない)ために」。notの位置に注意。",relatedInfo:"get A together=「Aをまとめる」も同ページの表現。"},
+{id:59,type:"fill",category:"文法パターン",question:"He proved _____ to be an excellent leader.",hint:"「自分自身が〜であると証明する」の再帰代名詞。",fullSentence:"He proved himself to be an excellent leader.",answer:"himself",source:"IMG_0769",explanation:"prove oneself (to be) C=「自分自身がCであることを証明する」。",relatedInfo:"prove=O+(to be)+Cの第5文型でも使われる。"},
+{id:60,type:"choice",category:"文法パターン",question:"「Aが実行不可能であることが判明した」の受動態表現はどれ?",hint:"be supposed toと混同しないよう注意。",fullSentence:"She is supposed to be a good doctor.",answer:"She is supposed to be a good doctor.",choices:["She is supposed to be a good doctor.","She is supposing to be a good doctor.","She supposed to being a good doctor.","She is supposed being a good doctor."],source:"IMG_0769",explanation:"be supposed to V=「〜することになっている、〜だと考えられている」。",relatedInfo:"you are supposed to refrain from smoking here「ここでは喫煙を控えることになっている」のように義務のニュアンスでも使われる。"},
+{id:61,type:"fill",category:"文法パターン",question:"It is possible _____ anyone to make this mistake.",hint:"「Aが〜することは可能だ」の意味上の主語を表す前置詞。",fullSentence:"It is possible for anyone to make this mistake.",answer:"for",source:"IMG_0760",explanation:"It is possible for A to V=「Aが〜することは可能だ」。X anyone is possible to V という誤用に注意。",relatedInfo:"A is able to V=「Aは〜できる」も類似表現だが構文が異なる。"},
+{id:62,type:"choice",category:"文法パターン",question:"「そのニュースが放送された」の正しい受動態はどれ?",hint:"broadcastの過去分詞形に注意。",fullSentence:"The news was broadcast through the media.",answer:"The news was broadcast through the media.",choices:["The news was broadcast through the media.","The news was broadcasted through the media.","The news broadcast through the media.","The news is broadcast through the media yesterday."],source:"IMG_0770",explanation:"broadcastは原形・過去形・過去分詞形が同じ不規則動詞。through the media=「メディアを通して」。",relatedInfo:"would certainly spread=「間違いなく広まるだろう」も同じページの表現。"},
+{id:63,type:"fill",category:"文法パターン",question:"Under these circumstances, we _____ expect that S can V.",hint:"「〜だと予想できる」という構文の動詞。canが入る。",fullSentence:"Under these circumstances, we can expect that S can V.",answer:"can",source:"IMG_0761",explanation:"can expect that S+V=「〜だと予想できる」。",relatedInfo:"endow A with B=「AにBを授ける」も同ページの重要表現。"},
+{id:64,type:"choice",category:"文法パターン",question:"「専門分野の境界を越えることによって」を正しく表す表現はどれ?",hint:"by crossing the boundaries of ~の形。",fullSentence:"By crossing the boundaries of individual narrow disciplines, we can find new solutions.",answer:"By crossing the boundaries of individual narrow disciplines",choices:["By crossing the boundaries of individual narrow disciplines","By cross the boundary of individual narrow discipline","Crossing by the boundaries individual","By boundaries crossing narrow disciplines"],source:"IMG_0761",explanation:"by crossing the boundaries of ~=「〜の境界を越えることによって」。",relatedInfo:"there is no time to waste on ~ing=「〜している時間はない」も関連表現。"},
+{id:65,type:"fill",category:"文法パターン",question:"He believed himself _____ be right.",hint:"believe O to be Cの構文。",fullSentence:"He believed himself to be right.",answer:"to",source:"IMG_0768",explanation:"believe O to be C=「OがCであると信じる」。",relatedInfo:"take place=「起こる、行われる」も同ページの表現。"},
+{id:66,type:"choice",category:"文法パターン",question:"「AとBを分離する」を正しく表す表現はどれ?",hint:"separate A from B の形。",fullSentence:"It is hard to separate fact from opinion in this article.",answer:"separate fact from opinion",choices:["separate fact from opinion","separate fact with opinion","separate fact opinion from","separate opinion to fact"],source:"IMG_0768",explanation:"separate A from B=「AをBから分離する」。",relatedInfo:"believe A to be C も同じページに登場する構文。"},
+{id:67,type:"fill",category:"文法パターン",question:"What is a car _____ a modern version of a magic carpet?",hint:"「〜にすぎない」を表す前置詞。but。",fullSentence:"What is a car but a modern version of a magic carpet?",answer:"but",source:"IMG_0775",explanation:"What is A but B?=「AはBにすぎないではないか」という修辞疑問文。",relatedInfo:"be ready to V=「〜する準備ができている」も同ページの表現。"},
+{id:68,type:"choice",category:"文法パターン",question:"「彼が生きていたらどんな素晴らしい歌を書いていただろうと想像する」に近い表現はどれ?",hint:"仮定法過去完了。were he alive の形にも注意。",fullSentence:"When I imagine what wonderful songs John Lennon would have written if he were alive...",answer:"would have written if he were alive",choices:["would have written if he were alive","will write if he were alive","would write if he had been alive","wrote if he is alive"],source:"IMG_0776",explanation:"would have written if he were alive=仮定法の変則的な混合形(帰結節は過去、if節は仮定法過去)。実際は「もし生きていたら(今)」という現在の事実への反実仮想と「書いていただろう(過去の行為)」が混在した表現。",relatedInfo:"I can't help feeling sorry that S+V=「〜だと感じずにはいられない」も同ページの表現。"},
+{id:69,type:"fill",category:"文法パターン",question:"This _____ that we need to reconsider our plan.",hint:"「これは〜を意味する」の動詞。meansが入る。",fullSentence:"This means that we need to reconsider our plan.",answer:"means",source:"IMG_0776",explanation:"This means that S+V=「これは〜ということを意味する」。",relatedInfo:"in the first place=「そもそも、第一に」も同ページの表現。"},
+{id:70,type:"choice",category:"文法パターン",question:"「事故を目にしただけで彼を怖がらせるのに十分だった」に近い表現はどれ?",hint:"the mere sight of ~ の形。",fullSentence:"The mere sight of a car accident was enough to scare him.",answer:"The mere sight of a car accident",choices:["The mere sight of a car accident","The mere car accident sight","A mere sight car of accident","The sight mere of a car accident"],source:"IMG_0777",explanation:"the mere sight of ~=「〜を見ただけで」。",relatedInfo:"it is not until... that ~=「…して初めて〜する」も同ページの重要構文。"},
+{id:71,type:"fill",category:"文法パターン",question:"Not _____ it is easy, but it is also enjoyable.",hint:"「〜だけでなく」を表す表現。onlyが入る。",fullSentence:"Not only is it easy, but it is also enjoyable.",answer:"only",source:"IMG_0777",explanation:"Not only A but also B=「AだけでなくBも」。文頭に否定語onlyがあるため倒置が起きる。",relatedInfo:"be not as A as B=「BほどAではない」も比較表現として重要。"},
+{id:72,type:"choice",category:"文法パターン",question:"「一日ごとに」を正しく表す表現はどれ?",hint:"day by day の形。",fullSentence:"His condition is improving day by day.",answer:"day by day",choices:["day by day","atom by atom","one by one","day to day"],source:"IMG_0781",explanation:"day by day=「一日ごとに、日に日に」。atom by atom=「原子ごとに」、one by one=「一つずつ」も同ページの表現。",relatedInfo:"as with ~=「〜と同様に」も同じページに登場する表現。"},
+{id:73,type:"fill",category:"文法パターン",question:"_____ you apologize, he will get angry.",hint:"「〜しない限り」という意味の接続詞。unlessが入る。",fullSentence:"Unless you apologize, he will get angry.",answer:"Unless",source:"IMG_0747",explanation:"unless = if not=「〜しない限り」。",relatedInfo:"now that=「今や〜なので」も理由を表す関連表現。"},
+{id:74,type:"choice",category:"文法パターン",question:"「Aが〜であるかどうかにかかわらず」を表す構文はどれ?",hint:"whether A or notの形。",fullSentence:"Whether he agrees or not, we will proceed with the plan.",answer:"Whether he agrees or not",choices:["Whether he agrees or not","If he agrees or whether","Whether or he agrees not","Not whether he agrees or"],source:"IMG_0766",explanation:"whether S+V or not=「〜であろうとなかろうと」。",relatedInfo:"as well as=「〜だけでなく…も」も同じページの表現。"},
+{id:75,type:"fill",category:"文法パターン",question:"I can remember my own early failing _____ understand this theory.",hint:"「〜することの失敗」を表す前置詞。toが入る。",fullSentence:"I can remember my own early failing to understand this theory.",answer:"to",source:"IMG_0778",explanation:"fail to V=「〜し損なう」。failing to understandで「理解できなかったこと」の意味。",relatedInfo:"consequently=「その結果として」も関連表現。"},
+
+// ===== 接続詞・前置詞表現 =====
+{id:76,type:"fill",category:"接続詞・前置詞表現",question:"She lived in Paris _____ she was a child.",hint:"「〜の間」という意味の接続詞。whileが入る。",fullSentence:"She lived in Paris while she was a child.",answer:"while",source:"IMG_0769",explanation:"while+SV=「〜する間」。during+名詞と使い分けに注意。",relatedInfo:"during these days「近頃は」という表現も同ページに登場。"},
+{id:77,type:"choice",category:"接続詞・前置詞表現",question:"「彼は今朝到着した」を正しく表す時間表現はどれ?",hint:"「〜前に」を表すagoの使い方。",fullSentence:"He arrived two hours ago.",answer:"He arrived two hours ago.",choices:["He arrived two hours ago.","He arrived after two hours.","He arrived in two hours.","He will arrive two hours ago."],source:"IMG_0752",explanation:"~ ago=「今から〜前に」で過去の一点を表す。in ~=「(今から)〜後に」で未来の一点を表すので混同注意。",relatedInfo:"after two hours=「(基準となる時点から)2時間後に」という意味。"},
+{id:78,type:"fill",category:"接続詞・前置詞表現",question:"You must finish this _____ ten o'clock.",hint:"「〜までに」という期限を表す前置詞。byが入る。",fullSentence:"You must finish this by ten o'clock.",answer:"by",source:"IMG_0752",explanation:"by+名詞=「〜までに」(期限)。until/till+名詞=「〜まで(ずっと)」(継続)と区別する。",relatedInfo:"How soon will you get back? → By ten o'clock. のように応答する。"},
+{id:79,type:"choice",category:"接続詞・前置詞表現",question:"「私は10年間ここに住んでいる」を正しく表す表現はどれ?",hint:"継続を表すforとsinceの使い分け。",fullSentence:"I have lived here for ten years.",answer:"I have lived here for ten years.",choices:["I have lived here for ten years.","I have lived here since ten years.","I have lived here during ten years.","I have lived here in ten years."],source:"IMG_0752",explanation:"for+期間=「〜の間」(継続期間)。since+起点=「〜以来」と区別する。",relatedInfo:"since I was ten「10歳の時から」のように起点を表す。"},
+{id:80,type:"fill",category:"接続詞・前置詞表現",question:"_____ though he was tired, he kept working.",hint:"「〜だけれども」という譲歩を表す接続詞。Thoughが入る。",fullSentence:"Though he was tired, he kept working.",answer:"Though",source:"IMG_0751",explanation:"though/although=「〜だけれども」。despite/in spite of+名詞と区別する。",relatedInfo:"for all ~=「〜にもかかわらず」も同ページの譲歩表現。"},
+{id:81,type:"choice",category:"接続詞・前置詞表現",question:"「彼はお金持ちであるにもかかわらず幸せではない」を正しく表す表現はどれ?",hint:"despiteの後は名詞(句)が来る。",fullSentence:"Despite his wealth, he is not happy.",answer:"Despite his wealth, he is not happy.",choices:["Despite his wealth, he is not happy.","Despite he is wealthy, he is not happy.","Although his wealth, he is not happy.","Despite of his wealth, he is not happy."],source:"IMG_0751",explanation:"despite+名詞=「〜にもかかわらず」。althoughの後はSVが来るので、despiteと混同しないよう注意。",relatedInfo:"in spite of ~も同じ意味で名詞(句)を伴う。"},
+{id:82,type:"fill",category:"接続詞・前置詞表現",question:"He is rich; his brother, _____, is poor.",hint:"「一方で」という対比を表す表現。whereasが入る。",fullSentence:"He is rich; his brother, whereas, is poor.",answer:"whereas",source:"IMG_0751",explanation:"while/whereas=「一方で」。on the other handも似た意味だが接続詞ではなく副詞句。",relatedInfo:"on the contrary=「それどころか」は前の内容を強く否定する時に使う。"},
+{id:83,type:"choice",category:"接続詞・前置詞表現",question:"「その絵は私には醜く見えるが、それどころか私はむしろ美しいと思う」の「それどころか」はどれ?",hint:"前の内容を否定して逆の内容を続ける表現。",fullSentence:"That picture doesn't seem ugly to me. On the contrary, I think it's rather beautiful.",answer:"On the contrary",choices:["On the contrary","On the other hand","Contrary to","As if"],source:"IMG_0751",explanation:"on the contrary=「それどころか」。前の内容を強く否定して逆のことを述べる。",relatedInfo:"contrary to ~=「〜に反して」は前置詞的に使われる。"},
+{id:84,type:"fill",category:"接続詞・前置詞表現",question:"He behaves _____ if he were an expert.",hint:"「まるで〜であるかのように」という意味の熟語。asが入る。",fullSentence:"He behaves as if he were an expert.",answer:"as",source:"IMG_0751",explanation:"as if S+仮定法=「まるで〜であるかのように」。act/speak/look/feel as ifの形でよく使われる。",relatedInfo:"as thoughもほぼ同じ意味で使われる。"},
+{id:85,type:"choice",category:"接続詞・前置詞表現",question:"「〜する限りは(条件)」を正しく表す表現はどれ?",hint:"as long asの用法。",fullSentence:"As long as you try your best, I will support you.",answer:"As long as you try your best",choices:["As long as you try your best","As far as you try your best","As soon as you try your best","So far you try your best"],source:"IMG_0747",explanation:"as long as=「〜する限り(は)」(条件)。as far as=「〜する限り(範囲)」と区別する。",relatedInfo:"as far as I know「私が知る限りでは」のように範囲を表す時に使う。"},
+{id:86,type:"fill",category:"接続詞・前置詞表現",question:"Take an umbrella with you _____ it rains.",hint:"「〜という場合に備えて」という意味の熟語。in caseが入る。",fullSentence:"Take an umbrella with you in case it rains.",answer:"in case",source:"IMG_0747",explanation:"in case S+V=「〜という場合に備えて」。",relatedInfo:"in case of ~ (名詞)も同様の意味で使われる。"},
+{id:87,type:"choice",category:"接続詞・前置詞表現",question:"「私が知る限り、彼は真実を知らない」を正しく表す表現はどれ?",hint:"as far as I know の定型表現。",fullSentence:"As far as I know, he doesn't know the truth.",answer:"As far as I know",choices:["As far as I know","As long as I know","As soon as I know","So far as I known"],source:"IMG_0747",explanation:"as far as I know=「私が知る限りでは」。",relatedInfo:"as far as the eye can see=「見渡す限り」も似た構文。"},
+{id:88,type:"fill",category:"接続詞・前置詞表現",question:"He will get angry _____ you apologize.",hint:"「〜しない限り」という否定的な条件。unlessが入る。",fullSentence:"He will get angry unless you apologize.",answer:"unless",source:"IMG_0747",explanation:"unless=if not=「〜しない限り」。",relatedInfo:"if not you apologize と混同しがちだが、unlessは接続詞として文頭にも置ける。"},
+{id:89,type:"choice",category:"接続詞・前置詞表現",question:"「彼女は誰にも見られずに出かけた」を正しく表す表現はどれ?",hint:"without ~ingの形。",fullSentence:"She went out without anyone seeing her.",answer:"She went out without anyone seeing her.",choices:["She went out without anyone seeing her.","She went out without anyone see her.","She went out with no one saw her.","She went without anyone to see her out."],source:"IMG_0759",explanation:"without anyone V-ing=「誰にもVされることなく」。withoutの後は動名詞(意味上の主語+V-ing)が来る。",relatedInfo:"such A as B=「Bのような A」も同じページの構文。"},
+{id:90,type:"fill",category:"接続詞・前置詞表現",question:"_____ for John, no one knew the truth.",hint:"「〜を除いて」という意味の前置詞句。Exceptが入る。",fullSentence:"Except for John, no one knew the truth.",answer:"Except",source:"IMG_0759",explanation:"except for ~=「〜を除いては」。all, every, any, noを伴う名詞と共に使われることが多い。",relatedInfo:"No one except John knows the truth. のようにexceptだけでも使われる。"},
+
+// ===== 感情・比較表現 =====
+{id:91,type:"fill",category:"感情・比較表現",question:"He is deeply _____ in his new project.",hint:"「興味を持っている、夢中になっている」という感情形容詞。interestedが入る。",fullSentence:"He is deeply interested in his new project.",answer:"interested",source:"IMG_0757",explanation:"感情形容詞は「人が主語」の場合-ed形、「物事が主語」の場合-ing形を使う。He is interested in ~ / This is interesting.",relatedInfo:"be satisfied with ~=「〜に満足している」も同じ感情形容詞グループ。"},
+{id:92,type:"choice",category:"感情・比較表現",question:"「その知らせは私を大変驚かせた」を正しく表す表現はどれ?",hint:"物事が主語の場合の感情形容詞。",fullSentence:"The news was very surprising to me.",answer:"The news was very surprising to me.",choices:["The news was very surprising to me.","The news was very surprised to me.","I was very surprising at the news.","The news surprised at me."],source:"IMG_0757",explanation:"物事が主語の場合は-ing形(surprising)を使う。人が主語の場合はI was surprised at the news.となる。",relatedInfo:"astonishing/astonished も同様のペアで使われる。"},
+{id:93,type:"fill",category:"感情・比較表現",question:"She was _____ of her own success.",hint:"「〜を恥じている」という意味の感情形容詞。ashamedが入る。",fullSentence:"She was ashamed of her own success.",answer:"ashamed",source:"IMG_0757",explanation:"be ashamed of ~=「〜を恥じている」。",relatedInfo:"be embarrassed about ~=「〜に困惑している」も類似の感情形容詞。"},
+{id:94,type:"choice",category:"感情・比較表現",question:"「彼はストレスを感じている」を正しく表す表現はどれ?",hint:"感情形容詞stressedの使い方。",fullSentence:"He is stressed out from overwork.",answer:"He is stressed out from overwork.",choices:["He is stressed out from overwork.","He is stressing out from overwork.","He stresses out from overwork always.","Overwork is stressed from him."],source:"IMG_0753",explanation:"be stressed out=「ストレスを感じている」。人が主語なので-ed形を使う。",relatedInfo:"comfortable(快適な)は主語に関係なく同じ形で使われる例外的な形容詞。"},
+{id:95,type:"fill",category:"感情・比較表現",question:"_____ of these apples looks fresh.",hint:"「これらのリンゴのうちどれも」という意味。単数扱いになる量表現。Eachが入る。",fullSentence:"Each of these apples looks fresh.",answer:"Each",source:"IMG_0750",explanation:"each of + 複数名詞=単数扱い。all/most/some of + 複数名詞は複数扱いになるので注意。",relatedInfo:"every apple(単数形が続く)も同様に単数扱い。"},
+{id:96,type:"choice",category:"感情・比較表現",question:"「彼女は誰にも劣らず賢い」を正しく表す最上級相当表現はどれ?",hint:"as ~ as any の形。",fullSentence:"She is as smart as any student in the school.",answer:"She is as smart as any student in the school.",choices:["She is as smart as any student in the school.","She is as smart as all students in the school.","She is smarter than any students in the school.","She is as smart as students any in school."],source:"IMG_0774",explanation:"as ~ as any + 単数名詞=「誰[どれ]にも劣らず〜」で最上級に近い意味を表す。",relatedInfo:"as accurate as anything can be possible「可能な限り正確に」も類似表現。"},
+{id:97,type:"fill",category:"感情・比較表現",question:"There is _____ telling what will happen next.",hint:"「〜することはできない」という意味の熟語。noが入る。",fullSentence:"There is no telling what will happen next.",answer:"no",source:"IMG_0774",explanation:"There is no V-ing=「〜することはできない」。",relatedInfo:"none the less = nevertheless「それにもかかわらず」も比較表現の仲間として覚える。"},
+{id:98,type:"choice",category:"感情・比較表現",question:"「彼は誰よりも速く走った」に近い倍数・数量表現の使い方として正しいものはどれ?",hint:"three times as many asの形。",fullSentence:"He has three times as many books as I do.",answer:"He has three times as many books as I do.",choices:["He has three times as many books as I do.","He has three times many books as I do.","He has as three times many books I do.","He has books three times as many as I do."],source:"IMG_0749",explanation:"倍数 + as many/much + 名詞 + as ~=「〜の…倍の(数/量)」。",relatedInfo:"more than half of the jobs「仕事の半分以上」も数量表現の一つ。"},
+{id:99,type:"fill",category:"感情・比較表現",question:"Only _____ students passed the difficult exam.",hint:"「ほんの少しの」という否定的なニュアンスを持つ数量形容詞。aが入るfewの前。",fullSentence:"Only a few students passed the difficult exam.",answer:"a",source:"IMG_0770",explanation:"a few=「少しはある」(肯定的)、few=「ほとんどない」(否定的)。可算名詞に使う。",relatedInfo:"a little/littleは不可算名詞に使う同様のペア。"},
+{id:100,type:"choice",category:"感情・比較表現",question:"「その世界は急速に変化しつつある」を正しく表す表現はどれ?",hint:"現在進行形での変化を表す表現。",fullSentence:"The world is changing rapidly.",answer:"The world is changing rapidly.",choices:["The world is changing rapidly.","The world changes rapidly always.","The world is changed rapidly.","The world has change rapidly."],source:"IMG_0761",explanation:"be+V-ing=進行形で「〜しつつある」という変化の途中を表す。",relatedInfo:"it will be more and more difficult to find people who can V「〜できる人を見つけるのはますます難しくなるだろう」も比較表現の一種。"}
+];
+
+const ORDER_QUESTIONS = [
+// ===== 語彙 =====
+{id:1,type:"reorder",category:"語彙",hint:"彼は公の場で話す恐怖を克服しようとした。",tokens:["He","tried","to","overcome","his","fear","of","public","speaking."],fullSentence:"He tried to overcome his fear of public speaking.",source:"IMG_0775",explanation:"overcome=「〜を克服する」。try to Vの形で目的語に不定詞をとる。",relatedInfo:"get over ~ も同義語として使える。"},
+{id:2,type:"correction",category:"語彙",hint:"その製品の品質は平凡だった。",question:"The quality of the product was [[mediocrity]].",wrongPart:"mediocrity",answer:"mediocre",fullSentence:"The quality of the product was mediocre.",source:"IMG_0777",explanation:"be動詞の補語には形容詞mediocreを使う。mediocrityは名詞形なので誤り。",relatedInfo:"myriad(無数の)も同様に名詞・形容詞の混同に注意。"},
+{id:3,type:"reorder",category:"語彙",hint:"彼の説明は単純化しすぎていて、多くの重要な詳細を無視していた。",tokens:["His","explanation","was","too","simplistic;","it","ignored","many","important","details."],fullSentence:"His explanation was too simplistic; it ignored many important details.",source:"IMG_0779",explanation:"simplistic=「単純化しすぎた」。too+形容詞の形。",relatedInfo:"an oversimplified explanationとも言い換え可能。"},
+{id:4,type:"correction",category:"語彙",hint:"遺伝子工学は多くの倫理的な問題を提起してきた。",question:"[[Genetically]] engineering has raised many ethical questions.",wrongPart:"Genetically",answer:"Genetic",fullSentence:"Genetic engineering has raised many ethical questions.",source:"IMG_0776",explanation:"genetic engineering=「遺伝子工学」という名詞句。engineeringを修飾するのは形容詞geneticであり、副詞genetically は誤り。",relatedInfo:"genetic disorder「遺伝性疾患」も同じ形容詞用法。"},
+{id:5,type:"reorder",category:"語彙",hint:"その古代の寺院は千年以上前に建てられた。",tokens:["The","ancient","temple","was","built","over","a","thousand","years","ago."],fullSentence:"The ancient temple was built over a thousand years ago.",source:"IMG_0746",explanation:"ancient=「古代の」。受動態was builtの形。",relatedInfo:"mediaeval(中世の)、modern(現代の)と時代の流れで対比される。"},
+{id:6,type:"correction",category:"語彙",hint:"彼の病気は急性ではなく慢性だ。",question:"His illness is [[acute]], not chronic.",wrongPart:"acute",answer:"chronic",fullSentence:"His illness is chronic, not acute.",source:"IMG_0748",explanation:"文脈上「慢性の,not急性の」の順である必要がある。chronic⇔acuteの対比。",relatedInfo:"invest in ~「〜に投資する」も同ページの表現。"},
+{id:7,type:"reorder",category:"語彙",hint:"彼は莫大な財産の相続人だ。",tokens:["He","is","the","heir","to","a","large","fortune."],fullSentence:"He is the heir to a large fortune.",source:"IMG_0763",explanation:"heir to ~=「〜の相続人」。前置詞toに注意。",relatedInfo:"scientific(科学的な)も同ページの語彙。"},
+{id:8,type:"correction",category:"語彙",hint:"その計画が成功するという一般的な受容がある。",question:"There is a general [[accept]] that the plan will succeed.",wrongPart:"accept",answer:"acceptance",fullSentence:"There is a general acceptance that the plan will succeed.",source:"IMG_0778",explanation:"a general の後には名詞が来るのでacceptance(受容)を使う。acceptは動詞。",relatedInfo:"consequently=「その結果として」も関連表現。"},
+{id:9,type:"reorder",category:"語彙",hint:"2つの報告書の間に不一致があった。",tokens:["There","was","a","discrepancy","between","the","two","reports."],fullSentence:"There was a discrepancy between the two reports.",source:"IMG_0772",explanation:"discrepancy between A and B=「AとBの間の不一致」。",relatedInfo:"crack(ひび)、dissatisfaction(不満)も同ページの語。"},
+{id:10,type:"correction",category:"語彙",hint:"その言葉はこの文脈では否定的な含みを持つ。",question:"The word has a negative [[denotation]] in this context.",wrongPart:"denotation",answer:"connotation",fullSentence:"The word has a negative connotation in this context.",source:"IMG_0777",explanation:"connotation=「言外の意味、含意」。denotationは「明示的な意味」で意味が異なる。",relatedInfo:"denotationとconnotationはよく対比されるペア。"},
+{id:11,type:"reorder",category:"語彙",hint:"私は嘘をつく人をひどく嫌う。",tokens:["I","detest","people","who","lie","to","me."],fullSentence:"I detest people who lie to me.",source:"IMG_0777",explanation:"detest=「〜をひどく嫌う」。関係代名詞whoに注意。",relatedInfo:"outpace=「〜を追い越す」も同ページの語。"},
+{id:12,type:"correction",category:"語彙",hint:"社会の変化は急激ではなく徐々のものであった。",question:"The changes in society have been [[gradually]] rather than sudden.",wrongPart:"gradually",answer:"gradual",fullSentence:"The changes in society have been gradual rather than sudden.",source:"IMG_0778",explanation:"be動詞の補語には形容詞gradualを使う。gradually(徐々に)は副詞なので誤り。",relatedInfo:"diverse(多様な)も似た文脈で使われる。"},
+{id:13,type:"reorder",category:"語彙",hint:"彼女は教育改革の強力な提唱者だ。",tokens:["She","is","a","strong","advocate","for","education","reform."],fullSentence:"She is a strong advocate for education reform.",source:"IMG_0780",explanation:"advocate for ~=「〜の提唱者」。",relatedInfo:"opponent(反対者)⇔advocate(提唱者)。"},
+{id:14,type:"correction",category:"語彙",hint:"あなたの欠席の理由をはっきり述べてください。",question:"Please [[articulation]] the reason for your absence.",wrongPart:"articulation",answer:"articulate",fullSentence:"Please articulate the reason for your absence.",source:"IMG_0763",explanation:"命令文なので動詞articulateを使う。articulationは名詞形なので誤り。",relatedInfo:"definite(明確な)も類似の語。"},
+{id:15,type:"reorder",category:"語彙",hint:"彼は屋根裏部屋で古い手紙の束を見つけた。",tokens:["He","found","a","bundle","of","old","letters","in","the","attic."],fullSentence:"He found a bundle of old letters in the attic.",source:"IMG_0774",explanation:"a bundle of ~=「〜の束」。",relatedInfo:"flock/herd/crowdなど群れを表す語との使い分けに注意。"},
+{id:16,type:"correction",category:"語彙",hint:"羊の群れが丘の斜面で草を食んでいた。",question:"A [[herd]] of sheep grazed on the hillside.",wrongPart:"herd",answer:"flock",fullSentence:"A flock of sheep grazed on the hillside.",source:"IMG_0780",explanation:"羊の群れはflock、牛の群れはherdを使う。動物によって使い分ける必要がある。",relatedInfo:"graze=「(牛などが)草を食べる」も同ページの語。"},
+{id:17,type:"reorder",category:"語彙",hint:"学生たちはこの規則を免除されている。",tokens:["Students","are","exempt","from","this","rule."],fullSentence:"Students are exempt from this rule.",source:"IMG_0763",explanation:"be exempt from ~=「〜を免除されている」。",relatedInfo:"vacancy(空き)、admission(入場許可)も同ページの語。"},
+{id:18,type:"correction",category:"語彙",hint:"政府はその国の産業を工業化する計画だ。",question:"The government plans to [[industrialization]] the country's industry.",wrongPart:"industrialization",answer:"industrialize",fullSentence:"The government plans to industrialize the country's industry.",source:"IMG_0748",explanation:"plans to の後には動詞の原形が来るのでindustrialize(工業化する)を使う。industrializationは名詞。",relatedInfo:"liquefy=「〜を液化する」も同じページの科学系動詞。"},
+{id:19,type:"reorder",category:"語彙",hint:"気候変動は私たちの時代の最大の課題の一つだ。",tokens:["Climate","change","is","one","of","the","biggest","challenges","of","our","time."],fullSentence:"Climate change is one of the biggest challenges of our time.",source:"IMG_0748",explanation:"one of the + 最上級 + 複数名詞=「最も〜な…の一つ」。",relatedInfo:"deposits(堆積物)、onshore(陸上の)も同ページの語彙。"},
+{id:20,type:"correction",category:"語彙",hint:"村人たちの間には強い血縁関係の意識がある。",question:"There is a strong sense of [[kin]] among the villagers.",wrongPart:"kin",answer:"kinship",fullSentence:"There is a strong sense of kinship among the villagers.",source:"IMG_0763",explanation:"sense of ~の後には名詞kinship(血縁関係)を使う。kinは「親族」という別の名詞。",relatedInfo:"heir(相続人)とも関連する語彙。"},
+
+// ===== 熟語・句動詞 =====
+{id:21,type:"reorder",category:"熟語・句動詞",hint:"彼女はその問題を自力で解決することができた。",tokens:["She","managed","to","work","out","the","problem","on","her","own."],fullSentence:"She managed to work out the problem on her own.",source:"IMG_0744",explanation:"work out=「(問題)を解決する」。manage to Vは「なんとか〜する」。",relatedInfo:"solve the problemという言い方も同じ意味。"},
+{id:22,type:"correction",category:"熟語・句動詞",hint:"多くの若い生徒は先生を尊敬している。",question:"Many young students [[look down on]] their teacher.",wrongPart:"look down on",answer:"look up to",fullSentence:"Many young students look up to their teacher.",source:"IMG_0746",explanation:"文脈上「尊敬している」の意味なのでlook up toを使う。look down onは「軽蔑する」という逆の意味。",relatedInfo:"be traced back to ~=「〜にさかのぼる」も同ページの表現。"},
+{id:23,type:"reorder",category:"熟語・句動詞",hint:"彼は10年以上、研究に専念した。",tokens:["He","devoted","himself","to","his","research","for","over","ten","years."],fullSentence:"He devoted himself to his research for over ten years.",source:"IMG_0746",explanation:"devote oneself to ~=「〜に専念する」。",relatedInfo:"devote A to B=「AをBに捧げる」の形でも使われる。"},
+{id:24,type:"correction",category:"熟語・句動詞",hint:"金曜日までにレポートを提出しなければならない。",question:"You must [[hand out]] your report by Friday.",wrongPart:"hand out",answer:"hand in",fullSentence:"You must hand in your report by Friday.",source:"IMG_0754",explanation:"hand in=「〜を提出する」。hand outは「〜を配布する」という異なる意味。",relatedInfo:"carry out=「(計画など)を実行する」も同じページの句動詞。"},
+{id:25,type:"reorder",category:"熟語・句動詞",hint:"委員会は彼の提案を断ることに決めた。",tokens:["The","committee","decided","to","turn","down","his","proposal."],fullSentence:"The committee decided to turn down his proposal.",source:"IMG_0754",explanation:"turn down=「〜を断る」。refuse, rejectも類義語。",relatedInfo:"complain about ~=「〜について不満を言う」も関連表現。"},
+{id:26,type:"correction",category:"熟語・句動詞",hint:"私はその単語を辞書で調べた。",question:"I [[looked over]] the word in the dictionary.",wrongPart:"looked over",answer:"looked up",fullSentence:"I looked up the word in the dictionary.",source:"IMG_0754",explanation:"look up ~=「(単語など)を調べる」。look overは「〜にざっと目を通す」という別の意味。",relatedInfo:"pick up ~=「〜を拾う」も類似の形の句動詞。"},
+{id:27,type:"reorder",category:"熟語・句動詞",hint:"あの騒音をこれ以上聞く価値はない。",tokens:["It's","not","worth","listening","to","that","noise","any","longer."],fullSentence:"It's not worth listening to that noise any longer.",source:"IMG_0764",explanation:"It is worth ~ing=「〜する価値がある」。",relatedInfo:"be worth V-ingの構文は非常によく使われる。"},
+{id:28,type:"correction",category:"熟語・句動詞",hint:"私は彼女の能力を大いに信頼している。",question:"I have great [[faith on]] her ability.",wrongPart:"faith on",answer:"faith in",fullSentence:"I have great faith in her ability.",source:"IMG_0764",explanation:"have faith in ~=「〜を信頼する」。前置詞はonではなくinを使う。",relatedInfo:"have a high opinion of ~=「〜を高く評価する」も類義。"},
+{id:29,type:"reorder",category:"熟語・句動詞",hint:"彼のミスは同僚によって指摘された。",tokens:["His","mistake","was","pointed","out","by","his","colleague."],fullSentence:"His mistake was pointed out by his colleague.",source:"IMG_0764",explanation:"point out ~=「〜を指摘する」。受動態be pointed outの形。",relatedInfo:"He had his mistake pointed out.のような使役の形もある。"},
+{id:30,type:"correction",category:"熟語・句動詞",hint:"愛する人を失ったことを埋め合わせられるものは何もない。",question:"Nothing can [[compensate to]] the loss of a loved one.",wrongPart:"compensate to",answer:"compensate for",fullSentence:"Nothing can compensate for the loss of a loved one.",source:"IMG_0765",explanation:"compensate for ~=「〜を埋め合わせる」。前置詞はtoではなくforを使う。",relatedInfo:"stand for ~=「〜を表す」も別ページで登場する句動詞。"},
+{id:31,type:"reorder",category:"熟語・句動詞",hint:"その結果は運動量と直接関連している。",tokens:["The","results","are","directly","related","to","the","amount","of","exercise."],fullSentence:"The results are directly related to the amount of exercise.",source:"IMG_0761",explanation:"be related to ~=「〜と関連している」。",relatedInfo:"lead to ~ = cause to ~「〜を引き起こす」も関連表現。"},
+{id:32,type:"correction",category:"熟語・句動詞",hint:"彼女はクラブの部長に立候補することに決めた。",question:"She decided to [[stand for]] president of the club.",wrongPart:"stand for",answer:"run for",fullSentence:"She decided to run for president of the club.",source:"IMG_0762",explanation:"run for ~=「〜に立候補する」。stand for ~は「〜を表す」という別の意味。",relatedInfo:"sit for an exam=「試験を受ける」も同ページの表現。"},
+{id:33,type:"reorder",category:"熟語・句動詞",hint:"これを組み立てる際は正しい手順に従うべきだ。",tokens:["The","game","must","be","played","according","to","the","rule."],fullSentence:"The game must be played according to the rule.",source:"IMG_0759",explanation:"according to ~=「〜に従って」。受動態must be playedの形。",relatedInfo:"according as S+V=「〜するにつれて」というSV形の使い方もある。"},
+{id:34,type:"correction",category:"熟語・句動詞",hint:"結局、正直は長期的には報われる。",question:"[[At all]], honesty pays in the long run.",wrongPart:"At all",answer:"After all",fullSentence:"After all, honesty pays in the long run.",source:"IMG_0776",explanation:"after all=「結局、とどのつまり」。at allは否定文で「全く(〜ない)」の意味で使われる別の表現。",relatedInfo:"give reason for ~=「〜の理由を述べる」も同ページの表現。"},
+{id:35,type:"reorder",category:"熟語・句動詞",hint:"地域社会は彼を高く評価している。",tokens:["The","community","holds","him","in","high","esteem."],fullSentence:"The community holds him in high esteem.",source:"IMG_0776",explanation:"hold A in high esteem=「Aを高く評価する」。",relatedInfo:"esteem単体では名詞・動詞両方で「尊敬(する)」の意味を持つ。"},
+{id:36,type:"correction",category:"熟語・句動詞",hint:"彼女の誕生日を忘れていたことがふと私の心に浮かんだ。",question:"It suddenly [[dawned to]] me that I had forgotten her birthday.",wrongPart:"dawned to",answer:"dawned on",fullSentence:"It suddenly dawned on me that I had forgotten her birthday.",source:"IMG_0778",explanation:"it dawns on A that ~=「〜ということがAにふと分かる」。前置詞はtoではなくonを使う。",relatedInfo:"pass unnoticed=「気づかれずに過ぎる」も同じページの表現。"},
+{id:37,type:"reorder",category:"熟語・句動詞",hint:"彼女の努力は気づかれずに過ぎることはなかった。",tokens:["Her","hard","work","did","not","pass","unnoticed."],fullSentence:"Her hard work did not pass unnoticed.",source:"IMG_0778",explanation:"pass unnoticed=「気づかれずに過ぎる」。",relatedInfo:"consequently=「その結果として」も関連表現。"},
+{id:38,type:"correction",category:"熟語・句動詞",hint:"その記事は私たちがすでに知っていることとうまく合致しない。",question:"The article doesn't really [[fit on]] with what we already know.",wrongPart:"fit on",answer:"fit in",fullSentence:"The article doesn't really fit in with what we already know.",source:"IMG_0779",explanation:"fit in with ~=「〜と合致する」。前置詞はonではなくinを使う。",relatedInfo:"rather than=「〜よりむしろ」も同ページに登場する表現。"},
+{id:39,type:"reorder",category:"熟語・句動詞",hint:"彼女は委員会に新しい計画を提案することにした。",tokens:["She","decided","to","propose","a","new","plan","to","the","committee."],fullSentence:"She decided to propose a new plan to the committee.",source:"IMG_0779",explanation:"propose=「〜を提案する」。put forward ~も同義の句動詞。",relatedInfo:"compose=「〜を構成する」も似た綴りだが意味が異なる。"},
+{id:40,type:"correction",category:"熟語・句動詞",hint:"安全に関しては手を抜くべきではない。",question:"We should not [[cut edges]] when it comes to safety.",wrongPart:"cut edges",answer:"cut corners",fullSentence:"We should not cut corners when it comes to safety.",source:"IMG_0758",explanation:"cut corners=「手を抜く」という決まった熟語。cut edgesとは言わない。",relatedInfo:"regardless of ~=「〜にかかわらず」も同ページの表現。"},
+
+// ===== 文法パターン =====
+{id:41,type:"reorder",category:"文法パターン",hint:"彼女は真実を知っているようだ。",tokens:["It","seems","that","she","knows","the","truth."],fullSentence:"It seems that she knows the truth.",source:"IMG_0750",explanation:"It seems that S+V=「SはVするようだ」。",relatedInfo:"She seems to know the truth.への書き換えも可能。"},
+{id:42,type:"correction",category:"文法パターン",hint:"このクラスの生徒の大部分は勤勉だ。",question:"[[Most students of]] this class are diligent.",wrongPart:"Most students of",answer:"Most of the students",fullSentence:"Most of the students in this class are diligent.",source:"IMG_0750",explanation:"most of the + 名詞=「〜の大部分」。語順に注意。",relatedInfo:"almost all (of) the ~ もほぼ同義。"},
+{id:43,type:"reorder",category:"文法パターン",hint:"年を取れば取るほど、時が経つのが速く感じられるようだ。",tokens:["The","older","you","get,","the","faster","time","seems","to","go","by."],fullSentence:"The older you get, the faster time seems to go by.",source:"IMG_0756",explanation:"the 比較級 S+V, the 比較級 S+V=「〜すればするほど、ますます…」。",relatedInfo:"get close to = go near「〜に近づく」も同ページの表現。"},
+{id:44,type:"correction",category:"文法パターン",hint:"彼が到着するとすぐに電話が鳴った。",question:"No sooner had he arrived [[when]] the phone rang.",wrongPart:"when",answer:"than",fullSentence:"No sooner had he arrived than the phone rang.",source:"IMG_0755",explanation:"No sooner had S+過去分詞 than S+V=「〜するとすぐに…した」。whenではなくthanを使う。",relatedInfo:"Hardly had S+過去分詞 when S+Vは同じ意味だがwhenを使う点で異なる。"},
+{id:45,type:"reorder",category:"文法パターン",hint:"彼女はその知らせを聞いてわっと泣き出した。",tokens:["She","burst","into","tears","when","she","heard","the","news."],fullSentence:"She burst into tears when she heard the news.",source:"IMG_0755",explanation:"burst into tears=burst out crying=「わっと泣き出す」。",relatedInfo:"a chance of ~ing=「〜する機会」も同ページの表現。"},
+{id:46,type:"correction",category:"文法パターン",hint:"私は彼にその秘密を話したことを後悔している。",question:"I regret [[to have told]] him the secret.",wrongPart:"to have told",answer:"having told",fullSentence:"I regret having told him the secret.",source:"IMG_0756",explanation:"regret having done=「〜したことを後悔する」。regret to doは「残念ながら〜する」という異なる意味になる。",relatedInfo:"had better V=「〜したほうがよい」も同ページの重要表現。"},
+{id:47,type:"reorder",category:"文法パターン",hint:"彼は遅れないように早く出発した。",tokens:["He","left","early","so","as","not","to","be","late."],fullSentence:"He left early so as not to be late.",source:"IMG_0756",explanation:"so as not to V=「〜しないために」。notの位置に注意。",relatedInfo:"get A together=「Aをまとめる」も同ページの表現。"},
+{id:48,type:"correction",category:"文法パターン",hint:"彼は自分自身が優れた指導者であることを証明した。",question:"He proved [[him]] to be an excellent leader.",wrongPart:"him",answer:"himself",fullSentence:"He proved himself to be an excellent leader.",source:"IMG_0769",explanation:"prove oneself (to be) C=「自分自身がCであることを証明する」。再帰代名詞himselfを使う。",relatedInfo:"prove=O+(to be)+Cの第5文型でも使われる。"},
+{id:49,type:"reorder",category:"文法パターン",hint:"誰でもこの間違いをする可能性がある。",tokens:["It","is","possible","for","anyone","to","make","this","mistake."],fullSentence:"It is possible for anyone to make this mistake.",source:"IMG_0760",explanation:"It is possible for A to V=「Aが〜することは可能だ」。",relatedInfo:"A is able to V=「Aは〜できる」も類似表現だが構文が異なる。"},
+{id:50,type:"correction",category:"文法パターン",hint:"その知らせはメディアを通して放送された。",question:"The news was [[broadcasted]] through the media.",wrongPart:"broadcasted",answer:"broadcast",fullSentence:"The news was broadcast through the media.",source:"IMG_0770",explanation:"broadcastは原形・過去形・過去分詞形が同じ不規則動詞。broadcastedは誤り。",relatedInfo:"would certainly spread=「間違いなく広まるだろう」も同じページの表現。"},
+{id:51,type:"reorder",category:"文法パターン",hint:"このような状況下では、私たちはSがVできると予想できる。",tokens:["Under","these","circumstances,","we","can","expect","that","S","can","V."],fullSentence:"Under these circumstances, we can expect that S can V.",source:"IMG_0761",explanation:"can expect that S+V=「〜だと予想できる」。",relatedInfo:"endow A with B=「AにBを授ける」も同ページの重要表現。"},
+{id:52,type:"correction",category:"文法パターン",hint:"彼は自分自身が正しいと信じていた。",question:"He believed [[him]] to be right.",wrongPart:"him",answer:"himself",fullSentence:"He believed himself to be right.",source:"IMG_0768",explanation:"believe O to be C=「OがCであると信じる」。主語と同一人物なので再帰代名詞himselfを使う。",relatedInfo:"take place=「起こる、行われる」も同ページの表現。"},
+{id:53,type:"reorder",category:"文法パターン",hint:"この記事では事実と意見を分けるのは難しい。",tokens:["It","is","hard","to","separate","fact","from","opinion","in","this","article."],fullSentence:"It is hard to separate fact from opinion in this article.",source:"IMG_0768",explanation:"separate A from B=「AをBから分離する」。",relatedInfo:"believe A to be Cも同じページに登場する構文。"},
+{id:54,type:"correction",category:"文法パターン",hint:"車は魔法の絨毯の現代版にすぎないではないか。",question:"What is a car [[than]] a modern version of a magic carpet?",wrongPart:"than",answer:"but",fullSentence:"What is a car but a modern version of a magic carpet?",source:"IMG_0775",explanation:"What is A but B?=「AはBにすぎないではないか」という修辞疑問文。butを使う。",relatedInfo:"be ready to V=「〜する準備ができている」も同ページの表現。"},
+{id:55,type:"reorder",category:"文法パターン",hint:"これは私たちが計画を再考する必要があることを意味する。",tokens:["This","means","that","we","need","to","reconsider","our","plan."],fullSentence:"This means that we need to reconsider our plan.",source:"IMG_0776",explanation:"This means that S+V=「これは〜ということを意味する」。",relatedInfo:"in the first place=「そもそも」も同ページの表現。"},
+{id:56,type:"correction",category:"文法パターン",hint:"事故を見ただけで彼を怖がらせるのに十分だった。",question:"[[A]] mere sight of a car accident was enough to scare him.",wrongPart:"A",answer:"The",fullSentence:"The mere sight of a car accident was enough to scare him.",source:"IMG_0777",explanation:"the mere sight of ~=「〜を見ただけで」。定冠詞theを使うのが慣用表現。",relatedInfo:"it is not until... that ~=「…して初めて〜する」も同ページの重要構文。"},
+{id:57,type:"reorder",category:"文法パターン",hint:"それは簡単であるだけでなく、楽しくもある。",tokens:["Not","only","is","it","easy,","but","it","is","also","enjoyable."],fullSentence:"Not only is it easy, but it is also enjoyable.",source:"IMG_0777",explanation:"Not only A but also B=「AだけでなくBも」。文頭否定による倒置に注意。",relatedInfo:"be not as A as B=「BほどAではない」も比較表現として重要。"},
+{id:58,type:"correction",category:"文法パターン",hint:"彼の状態は日に日に良くなっている。",question:"His condition is improving [[day to day]].",wrongPart:"day to day",answer:"day by day",fullSentence:"His condition is improving day by day.",source:"IMG_0781",explanation:"day by day=「一日ごとに、日に日に」。day to dayではなくday byを使う。",relatedInfo:"one by one=「一つずつ」も同じ形の表現。"},
+{id:59,type:"reorder",category:"文法パターン",hint:"もし謝らなければ、彼は怒るだろう。",tokens:["Unless","you","apologize,","he","will","get","angry."],fullSentence:"Unless you apologize, he will get angry.",source:"IMG_0747",explanation:"unless = if not=「〜しない限り」。",relatedInfo:"now that=「今や〜なので」も理由を表す関連表現。"},
+{id:60,type:"correction",category:"文法パターン",hint:"彼が賛成しようとしまいと、私たちは計画を進める。",question:"[[If]] he agrees or not, we will proceed with the plan.",wrongPart:"If",answer:"Whether",fullSentence:"Whether he agrees or not, we will proceed with the plan.",source:"IMG_0766",explanation:"whether S+V or not=「〜であろうとなかろうと」。ifではなくwhetherを使う。",relatedInfo:"as well as=「〜だけでなく…も」も同じページの表現。"},
+
+// ===== 接続詞・前置詞表現 =====
+{id:61,type:"reorder",category:"接続詞・前置詞表現",hint:"彼女は子供のころパリに住んでいた。",tokens:["She","lived","in","Paris","while","she","was","a","child."],fullSentence:"She lived in Paris while she was a child.",source:"IMG_0769",explanation:"while+SV=「〜する間」。",relatedInfo:"during these days「近頃は」という表現も同ページに登場。"},
+{id:62,type:"correction",category:"接続詞・前置詞表現",hint:"彼は2時間前に到着した。",question:"He arrived two hours [[before]].",wrongPart:"before",answer:"ago",fullSentence:"He arrived two hours ago.",source:"IMG_0752",explanation:"~ ago=「今から〜前に」。beforeは「(過去のある時点より)前に」という意味で使い方が異なる。",relatedInfo:"in ~=「(今から)〜後に」で未来を表す。"},
+{id:63,type:"reorder",category:"接続詞・前置詞表現",hint:"10時までにこれを終わらせなければならない。",tokens:["You","must","finish","this","by","ten","o'clock."],fullSentence:"You must finish this by ten o'clock.",source:"IMG_0752",explanation:"by+名詞=「〜までに」(期限)。",relatedInfo:"until/till+名詞=「〜まで(ずっと)」(継続)と区別する。"},
+{id:64,type:"correction",category:"接続詞・前置詞表現",hint:"私は10年間ここに住んでいる。",question:"I have lived here [[since]] ten years.",wrongPart:"since",answer:"for",fullSentence:"I have lived here for ten years.",source:"IMG_0752",explanation:"for+期間=「〜の間」(継続期間)。sinceは起点を表す時に使うので、期間にはforを使う。",relatedInfo:"since I was ten「10歳の時から」のように起点を表す。"},
+{id:65,type:"reorder",category:"接続詞・前置詞表現",hint:"疲れていたけれども、彼は働き続けた。",tokens:["Though","he","was","tired,","he","kept","working."],fullSentence:"Though he was tired, he kept working.",source:"IMG_0751",explanation:"though/although=「〜だけれども」。",relatedInfo:"for all ~=「〜にもかかわらず」も同ページの譲歩表現。"},
+{id:66,type:"correction",category:"接続詞・前置詞表現",hint:"彼は裕福であるにもかかわらず幸せではない。",question:"[[Although]] his wealth, he is not happy.",wrongPart:"Although",answer:"Despite",fullSentence:"Despite his wealth, he is not happy.",source:"IMG_0751",explanation:"despite+名詞=「〜にもかかわらず」。althoughの後にはSVが続くので、名詞のみが続く場合はdespiteを使う。",relatedInfo:"in spite of ~も同じ意味で名詞(句)を伴う。"},
+{id:67,type:"reorder",category:"接続詞・前置詞表現",hint:"彼は裕福だ。一方で彼の弟は貧しい。",tokens:["He","is","rich;","his","brother,","whereas,","is","poor."],fullSentence:"He is rich; his brother, whereas, is poor.",source:"IMG_0751",explanation:"while/whereas=「一方で」。対比を表す。",relatedInfo:"on the other handも似た意味だが接続詞ではなく副詞句。"},
+{id:68,type:"correction",category:"接続詞・前置詞表現",hint:"その絵は私には醜く見えない。それどころか、私はむしろ美しいと思う。",question:"That picture doesn't seem ugly to me. [[On the other hand]], I think it's rather beautiful.",wrongPart:"On the other hand",answer:"On the contrary",fullSentence:"That picture doesn't seem ugly to me. On the contrary, I think it's rather beautiful.",source:"IMG_0751",explanation:"on the contrary=「それどころか」。前の内容を強く否定して逆のことを述べる時に使う。on the other handは単なる対比を表すので文脈が異なる。",relatedInfo:"contrary to ~=「〜に反して」は前置詞的に使われる。"},
+{id:69,type:"reorder",category:"接続詞・前置詞表現",hint:"彼はまるで専門家であるかのように振る舞う。",tokens:["He","behaves","as","if","he","were","an","expert."],fullSentence:"He behaves as if he were an expert.",source:"IMG_0751",explanation:"as if S+仮定法=「まるで〜であるかのように」。",relatedInfo:"as thoughもほぼ同じ意味で使われる。"},
+{id:70,type:"correction",category:"接続詞・前置詞表現",hint:"あなたが最善を尽くす限り、私はあなたを支援します。",question:"[[As far as]] you try your best, I will support you.",wrongPart:"As far as",answer:"As long as",fullSentence:"As long as you try your best, I will support you.",source:"IMG_0747",explanation:"as long as=「〜する限り(は)」(条件)。as far asは「〜する限り(範囲)」を表すので条件文には不適切。",relatedInfo:"as far as I know「私が知る限りでは」のように範囲を表す時に使う。"},
+{id:71,type:"reorder",category:"接続詞・前置詞表現",hint:"雨が降る場合に備えて傘を持って行きなさい。",tokens:["Take","an","umbrella","with","you","in","case","it","rains."],fullSentence:"Take an umbrella with you in case it rains.",source:"IMG_0747",explanation:"in case S+V=「〜という場合に備えて」。",relatedInfo:"in case of ~ (名詞)も同様の意味で使われる。"},
+{id:72,type:"correction",category:"接続詞・前置詞表現",hint:"私が知る限り、彼は真実を知らない。",question:"[[As long as]] I know, he doesn't know the truth.",wrongPart:"As long as",answer:"As far as",fullSentence:"As far as I know, he doesn't know the truth.",source:"IMG_0747",explanation:"as far as I know=「私が知る限りでは」という決まり文句。as long asは条件を表すので、この文脈では不適切。",relatedInfo:"as far as the eye can see=「見渡す限り」も似た構文。"},
+{id:73,type:"reorder",category:"接続詞・前置詞表現",hint:"謝らない限り、彼は怒るだろう。",tokens:["He","will","get","angry","unless","you","apologize."],fullSentence:"He will get angry unless you apologize.",source:"IMG_0747",explanation:"unless=if not=「〜しない限り」。",relatedInfo:"if not you apologize と混同しがちだが、unlessは接続詞として使う。"},
+{id:74,type:"correction",category:"接続詞・前置詞表現",hint:"彼女は誰にも見られずに出かけた。",question:"She went out without anyone [[see]] her.",wrongPart:"see",answer:"seeing",fullSentence:"She went out without anyone seeing her.",source:"IMG_0759",explanation:"without anyone V-ing=「誰にもVされることなく」。withoutの後は動名詞が来る。",relatedInfo:"such A as B=「Bのような A」も同じページの構文。"},
+{id:75,type:"reorder",category:"接続詞・前置詞表現",hint:"ジョンを除いて、誰も真実を知らなかった。",tokens:["Except","for","John,","no","one","knew","the","truth."],fullSentence:"Except for John, no one knew the truth.",source:"IMG_0759",explanation:"except for ~=「〜を除いては」。",relatedInfo:"No one except John knows the truth. のようにexceptだけでも使われる。"},
+
+// ===== 感情・比較表現 =====
+{id:76,type:"reorder",category:"感情・比較表現",hint:"彼は新しいプロジェクトに深く興味を持っている。",tokens:["He","is","deeply","interested","in","his","new","project."],fullSentence:"He is deeply interested in his new project.",source:"IMG_0757",explanation:"人が主語の場合は感情形容詞を-ed形で使う。be interested in ~。",relatedInfo:"be satisfied with ~=「〜に満足している」も同じ感情形容詞グループ。"},
+{id:77,type:"correction",category:"感情・比較表現",hint:"その知らせは私にとって大変驚くべきものだった。",question:"The news was very [[surprised]] to me.",wrongPart:"surprised",answer:"surprising",fullSentence:"The news was very surprising to me.",source:"IMG_0757",explanation:"物事が主語の場合は感情形容詞を-ing形で使う。newsが主語なのでsurprisingが正しい。",relatedInfo:"astonishing/astonished も同様のペアで使われる。"},
+{id:78,type:"reorder",category:"感情・比較表現",hint:"彼女は自分自身の成功を恥じていた。",tokens:["She","was","ashamed","of","her","own","success."],fullSentence:"She was ashamed of her own success.",source:"IMG_0757",explanation:"be ashamed of ~=「〜を恥じている」。",relatedInfo:"be embarrassed about ~=「〜に困惑している」も類似の感情形容詞。"},
+{id:79,type:"correction",category:"感情・比較表現",hint:"彼は働きすぎでストレスを感じている。",question:"He is [[stressing]] out from overwork.",wrongPart:"stressing",answer:"stressed",fullSentence:"He is stressed out from overwork.",source:"IMG_0753",explanation:"be stressed out=「ストレスを感じている」。人が主語なので-ed形を使う。",relatedInfo:"comfortable(快適な)は主語に関係なく同じ形で使われる例外的な形容詞。"},
+{id:80,type:"reorder",category:"感情・比較表現",hint:"これらのリンゴのそれぞれが新鮮に見える。",tokens:["Each","of","these","apples","looks","fresh."],fullSentence:"Each of these apples looks fresh.",source:"IMG_0750",explanation:"each of + 複数名詞=単数扱い。動詞はlooksとなる。",relatedInfo:"every apple(単数形が続く)も同様に単数扱い。"},
+{id:81,type:"correction",category:"感情・比較表現",hint:"彼女は学校の誰にも劣らず賢い。",question:"She is as smart as [[all students]] in the school.",wrongPart:"all students",answer:"any student",fullSentence:"She is as smart as any student in the school.",source:"IMG_0774",explanation:"as ~ as any + 単数名詞=「誰[どれ]にも劣らず〜」。all studentsではなくany studentを使う。",relatedInfo:"as accurate as anything can be possible「可能な限り正確に」も類似表現。"},
+{id:82,type:"reorder",category:"感情・比較表現",hint:"次に何が起こるか誰にもわからない。",tokens:["There","is","no","telling","what","will","happen","next."],fullSentence:"There is no telling what will happen next.",source:"IMG_0774",explanation:"There is no V-ing=「〜することはできない」。",relatedInfo:"none the less = nevertheless「それにもかかわらず」も比較表現の仲間として覚える。"},
+{id:83,type:"correction",category:"感情・比較表現",hint:"彼は私の3倍の本を持っている。",question:"He has three times [[many]] books as I do.",wrongPart:"many",answer:"as many",fullSentence:"He has three times as many books as I do.",source:"IMG_0749",explanation:"倍数 + as many/much + 名詞 + as ~=「〜の…倍の(数/量)」。asが抜けているので誤り。",relatedInfo:"more than half of the jobs「仕事の半分以上」も数量表現の一つ。"},
+{id:84,type:"reorder",category:"感情・比較表現",hint:"その難しい試験に合格したのはほんの少しの生徒だけだった。",tokens:["Only","a","few","students","passed","the","difficult","exam."],fullSentence:"Only a few students passed the difficult exam.",source:"IMG_0770",explanation:"a few=「少しはある」(肯定的)、可算名詞に使う。",relatedInfo:"a little/littleは不可算名詞に使う同様のペア。"},
+{id:85,type:"correction",category:"感情・比較表現",hint:"その世界は急速に変化しつつある。",question:"The world [[changes]] rapidly.",wrongPart:"changes",answer:"is changing",fullSentence:"The world is changing rapidly.",source:"IMG_0761",explanation:"be+V-ing=進行形で「〜しつつある」という変化の途中を表す。文脈上、単純現在形changesではなく進行形にする必要がある。",relatedInfo:"it will be more and more difficult to find people who can V「〜できる人を見つけるのはますます難しくなるだろう」も比較表現の一種。"}
+];
+
+const WRITE_QUESTIONS = [
+// ===== 語彙(free) =====
+{id:1,type:"free",category:"語彙",hint:"「彼は公の場で話す恐怖を克服しようとした」を英語で書きなさい。",keyPhrases:["overcome","fear","public speaking"],answer:"He tried to overcome his fear of public speaking.",fullSentence:"He tried to overcome his fear of public speaking.",source:"IMG_0775",explanation:"overcome=「〜を克服する」。",relatedInfo:"get over ~ も同義語として使える。"},
+{id:2,type:"free",category:"語彙",hint:"「その製品の品質は平凡だった」を英語で書きなさい。",keyPhrases:["quality","product","mediocre"],answer:"The quality of the product was mediocre.",fullSentence:"The quality of the product was mediocre.",source:"IMG_0777",explanation:"mediocre=「平凡な、二流の」。ネガティブな評価を表す。",relatedInfo:"average(平均的な)よりマイナスの含みが強い。"},
+{id:3,type:"free",category:"語彙",hint:"「遺伝子工学は多くの倫理的な問題を提起してきた」を英語で書きなさい。",keyPhrases:["genetic engineering","raised","ethical questions"],answer:"Genetic engineering has raised many ethical questions.",fullSentence:"Genetic engineering has raised many ethical questions.",source:"IMG_0776",explanation:"genetic engineering=「遺伝子工学」。has raisedは現在完了形。",relatedInfo:"engineering単体では「工学」の意味。"},
+{id:4,type:"free",category:"語彙",hint:"「その古代の寺院は千年以上前に建てられた」を英語で書きなさい。",keyPhrases:["ancient temple","built","thousand years ago"],answer:"The ancient temple was built over a thousand years ago.",fullSentence:"The ancient temple was built over a thousand years ago.",source:"IMG_0746",explanation:"ancient=「古代の」。mediaeval(中世の)、modern(現代の)と時代の流れで覚える。",relatedInfo:"attach A to B「AをBに愛着させる」もこのページの内容。"},
+{id:5,type:"free",category:"語彙",hint:"「彼の病気は急性ではなく慢性だ」を英語で書きなさい。",keyPhrases:["illness","chronic","acute"],answer:"His illness is chronic, not acute.",fullSentence:"His illness is chronic, not acute.",source:"IMG_0748",explanation:"chronic=「慢性の」⇔acute=「急性の」。",relatedInfo:"invest in ~「〜に投資する」もこのページの表現。"},
+{id:6,type:"free",category:"語彙",hint:"「彼は莫大な財産の相続人だ」を英語で書きなさい。",keyPhrases:["heir","large fortune"],answer:"He is the heir to a large fortune.",fullSentence:"He is the heir to a large fortune.",source:"IMG_0763",explanation:"heir to ~=「〜の相続人」。",relatedInfo:"scientific(科学的な)も同ページの語彙。"},
+{id:7,type:"free",category:"語彙",hint:"「その言葉はこの文脈では否定的な含みを持つ」を英語で書きなさい。",keyPhrases:["negative connotation","context"],answer:"The word has a negative connotation in this context.",fullSentence:"The word has a negative connotation in this context.",source:"IMG_0777",explanation:"connotation=「言外の意味、含意」。denotation(明示的な意味)と対比される。",relatedInfo:"denotationとconnotationはよく対比されるペア。"},
+{id:8,type:"free",category:"語彙",hint:"「私は嘘をつく人をひどく嫌う」を英語で書きなさい。",keyPhrases:["detest","people","lie"],answer:"I detest people who lie to me.",fullSentence:"I detest people who lie to me.",source:"IMG_0777",explanation:"detest=「〜をひどく嫌う」。hateの強意版。",relatedInfo:"outpace=「〜を追い越す」も同ページの語。"},
+{id:9,type:"free",category:"語彙",hint:"「社会の変化は急激ではなく徐々のものであった」を英語で書きなさい。",keyPhrases:["changes","gradual","sudden"],answer:"The changes in society have been gradual rather than sudden.",fullSentence:"The changes in society have been gradual rather than sudden.",source:"IMG_0778",explanation:"gradual=「徐々の」。rather than=「〜よりむしろ」。",relatedInfo:"diverse(多様な)とは反対の性質を表す語。"},
+{id:10,type:"free",category:"語彙",hint:"「彼女は教育改革の強力な提唱者だ」を英語で書きなさい。",keyPhrases:["advocate","education reform"],answer:"She is a strong advocate for education reform.",fullSentence:"She is a strong advocate for education reform.",source:"IMG_0780",explanation:"advocate for ~=「〜の提唱者」。opponentが対義語。",relatedInfo:"alternative=「代わりの、代替の」もこのページの語。"},
+{id:11,type:"free",category:"語彙",hint:"「彼は屋根裏部屋で古い手紙の束を見つけた」を英語で書きなさい。",keyPhrases:["bundle","old letters","attic"],answer:"He found a bundle of old letters in the attic.",fullSentence:"He found a bundle of old letters in the attic.",source:"IMG_0774",explanation:"a bundle of ~=「〜の束」。",relatedInfo:"flock(羊などの群れ), herd(牛などの群れ)と使い分ける。"},
+{id:12,type:"free",category:"語彙",hint:"「羊の群れが丘の斜面で草を食んでいた」を英語で書きなさい。",keyPhrases:["flock of sheep","grazed","hillside"],answer:"A flock of sheep grazed on the hillside.",fullSentence:"A flock of sheep grazed on the hillside.",source:"IMG_0780",explanation:"flock=「(羊・鳥の)群れ」、herd=「(牛などの)群れ」で使い分ける。",relatedInfo:"graze=「(牛などが)草を食べる」もこのページの語。"},
+{id:13,type:"free",category:"語彙",hint:"「政府はその国の産業を工業化する計画だ」を英語で書きなさい。",keyPhrases:["government","industrialize","industry"],answer:"The government plans to industrialize the country's industry.",fullSentence:"The government plans to industrialize the country's industry.",source:"IMG_0748",explanation:"industrialize=「〜を工業化する」。infrastructure=「インフラ」も同ページ。",relatedInfo:"liquefy=「〜を液化する」も同じページの科学系語彙。"},
+{id:14,type:"free",category:"語彙",hint:"「村人たちの間には強い血縁関係の意識がある」を英語で書きなさい。",keyPhrases:["sense of kinship","villagers"],answer:"There is a strong sense of kinship among the villagers.",fullSentence:"There is a strong sense of kinship among the villagers.",source:"IMG_0763",explanation:"kinship=「血縁関係、親族関係」。",relatedInfo:"heir(相続人)とも関連する語彙。"},
+{id:15,type:"free",category:"語彙",hint:"「あなたの欠席の理由をはっきり述べてください」を英語で書きなさい。",keyPhrases:["articulate","reason","absence"],answer:"Please articulate the reason for your absence.",fullSentence:"Please articulate the reason for your absence.",source:"IMG_0763",explanation:"articulate=「〜をはっきり述べる」。",relatedInfo:"definite=「明確な、確定した」も類似の語。"},
+
+// ===== 熟語・句動詞(free) =====
+{id:16,type:"free",category:"熟語・句動詞",hint:"「彼女はその問題を自力で解決することができた」を英語で書きなさい。",keyPhrases:["work out","problem","on her own"],answer:"She managed to work out the problem on her own.",fullSentence:"She managed to work out the problem on her own.",source:"IMG_0744",explanation:"work out=「(問題)を解決する」。",relatedInfo:"solve the problemという言い方も同じ意味。"},
+{id:17,type:"free",category:"熟語・句動詞",hint:"「彼は10年以上、研究に専念した」を英語で書きなさい。",keyPhrases:["devoted himself to","research","ten years"],answer:"He devoted himself to his research for over ten years.",fullSentence:"He devoted himself to his research for over ten years.",source:"IMG_0746",explanation:"devote oneself to ~=「〜に専念する」。",relatedInfo:"devote A to B=「AをBに捧げる」の形でも使われる。"},
+{id:18,type:"free",category:"熟語・句動詞",hint:"「金曜日までにレポートを提出しなければならない」を英語で書きなさい。",keyPhrases:["hand in","report","Friday"],answer:"You must hand in your report by Friday.",fullSentence:"You must hand in your report by Friday.",source:"IMG_0754",explanation:"hand in=「〜を提出する」。submitとほぼ同義。",relatedInfo:"carry out=「(計画など)を実行する」も同じページの句動詞。"},
+{id:19,type:"free",category:"熟語・句動詞",hint:"「委員会は彼の提案を断ることに決めた」を英語で書きなさい。",keyPhrases:["turn down","proposal"],answer:"The committee decided to turn down his proposal.",fullSentence:"The committee decided to turn down his proposal.",source:"IMG_0754",explanation:"turn down=「〜を断る」。refuse, rejectも類義語。",relatedInfo:"complain about ~=「〜について不満を言う」も関連表現。"},
+{id:20,type:"free",category:"熟語・句動詞",hint:"「私はその単語を辞書で調べた」を英語で書きなさい。",keyPhrases:["looked up","word","dictionary"],answer:"I looked up the word in the dictionary.",fullSentence:"I looked up the word in the dictionary.",source:"IMG_0754",explanation:"look up ~=「(単語など)を調べる」。",relatedInfo:"pick up ~=「〜を拾う、車で迎えに行く」も類似の形の句動詞。"},
+{id:21,type:"free",category:"熟語・句動詞",hint:"「あの騒音をこれ以上聞く価値はない」を英語で書きなさい。",keyPhrases:["worth listening to","noise"],answer:"It's not worth listening to that noise any longer.",fullSentence:"It's not worth listening to that noise any longer.",source:"IMG_0764",explanation:"It is worth ~ing=「〜する価値がある」。",relatedInfo:"be worth V-ingの構文は非常によく使われる。"},
+{id:22,type:"free",category:"熟語・句動詞",hint:"「私は彼女の能力を大いに信頼している」を英語で書きなさい。",keyPhrases:["faith in","ability"],answer:"I have great faith in her ability.",fullSentence:"I have great faith in her ability.",source:"IMG_0764",explanation:"have faith in ~=「〜を信頼する」。",relatedInfo:"have a high opinion of ~=「〜を高く評価する」も類義。"},
+{id:23,type:"free",category:"熟語・句動詞",hint:"「彼のミスは同僚によって指摘された」を英語で書きなさい。",keyPhrases:["pointed out","mistake","colleague"],answer:"His mistake was pointed out by his colleague.",fullSentence:"His mistake was pointed out by his colleague.",source:"IMG_0764",explanation:"point out ~=「〜を指摘する」。受動態be pointed outの形。",relatedInfo:"He had his mistake pointed out.のような使役の形もある。"},
+{id:24,type:"free",category:"熟語・句動詞",hint:"「愛する人を失ったことを埋め合わせられるものは何もない」を英語で書きなさい。",keyPhrases:["compensate for","loss","loved one"],answer:"Nothing can compensate for the loss of a loved one.",fullSentence:"Nothing can compensate for the loss of a loved one.",source:"IMG_0765",explanation:"compensate for ~=「〜を埋め合わせる、補う」。",relatedInfo:"stand for ~=「〜を表す」も別ページで登場する句動詞。"},
+{id:25,type:"free",category:"熟語・句動詞",hint:"「その結果は運動量と直接関連している」を英語で書きなさい。",keyPhrases:["related to","amount of exercise"],answer:"The results are directly related to the amount of exercise.",fullSentence:"The results are directly related to the amount of exercise.",source:"IMG_0761",explanation:"be related to ~=「〜と関連している」。",relatedInfo:"lead to ~ = cause to ~ 「〜を引き起こす」も関連する表現。"},
+{id:26,type:"free",category:"熟語・句動詞",hint:"「彼女はクラブの部長に立候補することに決めた」を英語で書きなさい。",keyPhrases:["run for","president","club"],answer:"She decided to run for president of the club.",fullSentence:"She decided to run for president of the club.",source:"IMG_0762",explanation:"run for ~=「〜に立候補する」。",relatedInfo:"sit for an exam=「試験を受ける」も同ページの表現。"},
+{id:27,type:"free",category:"熟語・句動詞",hint:"「結局、正直は長期的には報われる」を英語で書きなさい。",keyPhrases:["after all","honesty pays"],answer:"After all, honesty pays in the long run.",fullSentence:"After all, honesty pays in the long run.",source:"IMG_0776",explanation:"after all=「結局、とどのつまり」。",relatedInfo:"give reason for ~=「〜の理由を述べる」も同ページの表現。"},
+{id:28,type:"free",category:"熟語・句動詞",hint:"「彼女の誕生日を忘れていたことがふと私の心に浮かんだ」を英語で書きなさい。",keyPhrases:["dawned on","forgotten","birthday"],answer:"It suddenly dawned on me that I had forgotten her birthday.",fullSentence:"It suddenly dawned on me that I had forgotten her birthday.",source:"IMG_0778",explanation:"it dawns on A that ~=「〜ということがAにふと分かる」。",relatedInfo:"pass unnoticed=「気づかれずに過ぎる」も同じページの表現。"},
+{id:29,type:"free",category:"熟語・句動詞",hint:"「その記事は私たちがすでに知っていることとうまく合致しない」を英語で書きなさい。",keyPhrases:["fit in with","already know"],answer:"The article doesn't really fit in with what we already know.",fullSentence:"The article doesn't really fit in with what we already know.",source:"IMG_0779",explanation:"fit in with ~=「〜と合致する、うまく合う」。",relatedInfo:"rather than=「〜よりむしろ」も同ページに登場する表現。"},
+{id:30,type:"free",category:"熟語・句動詞",hint:"「安全に関しては手を抜くべきではない」を英語で書きなさい。",keyPhrases:["cut corners","safety"],answer:"We should not cut corners when it comes to safety.",fullSentence:"We should not cut corners when it comes to safety.",source:"IMG_0758",explanation:"cut corners=「手を抜く」。",relatedInfo:"regardless of ~=「〜にかかわらず」も同ページの表現。"},
+
+// ===== 文法パターン(free) =====
+{id:31,type:"free",category:"文法パターン",hint:"「彼女は真実を知っているようだ」を英語で書きなさい。",keyPhrases:["It seems that","knows the truth"],answer:"It seems that she knows the truth.",fullSentence:"It seems that she knows the truth.",source:"IMG_0750",explanation:"It seems that S+V=「SはVするようだ」。",relatedInfo:"She seems to know the truth.への書き換えも可能。"},
+{id:32,type:"free",category:"文法パターン",hint:"「このクラスの生徒の大部分は勤勉だ」を英語で書きなさい。",keyPhrases:["most of the students","diligent"],answer:"Most of the students in this class are diligent.",fullSentence:"Most of the students in this class are diligent.",source:"IMG_0750",explanation:"most of the + 名詞=「〜の大部分」。",relatedInfo:"almost all (of) the ~ もほぼ同義で使われる表現。"},
+{id:33,type:"free",category:"文法パターン",hint:"「年を取れば取るほど、時が経つのが速く感じられるようだ」を英語で書きなさい。",keyPhrases:["the older","the faster","go by"],answer:"The older you get, the faster time seems to go by.",fullSentence:"The older you get, the faster time seems to go by.",source:"IMG_0756",explanation:"the 比較級 S+V, the 比較級 S+V=「〜すればするほど、ますます…」。",relatedInfo:"get close to = go near「〜に近づく」も同ページの表現。"},
+{id:34,type:"free",category:"文法パターン",hint:"「彼が到着するとすぐに電話が鳴った」を英語で書きなさい(No soonerで始める倒置構文)。",keyPhrases:["No sooner had he arrived","than","phone rang"],answer:"No sooner had he arrived than the phone rang.",fullSentence:"No sooner had he arrived than the phone rang.",source:"IMG_0755",explanation:"No sooner had S+過去分詞 than S+V(過去形)=「〜するとすぐに…した」。否定語が文頭に来ることで倒置が起こる。",relatedInfo:"Hardly had S+過去分詞 when S+V も同じ意味の構文。"},
+{id:35,type:"free",category:"文法パターン",hint:"「私は彼にその秘密を話したことを後悔している」を英語で書きなさい。",keyPhrases:["regret having told","secret"],answer:"I regret having told him the secret.",fullSentence:"I regret having told him the secret.",source:"IMG_0756",explanation:"regret having done=「〜したことを後悔する」。",relatedInfo:"had better V=「〜したほうがよい」も同ページの重要表現。"},
+{id:36,type:"free",category:"文法パターン",hint:"「彼は自分自身が優れた指導者であることを証明した」を英語で書きなさい。",keyPhrases:["proved himself","excellent leader"],answer:"He proved himself to be an excellent leader.",fullSentence:"He proved himself to be an excellent leader.",source:"IMG_0769",explanation:"prove oneself (to be) C=「自分自身がCであることを証明する」。",relatedInfo:"prove=O+(to be)+Cの第5文型でも使われる。"},
+{id:37,type:"free",category:"文法パターン",hint:"「誰でもこの間違いをする可能性がある」を英語で書きなさい。",keyPhrases:["possible for anyone","make this mistake"],answer:"It is possible for anyone to make this mistake.",fullSentence:"It is possible for anyone to make this mistake.",source:"IMG_0760",explanation:"It is possible for A to V=「Aが〜することは可能だ」。",relatedInfo:"A is able to V=「Aは〜できる」も類似表現だが構文が異なる。"},
+{id:38,type:"free",category:"文法パターン",hint:"「このような状況下では、私たちはSがVできると予想できる」を英語で書きなさい。",keyPhrases:["under these circumstances","can expect"],answer:"Under these circumstances, we can expect that S can V.",fullSentence:"Under these circumstances, we can expect that S can V.",source:"IMG_0761",explanation:"can expect that S+V=「〜だと予想できる」。",relatedInfo:"endow A with B=「AにBを授ける」も同ページの重要表現。"},
+{id:39,type:"free",category:"文法パターン",hint:"「彼は自分自身が正しいと信じていた」を英語で書きなさい。",keyPhrases:["believed himself","to be right"],answer:"He believed himself to be right.",fullSentence:"He believed himself to be right.",source:"IMG_0768",explanation:"believe O to be C=「OがCであると信じる」。",relatedInfo:"take place=「起こる、行われる」も同ページの表現。"},
+{id:40,type:"free",category:"文法パターン",hint:"「この記事では事実と意見を分けるのは難しい」を英語で書きなさい。",keyPhrases:["separate fact from opinion","article"],answer:"It is hard to separate fact from opinion in this article.",fullSentence:"It is hard to separate fact from opinion in this article.",source:"IMG_0768",explanation:"separate A from B=「AをBから分離する」。",relatedInfo:"believe A to be C も同じページに登場する構文。"},
+{id:41,type:"free",category:"文法パターン",hint:"「これは私たちが計画を再考する必要があることを意味する」を英語で書きなさい。",keyPhrases:["This means that","reconsider","plan"],answer:"This means that we need to reconsider our plan.",fullSentence:"This means that we need to reconsider our plan.",source:"IMG_0776",explanation:"This means that S+V=「これは〜ということを意味する」。",relatedInfo:"in the first place=「そもそも、第一に」も同ページの表現。"},
+{id:42,type:"free",category:"文法パターン",hint:"「事故を目にしただけで彼を怖がらせるのに十分だった」を英語で書きなさい。",keyPhrases:["the mere sight of","car accident","scare him"],answer:"The mere sight of a car accident was enough to scare him.",fullSentence:"The mere sight of a car accident was enough to scare him.",source:"IMG_0777",explanation:"the mere sight of ~=「〜を見ただけで」。",relatedInfo:"it is not until... that ~=「…して初めて〜する」も同ページの重要構文。"},
+{id:43,type:"free",category:"文法パターン",hint:"「それは簡単であるだけでなく、楽しくもある」を英語で書きなさい(Not onlyで始める倒置構文)。",keyPhrases:["Not only is it easy","also enjoyable"],answer:"Not only is it easy, but it is also enjoyable.",fullSentence:"Not only is it easy, but it is also enjoyable.",source:"IMG_0777",explanation:"Not only A but also B=「AだけでなくBも」。文頭に否定語があるため倒置が起きる。",relatedInfo:"be not as A as B=「BほどAではない」も比較表現として重要。"},
+{id:44,type:"free",category:"文法パターン",hint:"「もし謝らなければ、彼は怒るだろう」を英語で書きなさい。",keyPhrases:["Unless you apologize","get angry"],answer:"Unless you apologize, he will get angry.",fullSentence:"Unless you apologize, he will get angry.",source:"IMG_0747",explanation:"unless = if not=「〜しない限り」。",relatedInfo:"now that=「今や〜なので」も理由を表す関連表現。"},
+{id:45,type:"free",category:"文法パターン",hint:"「彼が賛成しようとしまいと、私たちは計画を進める」を英語で書きなさい。",keyPhrases:["Whether he agrees or not","proceed"],answer:"Whether he agrees or not, we will proceed with the plan.",fullSentence:"Whether he agrees or not, we will proceed with the plan.",source:"IMG_0766",explanation:"whether S+V or not=「〜であろうとなかろうと」。",relatedInfo:"as well as=「〜だけでなく…も」も同じページの表現。"},
+
+// ===== 接続詞・前置詞表現(free) =====
+{id:46,type:"free",category:"接続詞・前置詞表現",hint:"「彼女は子供のころパリに住んでいた」を英語で書きなさい。",keyPhrases:["lived in Paris","while","a child"],answer:"She lived in Paris while she was a child.",fullSentence:"She lived in Paris while she was a child.",source:"IMG_0769",explanation:"while+SV=「〜する間」。",relatedInfo:"during these days「近頃は」という表現も同ページに登場。"},
+{id:47,type:"free",category:"接続詞・前置詞表現",hint:"「彼は2時間前に到着した」を英語で書きなさい。",keyPhrases:["arrived","two hours ago"],answer:"He arrived two hours ago.",fullSentence:"He arrived two hours ago.",source:"IMG_0752",explanation:"~ ago=「今から〜前に」で過去の一点を表す。",relatedInfo:"after two hours=「(基準となる時点から)2時間後に」という意味。"},
+{id:48,type:"free",category:"接続詞・前置詞表現",hint:"「10時までにこれを終わらせなければならない」を英語で書きなさい。",keyPhrases:["by ten o'clock","finish"],answer:"You must finish this by ten o'clock.",fullSentence:"You must finish this by ten o'clock.",source:"IMG_0752",explanation:"by+名詞=「〜までに」(期限)。",relatedInfo:"until/till+名詞=「〜まで(ずっと)」(継続)と区別する。"},
+{id:49,type:"free",category:"接続詞・前置詞表現",hint:"「私は10年間ここに住んでいる」を英語で書きなさい。",keyPhrases:["have lived here","for ten years"],answer:"I have lived here for ten years.",fullSentence:"I have lived here for ten years.",source:"IMG_0752",explanation:"for+期間=「〜の間」(継続期間)。",relatedInfo:"since I was ten「10歳の時から」のように起点を表す。"},
+{id:50,type:"free",category:"接続詞・前置詞表現",hint:"「疲れていたけれども、彼は働き続けた」を英語で書きなさい。",keyPhrases:["Though he was tired","kept working"],answer:"Though he was tired, he kept working.",fullSentence:"Though he was tired, he kept working.",source:"IMG_0751",explanation:"though/although=「〜だけれども」。",relatedInfo:"for all ~=「〜にもかかわらず」も同ページの譲歩表現。"},
+{id:51,type:"free",category:"接続詞・前置詞表現",hint:"「彼は裕福であるにもかかわらず幸せではない」を英語で書きなさい(despiteを使う)。",keyPhrases:["Despite his wealth","not happy"],answer:"Despite his wealth, he is not happy.",fullSentence:"Despite his wealth, he is not happy.",source:"IMG_0751",explanation:"despite+名詞=「〜にもかかわらず」。",relatedInfo:"in spite of ~も同じ意味で名詞(句)を伴う。"},
+{id:52,type:"free",category:"接続詞・前置詞表現",hint:"「その絵は私には醜く見えない。それどころか、私はむしろ美しいと思う」を英語で書きなさい。",keyPhrases:["On the contrary","rather beautiful"],answer:"That picture doesn't seem ugly to me. On the contrary, I think it's rather beautiful.",fullSentence:"That picture doesn't seem ugly to me. On the contrary, I think it's rather beautiful.",source:"IMG_0751",explanation:"on the contrary=「それどころか」。前の内容を強く否定して逆のことを述べる。",relatedInfo:"contrary to ~=「〜に反して」は前置詞的に使われる。"},
+{id:53,type:"free",category:"接続詞・前置詞表現",hint:"「彼はまるで専門家であるかのように振る舞う」を英語で書きなさい。",keyPhrases:["as if he were","an expert"],answer:"He behaves as if he were an expert.",fullSentence:"He behaves as if he were an expert.",source:"IMG_0751",explanation:"as if S+仮定法=「まるで〜であるかのように」。",relatedInfo:"as thoughもほぼ同じ意味で使われる。"},
+{id:54,type:"free",category:"接続詞・前置詞表現",hint:"「あなたが最善を尽くす限り、私はあなたを支援します」を英語で書きなさい。",keyPhrases:["As long as","try your best","support"],answer:"As long as you try your best, I will support you.",fullSentence:"As long as you try your best, I will support you.",source:"IMG_0747",explanation:"as long as=「〜する限り(は)」(条件)。",relatedInfo:"as far as I know「私が知る限りでは」のように範囲を表す時に使う。"},
+{id:55,type:"free",category:"接続詞・前置詞表現",hint:"「雨が降る場合に備えて傘を持って行きなさい」を英語で書きなさい。",keyPhrases:["in case it rains","umbrella"],answer:"Take an umbrella with you in case it rains.",fullSentence:"Take an umbrella with you in case it rains.",source:"IMG_0747",explanation:"in case S+V=「〜という場合に備えて」。",relatedInfo:"in case of ~ (名詞)も同様の意味で使われる。"},
+{id:56,type:"free",category:"接続詞・前置詞表現",hint:"「私が知る限り、彼は真実を知らない」を英語で書きなさい。",keyPhrases:["As far as I know","doesn't know the truth"],answer:"As far as I know, he doesn't know the truth.",fullSentence:"As far as I know, he doesn't know the truth.",source:"IMG_0747",explanation:"as far as I know=「私が知る限りでは」。",relatedInfo:"as far as the eye can see=「見渡す限り」も似た構文。"},
+{id:57,type:"free",category:"接続詞・前置詞表現",hint:"「謝らない限り、彼は怒るだろう」を英語で書きなさい。",keyPhrases:["unless you apologize","get angry"],answer:"He will get angry unless you apologize.",fullSentence:"He will get angry unless you apologize.",source:"IMG_0747",explanation:"unless=if not=「〜しない限り」。",relatedInfo:"if not you apologize と混同しがちだが、unlessは接続詞として文頭にも置ける。"},
+{id:58,type:"free",category:"接続詞・前置詞表現",hint:"「彼女は誰にも見られずに出かけた」を英語で書きなさい。",keyPhrases:["without anyone seeing","went out"],answer:"She went out without anyone seeing her.",fullSentence:"She went out without anyone seeing her.",source:"IMG_0759",explanation:"without anyone V-ing=「誰にもVされることなく」。",relatedInfo:"such A as B=「Bのような A」も同じページの構文。"},
+{id:59,type:"free",category:"接続詞・前置詞表現",hint:"「ジョンを除いて、誰も真実を知らなかった」を英語で書きなさい。",keyPhrases:["Except for John","no one knew"],answer:"Except for John, no one knew the truth.",fullSentence:"Except for John, no one knew the truth.",source:"IMG_0759",explanation:"except for ~=「〜を除いては」。",relatedInfo:"No one except John knows the truth. のようにexceptだけでも使われる。"},
+{id:60,type:"free",category:"接続詞・前置詞表現",hint:"「あなたが最善を尽くしさえすれば、結果は問題ではない(so thatを使わずthanks toで感謝を表す例文)」の代わりに「あなたの助けのおかげで、私たちは予定通りプロジェクトを終えた」を英語で書きなさい。",keyPhrases:["Thanks to your help","finished the project","on time"],answer:"Thanks to your help, we finished the project on time.",fullSentence:"Thanks to your help, we finished the project on time.",source:"IMG_0751",explanation:"thanks to ~=「〜のおかげで」。because of, owing to, due to, by virtue of, on account ofも同義の表現群。",relatedInfo:"in spite of ~=「〜にもかかわらず」は逆接の意味になるので混同注意。"},
+
+// ===== 感情・比較表現(free) =====
+{id:61,type:"free",category:"感情・比較表現",hint:"「彼は新しいプロジェクトに深く興味を持っている」を英語で書きなさい。",keyPhrases:["deeply interested in","new project"],answer:"He is deeply interested in his new project.",fullSentence:"He is deeply interested in his new project.",source:"IMG_0757",explanation:"人が主語の場合は感情形容詞を-ed形で使う。",relatedInfo:"be satisfied with ~=「〜に満足している」も同じ感情形容詞グループ。"},
+{id:62,type:"free",category:"感情・比較表現",hint:"「その知らせは私にとって大変驚くべきものだった」を英語で書きなさい。",keyPhrases:["very surprising","to me"],answer:"The news was very surprising to me.",fullSentence:"The news was very surprising to me.",source:"IMG_0757",explanation:"物事が主語の場合は-ing形(surprising)を使う。",relatedInfo:"astonishing/astonished も同様のペアで使われる。"},
+{id:63,type:"free",category:"感情・比較表現",hint:"「彼女は自分自身の成功を恥じていた」を英語で書きなさい。",keyPhrases:["ashamed of","her own success"],answer:"She was ashamed of her own success.",fullSentence:"She was ashamed of her own success.",source:"IMG_0757",explanation:"be ashamed of ~=「〜を恥じている」。",relatedInfo:"be embarrassed about ~=「〜に困惑している」も類似の感情形容詞。"},
+{id:64,type:"free",category:"感情・比較表現",hint:"「彼は働きすぎでストレスを感じている」を英語で書きなさい。",keyPhrases:["stressed out","overwork"],answer:"He is stressed out from overwork.",fullSentence:"He is stressed out from overwork.",source:"IMG_0753",explanation:"be stressed out=「ストレスを感じている」。",relatedInfo:"comfortable(快適な)は主語に関係なく同じ形で使われる例外的な形容詞。"},
+{id:65,type:"free",category:"感情・比較表現",hint:"「これらのリンゴのそれぞれが新鮮に見える」を英語で書きなさい。",keyPhrases:["Each of these apples","looks fresh"],answer:"Each of these apples looks fresh.",fullSentence:"Each of these apples looks fresh.",source:"IMG_0750",explanation:"each of + 複数名詞=単数扱い。",relatedInfo:"every apple(単数形が続く)も同様に単数扱い。"},
+{id:66,type:"free",category:"感情・比較表現",hint:"「彼女は学校の誰にも劣らず賢い」を英語で書きなさい(as ~ as anyを使う)。",keyPhrases:["as smart as any student","in the school"],answer:"She is as smart as any student in the school.",fullSentence:"She is as smart as any student in the school.",source:"IMG_0774",explanation:"as ~ as any + 単数名詞=「誰[どれ]にも劣らず〜」で最上級に近い意味を表す。",relatedInfo:"as accurate as anything can be possible「可能な限り正確に」も類似表現。"},
+{id:67,type:"free",category:"感情・比較表現",hint:"「次に何が起こるか誰にもわからない」を英語で書きなさい。",keyPhrases:["There is no telling","happen next"],answer:"There is no telling what will happen next.",fullSentence:"There is no telling what will happen next.",source:"IMG_0774",explanation:"There is no V-ing=「〜することはできない」。",relatedInfo:"none the less = nevertheless「それにもかかわらず」も比較表現の仲間として覚える。"},
+{id:68,type:"free",category:"感情・比較表現",hint:"「彼は私の3倍の本を持っている」を英語で書きなさい。",keyPhrases:["three times as many books","as I do"],answer:"He has three times as many books as I do.",fullSentence:"He has three times as many books as I do.",source:"IMG_0749",explanation:"倍数 + as many/much + 名詞 + as ~=「〜の…倍の(数/量)」。",relatedInfo:"more than half of the jobs「仕事の半分以上」も数量表現の一つ。"},
+{id:69,type:"free",category:"感情・比較表現",hint:"「その難しい試験に合格したのはほんの少しの生徒だけだった」を英語で書きなさい。",keyPhrases:["Only a few students","passed","difficult exam"],answer:"Only a few students passed the difficult exam.",fullSentence:"Only a few students passed the difficult exam.",source:"IMG_0770",explanation:"a few=「少しはある」(肯定的)、可算名詞に使う。",relatedInfo:"a little/littleは不可算名詞に使う同様のペア。"},
+{id:70,type:"free",category:"感情・比較表現",hint:"「その世界は急速に変化しつつある」を英語で書きなさい。",keyPhrases:["is changing","rapidly"],answer:"The world is changing rapidly.",fullSentence:"The world is changing rapidly.",source:"IMG_0761",explanation:"be+V-ing=進行形で「〜しつつある」という変化の途中を表す。",relatedInfo:"it will be more and more difficult to find people who can V「〜できる人を見つけるのはますます難しくなるだろう」も比較表現の一種。"},
+
+// ===== マッチング(match) =====
+{id:71,type:"match",category:"語彙",hint:"日本語と英語を正しく組み合わせてください",pairs:[
+  {japanese:"〜を克服する",english:"overcome"},
+  {japanese:"平凡な、二流の",english:"mediocre"},
+  {japanese:"膨大な数の",english:"a myriad of"},
+  {japanese:"単純化しすぎた",english:"simplistic"}
+],sources:["IMG_0775","IMG_0777","IMG_0779"],explanation:"抽象的な形容詞や動詞は文脈とセットで覚えると定着しやすい。",relatedInfo:"gradual(徐々の)、detest(ひどく嫌う)も同じグループの語彙。"},
+{id:72,type:"match",category:"語彙",hint:"日本語と英語を正しく組み合わせてください",pairs:[
+  {japanese:"言外の意味、含意",english:"connotation"},
+  {japanese:"不一致、食い違い",english:"discrepancy"},
+  {japanese:"血縁関係",english:"kinship"},
+  {japanese:"相続人",english:"heir"}
+],sources:["IMG_0777","IMG_0772","IMG_0763"],explanation:"名詞の語彙は意味の近い語(denotationなど)とセットで覚える。",relatedInfo:"scientific(科学的な)も同ページの語彙。"},
+{id:73,type:"match",category:"語彙",hint:"日本語と英語を正しく組み合わせてください",pairs:[
+  {japanese:"提唱者",english:"advocate"},
+  {japanese:"反対者",english:"opponent"},
+  {japanese:"束、包み",english:"bundle"},
+  {japanese:"(羊などの)群れ",english:"flock"}
+],sources:["IMG_0780","IMG_0774"],explanation:"advocateとopponentは対義語のペアとして覚える。",relatedInfo:"herd(牛の群れ)、pack(狼の群れ)も動物によって使い分ける。"},
+{id:74,type:"match",category:"熟語・句動詞",hint:"日本語と英語を正しく組み合わせてください",pairs:[
+  {japanese:"(問題)を解決する",english:"work out"},
+  {japanese:"〜を尊敬する",english:"look up to"},
+  {japanese:"〜を軽蔑する",english:"look down on"},
+  {japanese:"〜を提出する",english:"hand in"}
+],sources:["IMG_0744","IMG_0746","IMG_0754"],explanation:"句動詞は前置詞・副詞の違いで意味が逆になることがあるので注意して覚える。",relatedInfo:"turn down=「〜を断る」も同じグループの句動詞。"},
+{id:75,type:"match",category:"熟語・句動詞",hint:"日本語と英語を正しく組み合わせてください",pairs:[
+  {japanese:"〜を断る",english:"turn down"},
+  {japanese:"(単語など)を調べる",english:"look up"},
+  {japanese:"〜する価値がある",english:"be worth ~ing"},
+  {japanese:"〜を信頼する",english:"have faith in"}
+],sources:["IMG_0754","IMG_0764"],explanation:"look up(調べる)とlook up to(尊敬する)は形が似ているが意味が異なるので区別する。",relatedInfo:"pick up ~=「〜を拾う」も類似の形の句動詞。"},
+{id:76,type:"match",category:"熟語・句動詞",hint:"日本語と英語を正しく組み合わせてください",pairs:[
+  {japanese:"〜を指摘する",english:"point out"},
+  {japanese:"〜を埋め合わせる",english:"compensate for"},
+  {japanese:"〜に立候補する",english:"run for"},
+  {japanese:"結局、とどのつまり",english:"after all"}
+],sources:["IMG_0764","IMG_0765","IMG_0762","IMG_0776"],explanation:"run for(立候補する)とstand for(表す)は混同しやすいので注意。",relatedInfo:"sit for an exam=「試験を受ける」も同ページの表現。"},
+{id:77,type:"match",category:"熟語・句動詞",hint:"日本語と英語を正しく組み合わせてください",pairs:[
+  {japanese:"〜を高く評価する",english:"hold A in high esteem"},
+  {japanese:"(考えが)ふと心に浮かぶ",english:"dawn on"},
+  {japanese:"気づかれずに過ぎる",english:"pass unnoticed"},
+  {japanese:"手を抜く",english:"cut corners"}
+],sources:["IMG_0776","IMG_0778","IMG_0758"],explanation:"it dawns on A that ~ の形で使われることが多い熟語。",relatedInfo:"consequently=「その結果として」も関連表現。"},
+{id:78,type:"match",category:"文法パターン",hint:"日本語と英語を正しく組み合わせてください",pairs:[
+  {japanese:"〜するようだ",english:"It seems that S+V"},
+  {japanese:"〜すればするほど、ますます…",english:"the 比較級, the 比較級"},
+  {japanese:"〜するとすぐに…した",english:"No sooner had S+過去分詞 than S+V"},
+  {japanese:"〜したことを後悔する",english:"regret having done"}
+],sources:["IMG_0750","IMG_0756","IMG_0755"],explanation:"倒置構文はNo sooner, Hardlyなど否定語が文頭に来ると起こる。",relatedInfo:"regret to doは「残念ながら〜する」という異なる意味になる点に注意。"},
+{id:79,type:"match",category:"文法パターン",hint:"日本語と英語を正しく組み合わせてください",pairs:[
+  {japanese:"〜しないために",english:"so as not to V"},
+  {japanese:"自分自身がCであると証明する",english:"prove oneself (to be) C"},
+  {japanese:"Aが〜することは可能だ",english:"It is possible for A to V"},
+  {japanese:"OがCであると信じる",english:"believe O to be C"}
+],sources:["IMG_0756","IMG_0769","IMG_0760","IMG_0768"],explanation:"believe/prove+O+to be Cのパターンは第5文型として整理して覚える。",relatedInfo:"take place=「起こる、行われる」も同ページの表現。"},
+{id:80,type:"match",category:"文法パターン",hint:"日本語と英語を正しく組み合わせてください",pairs:[
+  {japanese:"AをBから分離する",english:"separate A from B"},
+  {japanese:"〜を見ただけで",english:"the mere sight of"},
+  {japanese:"AだけでなくBも",english:"not only A but also B"},
+  {japanese:"〜しない限り",english:"unless = if not"}
+],sources:["IMG_0768","IMG_0777","IMG_0747"],explanation:"Not only A but also Bは文頭に来ると倒置が起こる点に注意。",relatedInfo:"be not as A as B=「BほどAではない」も比較表現として重要。"},
+{id:81,type:"match",category:"接続詞・前置詞表現",hint:"日本語と英語を正しく組み合わせてください",pairs:[
+  {japanese:"〜する間",english:"while + SV"},
+  {japanese:"〜までに(期限)",english:"by + 名詞"},
+  {japanese:"〜まで(ずっと継続)",english:"until / till + 名詞"},
+  {japanese:"〜の間(期間)",english:"for + 期間"}
+],sources:["IMG_0769","IMG_0752"],explanation:"時間の前置詞・接続詞は「期限」か「継続」かで使い分ける。",relatedInfo:"since+起点は「〜以来」の意味で完了形とセットで使われることが多い。"},
+{id:82,type:"match",category:"接続詞・前置詞表現",hint:"日本語と英語を正しく組み合わせてください",pairs:[
+  {japanese:"〜だけれども",english:"though / although"},
+  {japanese:"〜にもかかわらず(名詞を伴う)",english:"despite / in spite of"},
+  {japanese:"一方で(対比)",english:"while / whereas"},
+  {japanese:"それどころか",english:"on the contrary"}
+],sources:["IMG_0751"],explanation:"althoughの後にはSVが続き、despiteの後には名詞(句)が続く点に注意。",relatedInfo:"as if S+仮定法=「まるで〜であるかのように」も同じページの表現。"},
+{id:83,type:"match",category:"接続詞・前置詞表現",hint:"日本語と英語を正しく組み合わせてください",pairs:[
+  {japanese:"〜する限り(条件)",english:"as long as"},
+  {japanese:"〜する限り(範囲)",english:"as far as"},
+  {japanese:"〜という場合に備えて",english:"in case S+V"},
+  {japanese:"〜を除いては",english:"except for"}
+],sources:["IMG_0747","IMG_0759"],explanation:"as long as(条件)とas far as(範囲)は意味が異なるので混同しないよう注意。",relatedInfo:"as far as I know「私が知る限りでは」は決まり文句として覚える。"},
+{id:84,type:"match",category:"感情・比較表現",hint:"日本語と英語を正しく組み合わせてください",pairs:[
+  {japanese:"(人が)興味を持っている",english:"be interested in"},
+  {japanese:"(物事が)驚くべき",english:"surprising"},
+  {japanese:"(人が)恥じている",english:"be ashamed of"},
+  {japanese:"(人が)ストレスを感じている",english:"be stressed out"}
+],sources:["IMG_0757","IMG_0753"],explanation:"感情形容詞は「人が主語なら-ed形」「物事が主語なら-ing形」というルールで覚える。",relatedInfo:"comfortable(快適な)は例外的に主語に関わらず同じ形。"},
+{id:85,type:"match",category:"感情・比較表現",hint:"日本語と英語を正しく組み合わせてください",pairs:[
+  {japanese:"複数名詞を伴い単数扱いになる「それぞれ」",english:"each of + 複数名詞"},
+  {japanese:"誰にも劣らず〜",english:"as ~ as any + 単数名詞"},
+  {japanese:"〜することはできない",english:"There is no V-ing"},
+  {japanese:"倍数を表す表現",english:"~ times as many/much ... as"}
+],sources:["IMG_0750","IMG_0774","IMG_0749"],explanation:"each ofは単数扱い、most of/all ofは複数扱いになる点に注意して覚える。",relatedInfo:"none the less = nevertheless「それにもかかわらず」も比較表現の仲間。"}
+];
+
+
+const FOLDER = 'その他英語表現ノート';
+const STORAGE_KEY_FILLCHOICE  = 'wt_all_fillchoice_seen_' + FOLDER;
+const BOOKMARK_KEY_FILLCHOICE = 'wt_all_fillchoice_bookmark_' + FOLDER;
+const TRASH_KEY_FILLCHOICE    = 'wt_all_fillchoice_trash_' + FOLDER;
+const STORAGE_KEY_ORDER       = 'wt_all_order_seen_' + FOLDER;
+const BOOKMARK_KEY_ORDER      = 'wt_all_order_bookmark_' + FOLDER;
+const TRASH_KEY_ORDER         = 'wt_all_order_trash_' + FOLDER;
+const STORAGE_KEY_WRITE       = 'wt_all_write_seen_' + FOLDER;
+const BOOKMARK_KEY_WRITE      = 'wt_all_write_bookmark_' + FOLDER;
+const TRASH_KEY_WRITE         = 'wt_all_write_trash_' + FOLDER;
+
+const FORMAT_LABEL = {fillchoice:'✏️ 穴埋め・選択肢', order:'📝 並べ替え・誤り訂正', write:'✍️ 自由記述・マッチング'};
+const FORMAT_EMOJI = {fillchoice:'✏️', order:'📝', write:'✍️'};
+
+let currentFormat = null;
+let currentMode = null;
+let currentCategory = null;
+let sessionQuestions = [];
+let currentIndex = 0;
+let score = 0;
+let matchState = null;
+let hasLocalStorage = true;
+try { localStorage.setItem('__t','1'); localStorage.removeItem('__t'); } catch(e){ hasLocalStorage = false; }
+
+function questionsFor(format) {
+  if (format === 'fillchoice') return FILLCHOICE_QUESTIONS;
+  if (format === 'order') return ORDER_QUESTIONS;
+  return WRITE_QUESTIONS;
+}
+function storageKeyFor(format) {
+  if (format === 'fillchoice') return STORAGE_KEY_FILLCHOICE;
+  if (format === 'order') return STORAGE_KEY_ORDER;
+  return STORAGE_KEY_WRITE;
+}
+function bookmarkKeyFor(format) {
+  if (format === 'fillchoice') return BOOKMARK_KEY_FILLCHOICE;
+  if (format === 'order') return BOOKMARK_KEY_ORDER;
+  return BOOKMARK_KEY_WRITE;
+}
+function trashKeyFor(format) {
+  if (format === 'fillchoice') return TRASH_KEY_FILLCHOICE;
+  if (format === 'order') return TRASH_KEY_ORDER;
+  return TRASH_KEY_WRITE;
+}
+function audioFolderFor(format) {
+  if (format === 'fillchoice') return 'audio_fillchoice';
+  if (format === 'order') return 'audio_order';
+  return 'audio_write';
+}
+
+function safeGet(key) {
+  if (!hasLocalStorage) return [];
+  try { return JSON.parse(localStorage.getItem(key) || '[]'); } catch(e){ return []; }
+}
+function safeSet(key, val) {
+  if (!hasLocalStorage) return;
+  try { localStorage.setItem(key, JSON.stringify(val)); } catch(e){}
+}
+
+function getBookmarks(format) { return safeGet(bookmarkKeyFor(format)); }
+function toggleBookmark(format, id) {
+  let list = getBookmarks(format);
+  list = list.includes(id) ? list.filter(x => x !== id) : [...list, id];
+  safeSet(bookmarkKeyFor(format), list);
+  return list.includes(id);
+}
+function getTrash(format) { return safeGet(trashKeyFor(format)); }
+function moveToTrash(format, id) {
+  const list = getTrash(format);
+  if (!list.includes(id)) { list.push(id); safeSet(trashKeyFor(format), list); }
+}
+function restoreFromTrash(format, id) {
+  const list = getTrash(format).filter(x => x !== id);
+  safeSet(trashKeyFor(format), list);
+}
+function activeQuestionsFor(format) {
+  const trashed = new Set(getTrash(format));
+  return questionsFor(format).filter(q => !trashed.has(q.id));
+}
+
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function getRandomSessionQuestions(format) {
+  const all = activeQuestionsFor(format);
+  if (!hasLocalStorage) return shuffle(all).slice(0, 20);
+  const seen = safeGet(storageKeyFor(format));
+  const seenSet = new Set(seen);
+  const seenQuestions = all.filter(q => seenSet.has(q.id));
+  const unseenQuestions = all.filter(q => !seenSet.has(q.id));
+  if (seenQuestions.length > 0) {
+    const total = Math.min(20, all.length);
+    const fromSeen = Math.round(total * 0.3);
+    const fromUnseen = total - fromSeen;
+    const pickedSeen = shuffle(seenQuestions).slice(0, fromSeen);
+    const pickedUnseen = shuffle(unseenQuestions).slice(0, fromUnseen);
+    if (pickedUnseen.length < fromUnseen) {
+      const extra = shuffle(seenQuestions.filter(q => !pickedSeen.includes(q))).slice(0, fromUnseen - pickedUnseen.length);
+      return shuffle([...pickedSeen, ...pickedUnseen, ...extra]);
+    }
+    return shuffle([...pickedSeen, ...pickedUnseen]);
+  }
+  return shuffle(all).slice(0, 20);
+}
+function getAllSessionQuestions(format) { return shuffle(activeQuestionsFor(format)); }
+function getCategorySessionQuestions(format, categoryName) {
+  return shuffle(activeQuestionsFor(format).filter(q => q.category === categoryName));
+}
+function getBookmarkSessionQuestions(format) {
+  const bookmarks = new Set(getBookmarks(format));
+  return shuffle(activeQuestionsFor(format).filter(q => bookmarks.has(q.id)));
+}
+
+function saveSeenQuestions(format, questions) {
+  if (!hasLocalStorage) return;
+  const key = storageKeyFor(format);
+  const prev = safeGet(key);
+  const merged = Array.from(new Set([...prev, ...questions.map(q => q.id)]));
+  safeSet(key, merged);
+}
+
+// ===== 画面遷移 =====
+function el(id){ return document.getElementById(id); }
+function showScreen(id) {
+  ['screen-format','screen-mode','screen-trash','screen-question','screen-result'].forEach(s => {
+    el(s).classList.toggle('hidden', s !== id);
+  });
+}
+
+function updateFormatCounts() {
+  el('count-fillchoice').textContent = `問題プール ${activeQuestionsFor('fillchoice').length}問`;
+  el('count-order').textContent = `問題プール ${activeQuestionsFor('order').length}問`;
+  el('count-write').textContent = `問題プール ${activeQuestionsFor('write').length}問`;
+}
+
+function showFormatSelect() {
+  currentFormat = null; currentMode = null; currentCategory = null;
+  updateFormatCounts();
+  showScreen('screen-format');
+}
+
+function showModeSelect(format) {
+  currentFormat = format;
+  el('mode-title').textContent = FORMAT_LABEL[format] + ' モード選択';
+  const total = activeQuestionsFor(format).length;
+  el('mode-sub').textContent = `問題プール総数: ${total}問`;
+  el('mode-all-desc').textContent = `全${total}問をランダム順で出題`;
+  const bm = getBookmarks(format).length;
+  el('mode-bookmark-desc').textContent = `ブックマーク件数: ${bm}件`;
+  const bmBtn = el('btn-bookmark-start');
+  if (bm === 0) {
+    bmBtn.disabled = true;
+    el('mode-bookmark-desc').textContent += '(0件のため復習リストは利用できません)';
+  } else {
+    bmBtn.disabled = false;
+  }
+  // category list
+  const cats = {};
+  activeQuestionsFor(format).forEach(q => { cats[q.category] = (cats[q.category]||0) + 1; });
+  currentCategory = null;
+  el('btn-category-start').disabled = true;
+  const listEl = el('category-list');
+  listEl.innerHTML = Object.keys(cats).map(c =>
+    `<span class="category-btn" data-cat="${c}" onclick="selectCategory('${c.replace(/'/g,"\\'")}')">${c} (${cats[c]}問)</span>`
+  ).join('');
+  const trashCount = getTrash(format).length;
+  el('trash-link-mode').textContent = `🗑 ゴミ箱 (${trashCount}問)`;
+  if (!hasLocalStorage) {
+    el('mode-sub').textContent += '(localStorageが利用できないため、履歴・ジャンル別・復習リストは無効です。毎回ランダム20問になります)';
+  }
+  showScreen('screen-mode');
+}
+
+function selectCategory(cat) {
+  currentCategory = cat;
+  document.querySelectorAll('.category-btn').forEach(b => {
+    b.classList.toggle('selected', b.dataset.cat === cat);
+  });
+  el('btn-category-start').disabled = false;
+}
+function startCategoryMode() {
+  if (!currentCategory) return;
+  startTest(currentFormat, 'category', currentCategory);
+}
+
+function showTrashScreen() {
+  el('trash-title').textContent = `🗑 ゴミ箱 (${FORMAT_LABEL[currentFormat]})`;
+  const trashIds = new Set(getTrash(currentFormat));
+  const all = questionsFor(currentFormat);
+  const items = all.filter(q => trashIds.has(q.id));
+  const listEl = el('trash-list');
+  if (items.length === 0) {
+    listEl.innerHTML = '<p class="sub">ゴミ箱は空です</p>';
+  } else {
+    listEl.innerHTML = items.map(q => {
+      const excerpt = q.question || q.hint || (q.pairs ? q.pairs[0].japanese : '');
+      const src = q.source || (q.sources ? q.sources[0] : '');
+      return `<div class="trash-item" data-id="${q.id}">
+        <span class="type-badge">${typeLabel(q.type)}</span> <span class="cat-badge">${q.category}</span>
+        <div class="excerpt">${escapeHtml(excerpt)}</div>
+        <div class="sub">📷 出典: ${src}</div>
+        <button class="btn secondary" onclick="restoreTrashItem('${q.id}')">↩️ 元に戻す</button>
+      </div>`;
+    }).join('');
+  }
+  showScreen('screen-trash');
+}
+function restoreTrashItem(id) {
+  restoreFromTrash(currentFormat, id);
+  showTrashScreen();
+}
+
+function typeLabel(type) {
+  return {fill:'穴埋め',choice:'選択肢',reorder:'並べ替え',correction:'誤り訂正',free:'自由記述',match:'マッチング'}[type] || type;
+}
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+// ===== テスト開始 =====
+function startTest(format, mode, categoryName) {
+  currentFormat = format;
+  currentMode = mode;
+  currentCategory = categoryName || null;
+  if (mode === 'random') sessionQuestions = getRandomSessionQuestions(format);
+  else if (mode === 'all') sessionQuestions = getAllSessionQuestions(format);
+  else if (mode === 'category') sessionQuestions = getCategorySessionQuestions(format, categoryName);
+  else if (mode === 'bookmark') sessionQuestions = getBookmarkSessionQuestions(format);
+  sessionQuestions = sessionQuestions.map(q => q.type === 'choice' ? Object.assign({}, q, { shuffledChoices: shuffle(q.choices) }) : q);
+  sessionQuestions = sessionQuestions.map(q => q.type === 'reorder' ? Object.assign({}, q, { shuffledTokens: shuffle(q.tokens.map((t,i)=>({t,i}))) }) : q);
+  sessionQuestions = sessionQuestions.map(q => q.type === 'match' ? Object.assign({}, q, {
+    shuffledJapanese: shuffle(q.pairs.map((p,i)=>({text:p.japanese, idx:i}))),
+    shuffledEnglish: shuffle(q.pairs.map((p,i)=>({text:p.english, idx:i})))
+  }) : q);
+  currentIndex = 0;
+  score = 0;
+  el('current-format-badge').textContent = FORMAT_LABEL[format];
+  showScreen('screen-question');
+  renderQuestion();
+}
+function retryTest() {
+  startTest(currentFormat, currentMode, currentCategory);
+}
+
+
+// ===== 音声再生 =====
+let currentAudio = null;
+let currentBtn = null;
+function resetPlayBtn(btn) { btn.textContent = '🔊 英文を聞く'; btn.classList.remove('playing'); }
+function playAudio(btn, src) {
+  const isSameBtn = (currentBtn === btn);
+  if (currentAudio) { currentAudio.pause(); currentAudio.currentTime = 0; }
+  if (currentBtn) { resetPlayBtn(currentBtn); currentBtn = null; }
+  if (isSameBtn) { currentAudio = null; return; }
+  const audio = new Audio(src);
+  currentAudio = audio; currentBtn = btn;
+  btn.textContent = '■ 停止'; btn.classList.add('playing');
+  audio.onended = audio.onerror = () => { resetPlayBtn(btn); if (currentBtn === btn) { currentBtn = null; currentAudio = null; } };
+  audio.play();
+}
+
+// ===== 出典画像 =====
+function openImageModal(src) {
+  el('imgModalImg').src = src;
+  el('imgModal').classList.remove('hidden');
+}
+function closeImageModal() {
+  el('imgModal').classList.add('hidden');
+  el('imgModalImg').src = '';
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeImageModal(); });
+
+function sourceThumbsHtml(q) {
+  const sourceList = q.source ? [q.source] : (q.sources || []);
+  if (sourceList.length === 0) return '';
+  return `<div class="info-block">📷 出典: ${sourceList.join(', ')}</div>
+    <div class="source-thumbs">${sourceList.map(s =>
+      `<img class="source-thumb" src="images/${s}.jpg" alt="${s}" loading="lazy" onclick="openImageModal('images/${s}.jpg')" onerror="this.style.display='none'">`
+    ).join('')}</div>`;
+}
+
+// ===== 問題描画 =====
+function currentQuestion() { return sessionQuestions[currentIndex]; }
+
+function renderQuestion() {
+  const q = currentQuestion();
+  el('q-position').textContent = `Q ${currentIndex + 1}/${sessionQuestions.length}`;
+  el('progress-fill').style.width = ((currentIndex) / sessionQuestions.length * 100) + '%';
+  const isBookmarked = getBookmarks(currentFormat).includes(q.id);
+  let html = `
+    <div class="q-meta">
+      <span class="type-badge">${typeLabel(q.type)}</span>
+      <span class="cat-badge">${escapeHtml(q.category)}</span>
+      <span class="sub">問題 ${currentIndex + 1}</span>
+      <span class="trash-link" onclick="trashCurrentQuestion()">この問題は表示しない</span>
+    </div>
+    <div class="bookmark-row">
+      <label><input type="checkbox" id="bookmark-check" ${isBookmarked ? 'checked' : ''} onchange="onBookmarkToggle()"> この問題を復習リストに入れる</label>
+    </div>
+    <div id="question-body"></div>
+    <div id="feedback-area"></div>
+  `;
+  el('question-card').innerHTML = html;
+  renderQuestionBody(q);
+}
+
+function onBookmarkToggle() {
+  const q = currentQuestion();
+  toggleBookmark(currentFormat, q.id);
+}
+
+function trashCurrentQuestion() {
+  if (!confirm('この問題をゴミ箱に移動しますか?(ゴミ箱からいつでも戻せます)')) return;
+  const q = currentQuestion();
+  moveToTrash(currentFormat, q.id);
+  const linkEl = document.querySelector('.trash-link');
+  if (linkEl) { linkEl.textContent = '🗑 ゴミ箱に移動しました'; linkEl.style.pointerEvents = 'none'; linkEl.style.opacity = '0.6'; }
+}
+
+function renderQuestionBody(q) {
+  const bodyEl = el('question-body');
+  if (q.type === 'fill') {
+    bodyEl.innerHTML = `
+      <div class="hint-box">${escapeHtml(q.hint)}</div>
+      <div class="q-text">${escapeHtml(q.question)}</div>
+      <input type="text" id="fill-input" placeholder="英語で入力">
+      <button class="btn block" onclick="submitAnswer()">回答する</button>
+    `;
+  } else if (q.type === 'choice') {
+    bodyEl.innerHTML = `
+      <div class="hint-box">${escapeHtml(q.hint)}</div>
+      <div class="q-text">${escapeHtml(q.question)}</div>
+      <div class="choices">${q.shuffledChoices.map((c,i) =>
+        `<label><input type="radio" name="choice" value="${escapeHtml(c)}"> ${escapeHtml(c)}</label>`
+      ).join('')}</div>
+      <button class="btn block" onclick="submitAnswer()">回答する</button>
+    `;
+  } else if (q.type === 'reorder') {
+    bodyEl.innerHTML = `
+      <div class="hint-box">${escapeHtml(q.hint)}</div>
+      <div class="tile-area empty" id="tile-assembled"></div>
+      <div class="tile-pool" id="tile-pool"></div>
+      <button class="btn secondary" onclick="resetReorder()">リセット</button>
+      <button class="btn block" id="reorder-submit" disabled onclick="submitAnswer()">回答する</button>
+    `;
+    renderReorderTiles(q);
+  } else if (q.type === 'correction') {
+    const highlighted = q.question.replace(/\[\[(.+?)\]\]/, '<span class="wrong">$1</span>');
+    bodyEl.innerHTML = `
+      <div class="hint-box">${escapeHtml(q.hint)}</div>
+      <div class="correction-text">${highlighted}</div>
+      <input type="text" id="fill-input" placeholder="正しい形に直してください">
+      <button class="btn block" onclick="submitAnswer()">回答する</button>
+    `;
+  } else if (q.type === 'free') {
+    bodyEl.innerHTML = `
+      <div class="hint-box">${escapeHtml(q.hint)}</div>
+      <textarea id="free-input" placeholder="英文を自由入力"></textarea>
+      <button class="btn block" onclick="submitAnswer()">回答する</button>
+    `;
+  } else if (q.type === 'match') {
+    matchState = { pairs: [], selectedJp: null, selectedEn: null };
+    bodyEl.innerHTML = `
+      <div class="hint-box">日本語と英語を正しく組み合わせてください</div>
+      <div class="match-columns">
+        <div class="match-col" id="match-jp"></div>
+        <div class="match-col" id="match-en"></div>
+      </div>
+      <button class="btn block" id="match-submit" disabled onclick="submitAnswer()">回答する</button>
+    `;
+    renderMatchColumns(q);
+  }
+}
+
+// ----- reorder -----
+function renderReorderTiles(q) {
+  const assembled = q.assembledOrder || [];
+  const assembledEl = el('tile-assembled');
+  const poolEl = el('tile-pool');
+  assembledEl.classList.toggle('empty', assembled.length === 0);
+  assembledEl.innerHTML = assembled.map(item =>
+    `<span class="tile" onclick="removeReorderTile(${item.i})">${escapeHtml(item.t)}</span>`
+  ).join('');
+  const remaining = q.shuffledTokens.filter(item => !assembled.some(a => a.i === item.i));
+  poolEl.innerHTML = remaining.map(item =>
+    `<span class="tile" onclick="addReorderTile(${item.i})">${escapeHtml(item.t)}</span>`
+  ).join('');
+  el('reorder-submit').disabled = assembled.length !== q.tokens.length;
+}
+function addReorderTile(idx) {
+  const q = currentQuestion();
+  if (!q.assembledOrder) q.assembledOrder = [];
+  const item = q.shuffledTokens.find(t => t.i === idx);
+  q.assembledOrder.push(item);
+  renderReorderTiles(q);
+}
+function removeReorderTile(idx) {
+  const q = currentQuestion();
+  q.assembledOrder = (q.assembledOrder || []).filter(item => item.i !== idx);
+  renderReorderTiles(q);
+}
+function resetReorder() {
+  const q = currentQuestion();
+  q.assembledOrder = [];
+  renderReorderTiles(q);
+}
+
+// ----- match -----
+function renderMatchColumns(q) {
+  const jpEl = el('match-jp');
+  const enEl = el('match-en');
+  const pairedJp = new Set(matchState.pairs.map(p => p.jpIdx));
+  const pairedEn = new Set(matchState.pairs.map(p => p.enIdx));
+  jpEl.innerHTML = q.shuffledJapanese.map(item => {
+    const isPaired = pairedJp.has(item.idx);
+    const isSelected = matchState.selectedJp === item.idx;
+    return `<div class="match-item ${isPaired?'paired':''} ${isSelected?'selected':''}" onclick="${isPaired?'':'selectMatchJp('+item.idx+')'}">${escapeHtml(item.text)}</div>`;
+  }).join('');
+  enEl.innerHTML = q.shuffledEnglish.map(item => {
+    const isPaired = pairedEn.has(item.idx);
+    const isSelected = matchState.selectedEn === item.idx;
+    return `<div class="match-item ${isPaired?'paired':''} ${isSelected?'selected':''}" onclick="${isPaired?'':'selectMatchEn('+item.idx+')'}">${escapeHtml(item.text)}</div>`;
+  }).join('');
+  el('match-submit').disabled = matchState.pairs.length !== q.pairs.length;
+}
+function selectMatchJp(idx) {
+  matchState.selectedJp = idx;
+  tryMatchPair();
+  renderMatchColumns(currentQuestion());
+}
+function selectMatchEn(idx) {
+  matchState.selectedEn = idx;
+  tryMatchPair();
+  renderMatchColumns(currentQuestion());
+}
+function tryMatchPair() {
+  if (matchState.selectedJp !== null && matchState.selectedEn !== null) {
+    matchState.pairs = matchState.pairs.filter(p => p.jpIdx !== matchState.selectedJp && p.enIdx !== matchState.selectedEn);
+    matchState.pairs.push({ jpIdx: matchState.selectedJp, enIdx: matchState.selectedEn });
+    matchState.selectedJp = null;
+    matchState.selectedEn = null;
+  }
+}
+
+
+// ===== 採点・フィードバック =====
+let answered = false;
+
+function submitAnswer() {
+  if (answered) return;
+  const q = currentQuestion();
+  let isCorrect = false;
+  let feedbackHtml = '';
+
+  if (q.type === 'fill' || q.type === 'correction') {
+    const val = (el('fill-input') ? el('fill-input').value : '').trim().toLowerCase();
+    isCorrect = val === q.answer.trim().toLowerCase();
+    feedbackHtml = feedbackFillLike(q, isCorrect);
+  } else if (q.type === 'choice') {
+    const checked = document.querySelector('input[name="choice"]:checked');
+    const val = checked ? checked.value : '';
+    isCorrect = val === q.answer;
+    feedbackHtml = feedbackFillLike(q, isCorrect);
+  } else if (q.type === 'reorder') {
+    const assembled = (q.assembledOrder || []).map(item => item.t);
+    isCorrect = JSON.stringify(assembled) === JSON.stringify(q.tokens);
+    feedbackHtml = feedbackOrderLike(q, isCorrect, q.tokens.join(' '));
+  } else if (q.type === 'free') {
+    const val = (el('free-input') ? el('free-input').value : '').trim().toLowerCase();
+    const missing = q.keyPhrases.filter(kp => !val.includes(kp.toLowerCase()));
+    isCorrect = missing.length === 0;
+    feedbackHtml = feedbackFree(q, isCorrect, missing);
+  } else if (q.type === 'match') {
+    const total = q.pairs.length;
+    let correctCount = 0;
+    const results = matchState.pairs.map(p => {
+      const ok = p.jpIdx === p.enIdx;
+      if (ok) correctCount++;
+      return { jpIdx: p.jpIdx, enIdx: p.enIdx, ok };
+    });
+    isCorrect = correctCount === total;
+    feedbackHtml = feedbackMatch(q, isCorrect, correctCount, total, results);
+  }
+
+  if (isCorrect) score++;
+  answered = true;
+  el('feedback-area').innerHTML = feedbackHtml;
+  disableInputs();
+  el('feedback-area').innerHTML += `
+    <div class="next-btn-row">
+      <button class="btn block" onclick="nextQuestion()">${currentIndex === sessionQuestions.length - 1 ? '結果を見る' : '次の問題 →'}</button>
+    </div>`;
+}
+
+function disableInputs() {
+  document.querySelectorAll('#question-body input, #question-body textarea, #question-body button').forEach(elx => { elx.disabled = true; });
+  document.querySelectorAll('.match-item').forEach(elx => elx.classList.add('disabled'));
+  document.querySelectorAll('.tile').forEach(elx => elx.style.pointerEvents = 'none');
+}
+
+function feedbackFillLike(q, isCorrect) {
+  const audioSrc = `${audioFolderFor(currentFormat)}/${q.id}.mp3`;
+  return `<div class="feedback ${isCorrect ? 'correct' : 'wrong'}">
+    <div class="result-title">${isCorrect ? '✅ 正解!' : '❌ 不正解'}</div>
+    <div class="answer-line">正解: <strong>${escapeHtml(q.answer)}</strong></div>
+    <button class="play-btn" onclick="playAudio(this, '${audioSrc}')">🔊 英文を聞く</button>
+    ${sourceThumbsHtml(q)}
+    ${q.relatedInfo ? `<div class="info-block">💡 関連知識: ${escapeHtml(q.relatedInfo)}</div>` : ''}
+    ${q.explanation ? `<div class="info-block">📝 解説: ${escapeHtml(q.explanation)}</div>` : ''}
+  </div>`;
+}
+function feedbackOrderLike(q, isCorrect, correctText) {
+  const audioSrc = `${audioFolderFor(currentFormat)}/${q.id}.mp3`;
+  return `<div class="feedback ${isCorrect ? 'correct' : 'wrong'}">
+    <div class="result-title">${isCorrect ? '✅ 正解!' : '❌ 不正解'}</div>
+    <div class="answer-line">正解の英文: <strong>${escapeHtml(correctText)}</strong></div>
+    <button class="play-btn" onclick="playAudio(this, '${audioSrc}')">🔊 英文を聞く</button>
+    ${sourceThumbsHtml(q)}
+    ${q.relatedInfo ? `<div class="info-block">💡 関連知識: ${escapeHtml(q.relatedInfo)}</div>` : ''}
+    ${q.explanation ? `<div class="info-block">📝 解説: ${escapeHtml(q.explanation)}</div>` : ''}
+  </div>`;
+}
+function feedbackFree(q, isCorrect, missing) {
+  const audioSrc = `${audioFolderFor(currentFormat)}/${q.id}.mp3`;
+  return `<div class="feedback ${isCorrect ? 'correct' : 'wrong'}">
+    <div class="result-title">${isCorrect ? '✅ 正解!(必須語句を全て含む)' : '❌ 不正解(不足している語句: ' + missing.map(escapeHtml).join(', ') + ')'}</div>
+    <div class="answer-line">模範解答: <strong>${escapeHtml(q.answer)}</strong></div>
+    <button class="play-btn" onclick="playAudio(this, '${audioSrc}')">🔊 英文を聞く</button>
+    ${sourceThumbsHtml(q)}
+    ${q.relatedInfo ? `<div class="info-block">💡 関連知識: ${escapeHtml(q.relatedInfo)}</div>` : ''}
+    ${q.explanation ? `<div class="info-block">📝 解説: ${escapeHtml(q.explanation)}</div>` : ''}
+    <div class="sub" style="margin-top:8px;">※自由記述の採点は必須語句を含むかの簡易判定です。文法的な正しさまでは保証されないため、模範解答で自己採点してください。</div>
+  </div>`;
+}
+function feedbackMatch(q, isCorrect, correctCount, total, results) {
+  const rows = q.pairs.map((p, idx) => {
+    const gotRight = results.some(res => res.jpIdx === idx && res.enIdx === idx);
+    const audioSrc = `${audioFolderFor(currentFormat)}/${q.id}_p${idx}.mp3`;
+    return `<div class="answer-line">${gotRight ? '✅' : '❌'} ${escapeHtml(p.japanese)} → ${escapeHtml(p.english)}
+      <button class="play-btn" onclick="playAudio(this, '${audioSrc}')">🔊</button></div>`;
+  }).join('');
+  const sourceList = q.sources || [];
+  return `<div class="feedback ${isCorrect ? 'correct' : 'wrong'}">
+    <div class="result-title">${isCorrect ? '✅ 全問正解!' : `⚠️ ${correctCount} / ${total} 正解`}</div>
+    <div class="answer-line">正しい組み合わせ一覧:</div>
+    ${rows}
+    ${sourceList.length ? sourceThumbsHtml({sources: sourceList}) : ''}
+    ${q.relatedInfo ? `<div class="info-block">💡 関連知識: ${escapeHtml(q.relatedInfo)}</div>` : ''}
+    ${q.explanation ? `<div class="info-block">📝 解説: ${escapeHtml(q.explanation)}</div>` : ''}
+  </div>`;
+}
+
+function nextQuestion() {
+  answered = false;
+  matchState = null;
+  if (currentIndex < sessionQuestions.length - 1) {
+    currentIndex++;
+    renderQuestion();
+  } else {
+    showResults();
+  }
+}
+
+function showResults() {
+  if (currentMode === 'random') saveSeenQuestions(currentFormat, sessionQuestions);
+  const total = sessionQuestions.length;
+  const rate = total > 0 ? Math.round((score / total) * 100) : 0;
+  el('result-format-title').textContent = `結果 - ${FORMAT_LABEL[currentFormat]}`;
+  el('result-score').textContent = `${score} / ${total}`;
+  el('result-rate').textContent = `正解率 ${rate}%`;
+  let stars = '', msg = '';
+  if (rate >= 90) { stars = '★★★'; msg = 'Excellent! TOEFL満点レベルの実力です'; }
+  else if (rate >= 70) { stars = '★★'; msg = 'Good! あと少しで完璧です'; }
+  else if (rate >= 50) { stars = '★'; msg = 'Keep going! 復習して再挑戦しましょう'; }
+  else { stars = ''; msg = 'ノートを見直して再チャレンジ!'; }
+  el('result-stars').textContent = stars;
+  el('result-msg').textContent = msg;
+  showScreen('screen-result');
+}
+
+// ===== 初期化 =====
+updateFormatCounts();
+showFormatSelect();
+
+</script>
+</body>
+</html>
