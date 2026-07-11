@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>writing表現 総合テスト</title>
+<style>
+  :root {
+    --bg: #f4f6fb;
+    --card-bg: #ffffff;
+    --text: #1f2430;
+    --sub: #6b7280;
+    --accent: #4f6df5;
+    --accent-dark: #3a52c4;
+    --green: #16a34a;
+    --red: #dc2626;
+    --border: #e5e7eb;
+    --badge-fill: #4f6df5;
+    --badge-choice: #7c3aed;
+    --badge-reorder: #0891b2;
+    --badge-correction: #ea580c;
+    --badge-free: #16a34a;
+    --badge-match: #db2777;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+  }
+  #app { max-width: 720px; margin: 0 auto; padding: 20px 16px 60px; }
+  h1 { font-size: 1.4rem; margin: 8px 0 4px; }
+  h2 { font-size: 1.15rem; margin: 4px 0; }
+  .sub { color: var(--sub); font-size: 0.9rem; }
+  .card {
+    background: var(--card-bg);
+    border-radius: 14px;
+    padding: 20px;
+    margin: 14px 0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    border: 1px solid var(--border);
+  }
+  .format-grid, .mode-grid { display: flex; flex-direction: column; gap: 14px; margin-top: 16px; }
+  .format-card, .mode-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px;
+    cursor: pointer;
+    transition: box-shadow .15s, transform .15s;
+  }
+  .format-card:hover, .mode-card:hover:not(.disabled) { box-shadow: 0 4px 14px rgba(79,109,245,0.18); transform: translateY(-1px); }
+  .format-card .icon, .mode-card .icon { font-size: 1.6rem; }
+  .format-card h3, .mode-card h3 { margin: 6px 0 4px; }
+  .format-card p, .mode-card p { color: var(--sub); font-size: 0.88rem; margin: 4px 0 10px; }
+  .count-badge { display: inline-block; background: #eef1fd; color: var(--accent-dark); border-radius: 999px; padding: 3px 10px; font-size: 0.8rem; font-weight: 600; }
+  .btn {
+    display: inline-block; background: var(--accent); color: #fff; border: none;
+    border-radius: 10px; padding: 10px 18px; font-size: 0.95rem; cursor: pointer; font-weight: 600;
+  }
+  .btn:hover { background: var(--accent-dark); }
+  .btn:disabled { background: #c7cbd6; cursor: not-allowed; }
+  .btn-secondary { background: #eef1fd; color: var(--accent-dark); }
+  .btn-secondary:hover { background: #dde3fb; }
+  .mode-card.disabled { opacity: 0.5; cursor: not-allowed; }
+  .link-back { display: inline-block; margin-bottom: 10px; color: var(--accent-dark); cursor: pointer; font-size: 0.9rem; text-decoration: none; }
+  .link-back:hover { text-decoration: underline; }
+  .category-btns { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
+  .category-btn {
+    border: 1px solid var(--border); background: #fff; border-radius: 999px; padding: 7px 14px;
+    font-size: 0.85rem; cursor: pointer;
+  }
+  .category-btn.selected { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .footer-link { text-align: center; margin-top: 18px; color: var(--sub); cursor: pointer; font-size: 0.9rem; }
+  .footer-link:hover { color: var(--accent-dark); }
+
+  .header-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; flex-wrap: wrap; gap: 6px; }
+  .format-badge { font-size: 0.78rem; padding: 3px 10px; border-radius: 999px; background: #eef1fd; color: var(--accent-dark); font-weight: 600; }
+  .progress-wrap { background: #e5e7eb; border-radius: 999px; height: 8px; margin: 8px 0 18px; overflow: hidden; }
+  .progress-bar { background: var(--accent); height: 100%; transition: width .2s; }
+
+  .type-badge { display: inline-block; font-size: 0.72rem; color: #fff; padding: 3px 9px; border-radius: 6px; font-weight: 700; margin-right: 6px; }
+  .type-fill { background: var(--badge-fill); }
+  .type-choice { background: var(--badge-choice); }
+  .type-reorder { background: var(--badge-reorder); }
+  .type-correction { background: var(--badge-correction); }
+  .type-free { background: var(--badge-free); }
+  .type-match { background: var(--badge-match); }
+  .cat-badge { display: inline-block; font-size: 0.72rem; background: #f1f2f6; color: #444; padding: 3px 9px; border-radius: 6px; margin-right: 6px; }
+  .q-num { color: var(--sub); font-size: 0.85rem; }
+
+  .q-top-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+  .bookmark-row { display: flex; align-items: center; gap: 6px; font-size: 0.85rem; color: var(--sub); margin: 10px 0; }
+  .trash-link { font-size: 0.78rem; color: var(--sub); cursor: pointer; white-space: nowrap; }
+  .trash-link:hover { color: var(--red); text-decoration: underline; }
+
+  .hint-box { background: #f7f8fc; border-radius: 10px; padding: 12px 14px; margin: 10px 0; font-size: 0.92rem; color: #444; }
+  .sentence-box { font-size: 1.08rem; margin: 14px 0; line-height: 1.8; }
+  .blank { display: inline-block; min-width: 70px; border-bottom: 2px solid var(--accent); text-align: center; }
+  .wrong-part { text-decoration: underline wavy var(--red); text-decoration-thickness: 2px; background: #fef2f2; padding: 0 3px; border-radius: 3px; font-weight: 600; }
+
+  input[type=text], textarea {
+    width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px;
+    font-size: 1rem; font-family: inherit; margin: 6px 0 12px;
+  }
+  textarea { min-height: 90px; resize: vertical; }
+  .choice-list { display: flex; flex-direction: column; gap: 8px; margin: 10px 0; }
+  .choice-item { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; cursor: pointer; }
+  .choice-item:hover { border-color: var(--accent); }
+  .choice-item input { margin: 0; }
+
+  .tile-area { min-height: 54px; border: 1px dashed var(--border); border-radius: 10px; padding: 8px; display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; background: #fafbff; }
+  .tile-area .placeholder { color: var(--sub); font-size: 0.85rem; padding: 8px; }
+  .tile-pool { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+  .tile {
+    background: #eef1fd; border: 1px solid #d6ddf9; border-radius: 8px; padding: 8px 12px;
+    cursor: pointer; font-size: 0.95rem; user-select: none;
+  }
+  .tile:hover { background: #dde3fb; }
+  .tile.used { opacity: 0.35; pointer-events: none; }
+  .tile-selected { background: var(--accent); color: #fff; border-color: var(--accent-dark); }
+
+  .match-cols { display: flex; gap: 16px; margin: 12px 0; }
+  .match-col { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+  .match-btn {
+    border: 1px solid var(--border); background: #fff; border-radius: 10px; padding: 10px 10px;
+    cursor: pointer; font-size: 0.88rem; text-align: left;
+  }
+  .match-btn.selected { border-color: var(--accent); background: #eef1fd; }
+  .match-btn.paired-0 { background: #dbeafe; border-color: #60a5fa; }
+  .match-btn.paired-1 { background: #dcfce7; border-color: #4ade80; }
+  .match-btn.paired-2 { background: #fef3c7; border-color: #fbbf24; }
+  .match-btn.paired-3 { background: #fce7f3; border-color: #f472b6; }
+  .match-btn.paired-4 { background: #e0e7ff; border-color: #818cf8; }
+  .match-btn.disabled { opacity: 0.55; pointer-events: none; }
+
+  .action-row { margin-top: 14px; display: flex; gap: 10px; flex-wrap: wrap; }
+
+  .feedback { margin-top: 16px; padding: 16px; border-radius: 12px; }
+  .feedback.correct { background: #f0fdf4; border: 1px solid #bbf7d0; }
+  .feedback.incorrect { background: #fef2f2; border: 1px solid #fecaca; }
+  .feedback-title { font-weight: 700; font-size: 1.05rem; margin-bottom: 8px; }
+  .feedback-title.correct-text { color: var(--green); }
+  .feedback-title.incorrect-text { color: var(--red); }
+  .feedback-row { margin: 6px 0; font-size: 0.92rem; }
+  .feedback-row b { color: #333; }
+  .play-btn {
+    background: #eef1fd; color: var(--accent-dark); border: none; border-radius: 8px;
+    padding: 6px 12px; font-size: 0.85rem; cursor: pointer; margin: 4px 4px 4px 0;
+  }
+  .play-btn.playing { background: var(--accent); color: #fff; }
+  .source-thumbs { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0; }
+  .source-thumb {
+    width: 110px; height: 110px; object-fit: cover; border-radius: 8px; cursor: zoom-in;
+    border: 1px solid var(--border);
+  }
+  .discard-link { font-size: 0.8rem; color: var(--sub); cursor: pointer; margin-top: 10px; display: inline-block; }
+  .discard-link:hover { color: var(--red); text-decoration: underline; }
+
+  .result-score { font-size: 2.4rem; font-weight: 800; text-align: center; margin: 10px 0; color: var(--accent-dark); }
+  .result-stars { text-align: center; font-size: 1.8rem; margin: 6px 0; }
+  .result-msg { text-align: center; color: var(--sub); margin-bottom: 18px; }
+
+  .trash-item { border: 1px solid var(--border); border-radius: 10px; padding: 12px; margin: 10px 0; }
+  .trash-item .excerpt { font-size: 0.9rem; color: #444; margin: 6px 0; }
+
+  .img-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; z-index: 1000; cursor: zoom-out; }
+  .img-modal.hidden { display: none; }
+  .img-modal img { max-width: 92%; max-height: 92%; border-radius: 8px; }
+  .img-modal-close { position: absolute; top: 18px; right: 24px; color: #fff; font-size: 2rem; cursor: pointer; }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #14161f; --card-bg: #1e212c; --text: #eef0f5; --sub: #9aa1b4; --border: #2e3242;
+      --badge-fill:#5b7cfa;
+    }
+    .hint-box { background: #262a38; color: #cfd3e0; }
+    .count-badge { background: #232a4d; color: #b7c3ff; }
+    .category-btn { background: #1e212c; color: #eef0f5; }
+    .tile { background: #232a4d; border-color: #33407a; color: #eef0f5; }
+    .tile:hover { background: #2b3560; }
+    .tile-area { background: #1a1d29; }
+    .choice-item { background: #1e212c; }
+    input[type=text], textarea { background: #1a1d29; color: #eef0f5; border-color: #2e3242; }
+    .match-btn { background: #1e212c; color: #eef0f5; }
+    .feedback.correct { background: #0f2418; border-color: #1e4d34; }
+    .feedback.incorrect { background: #2a1414; border-color: #5c2323; }
+    .play-btn { background: #232a4d; color: #b7c3ff; }
+    .count-badge, .format-badge { background: #232a4d; color: #b7c3ff; }
+  }
+  :root[data-theme="dark"] {
+    --bg: #14161f; --card-bg: #1e212c; --text: #eef0f5; --sub: #9aa1b4; --border: #2e3242;
+  }
+  :root[data-theme="light"] {
+    --bg: #f4f6fb; --card-bg: #ffffff; --text: #1f2430; --sub: #6b7280; --border: #e5e7eb;
+  }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div class="img-modal hidden" id="imgModal" onclick="closeImageModal()">
+  <span class="img-modal-close" onclick="closeImageModal()">&times;</span>
+  <img id="imgModalImg" src="" alt="出典画像">
+</div>
+<script>
+/* ================== DATA ================== */
+const FILLCHOICE_QUESTIONS = [{"id": 1, "type": "fill", "category": "メール・レター表現", "question": "I am writing to _____ for the scholarship.", "hint": "奨学金に応募するために書いています、という意味にしてください。", "fullSentence": "I am writing to apply for the scholarship.", "answer": "apply", "source": "IMG_0646", "explanation": "「〜に応募する」は apply for 〜。メールの書き出しで用件を伝える定型表現 I am writing to V は「〜するために書いています」という意味。", "relatedInfo": "同様の書き出しには I am writing to inform you that...(〜をお知らせするために書いています)もある。"}, {"id": 2, "type": "choice", "category": "メール・レター表現", "question": "「奨学金に応募するために書いています」という意味になるように、最も適切な表現を選びなさい。", "hint": "奨学金に応募するために書いています", "fullSentence": "I am writing to apply for the scholarship.", "answer": "apply", "choices": ["apply", "look", "hear", "wait"], "source": "IMG_0646", "explanation": "「〜に応募する」は apply for 〜。メールの書き出しで用件を伝える定型表現 I am writing to V は「〜するために書いています」という意味。", "relatedInfo": "同様の書き出しには I am writing to inform you that...(〜をお知らせするために書いています)もある。"}, {"id": 3, "type": "fill", "category": "メール・レター表現", "question": "I would like to request an opportunity to take a _____ exam.", "hint": "追試を受ける機会をお願いしたい、という意味にしてください。", "fullSentence": "I would like to request an opportunity to take a makeup exam.", "answer": "makeup", "source": "IMG_0646", "explanation": "「追試」は a makeup exam。request an opportunity to V「〜する機会をお願いする」。", "relatedInfo": "take an exam「試験を受ける」。postpone an exam「試験を延期する」も覚えておこう。"}, {"id": 4, "type": "choice", "category": "メール・レター表現", "question": "「追試を受ける機会をお願いしたい」という意味になるように、最も適切な表現を選びなさい。", "hint": "追試を受ける機会をお願いしたい", "fullSentence": "I would like to request an opportunity to take a makeup exam.", "answer": "makeup", "choices": ["makeup", "made", "make", "maker"], "source": "IMG_0646", "explanation": "「追試」は a makeup exam。request an opportunity to V「〜する機会をお願いする」。", "relatedInfo": "take an exam「試験を受ける」。postpone an exam「試験を延期する」も覚えておこう。"}, {"id": 5, "type": "fill", "category": "メール・レター表現", "question": "Thank you very much for your _____ of my situation.", "hint": "私の状況へのご配慮に感謝します、という意味にしてください。", "fullSentence": "Thank you very much for your consideration of my situation.", "answer": "consideration", "source": "IMG_0646", "explanation": "consideration「配慮、考慮」。Thank you for your 〜 は感謝を伝える定型表現。", "relatedInfo": "consideration「配慮」の他、appreciation「感謝」も似た文脈で使われる。"}, {"id": 6, "type": "choice", "category": "メール・レター表現", "question": "「私の状況へのご配慮に感謝します」という意味になるように、最も適切な表現を選びなさい。", "hint": "私の状況へのご配慮に感謝します", "fullSentence": "Thank you very much for your consideration of my situation.", "answer": "consideration", "choices": ["consideration", "correction", "connection", "condition"], "source": "IMG_0646", "explanation": "consideration「配慮、考慮」。Thank you for your 〜 は感謝を伝える定型表現。", "relatedInfo": "consideration「配慮」の他、appreciation「感謝」も似た文脈で使われる。"}, {"id": 7, "type": "fill", "category": "メール・レター表現", "question": "I look forward to _____ from you.", "hint": "お返事をお待ちしております、という意味にしてください。", "fullSentence": "I look forward to hearing from you.", "answer": "hearing", "source": "IMG_0646", "explanation": "look forward to Ving「〜を楽しみに待つ」。toの後は動名詞。", "relatedInfo": "look forward to の後は動名詞。to不定詞と混同しないこと。"}, {"id": 8, "type": "choice", "category": "メール・レター表現", "question": "「お返事をお待ちしております」という意味になるように、最も適切な表現を選びなさい。", "hint": "お返事をお待ちしております", "fullSentence": "I look forward to hearing from you.", "answer": "hearing", "choices": ["hearing", "hear", "heard", "to hear"], "source": "IMG_0646", "explanation": "look forward to Ving「〜を楽しみに待つ」。toの後は動名詞。", "relatedInfo": "look forward to の後は動名詞。to不定詞と混同しないこと。"}, {"id": 9, "type": "fill", "category": "メール・レター表現", "question": "Please let me know if there is anything else I need to _____.", "hint": "他に何かすべきことがあれば教えてください、という意味にしてください。", "fullSentence": "Please let me know if there is anything else I need to do.", "answer": "do", "source": "IMG_0646", "explanation": "let me know if 〜「〜かどうか知らせてください」。need to V「〜する必要がある」。", "relatedInfo": "let me know if 〜「〜かどうか教えてください」。"}, {"id": 10, "type": "choice", "category": "メール・レター表現", "question": "「他に何かすべきことがあれば教えてください」という意味になるように、最も適切な表現を選びなさい。", "hint": "他に何かすべきことがあれば教えてください", "fullSentence": "Please let me know if there is anything else I need to do.", "answer": "do", "choices": ["do", "doing", "did", "does"], "source": "IMG_0646", "explanation": "let me know if 〜「〜かどうか知らせてください」。need to V「〜する必要がある」。", "relatedInfo": "let me know if 〜「〜かどうか教えてください」。"}, {"id": 11, "type": "fill", "category": "メール・レター表現", "question": "I am pleased to _____ that you are doing well.", "hint": "あなたが元気だと知って嬉しいです、という意味にしてください。", "fullSentence": "I am pleased to hear that you are doing well.", "answer": "hear", "source": "IMG_0696", "explanation": "be pleased to V「〜して嬉しい」。hear that S V「〜と聞く」。", "relatedInfo": "be pleased to V の類似表現に be glad to V がある。"}, {"id": 12, "type": "choice", "category": "メール・レター表現", "question": "「あなたが元気だと知って嬉しいです」という意味になるように、最も適切な表現を選びなさい。", "hint": "あなたが元気だと知って嬉しいです", "fullSentence": "I am pleased to hear that you are doing well.", "answer": "hear", "choices": ["hear", "say", "ask", "speak"], "source": "IMG_0696", "explanation": "be pleased to V「〜して嬉しい」。hear that S V「〜と聞く」。", "relatedInfo": "be pleased to V の類似表現に be glad to V がある。"}, {"id": 13, "type": "fill", "category": "エッセイ定型表現", "question": "_____ my opinion, students should have more time to rest.", "hint": "私の意見では、生徒はもっと休む時間を持つべきだ、という意味にしてください。", "fullSentence": "In my opinion, students should have more time to rest.", "answer": "In", "source": "IMG_0696", "explanation": "In my opinion「私の意見では」。エッセイの意見表明の定型表現。", "relatedInfo": "In my opinion の類似表現に I think that S V がある。"}, {"id": 14, "type": "choice", "category": "エッセイ定型表現", "question": "「私の意見では、生徒はもっと休む時間を持つべきだ」という意味になるように、最も適切な表現を選びなさい。", "hint": "私の意見では、生徒はもっと休む時間を持つべきだ", "fullSentence": "In my opinion, students should have more time to rest.", "answer": "In", "choices": ["In", "On", "At", "For"], "source": "IMG_0696", "explanation": "In my opinion「私の意見では」。エッセイの意見表明の定型表現。", "relatedInfo": "In my opinion の類似表現に I think that S V がある。"}, {"id": 15, "type": "fill", "category": "エッセイ定型表現", "question": "I _____ with the idea that technology has changed our lives.", "hint": "テクノロジーが私たちの生活を変えたという考えに賛成だ、という意味にしてください。", "fullSentence": "I agree with the idea that technology has changed our lives.", "answer": "agree", "source": "IMG_0696", "explanation": "agree with the idea that S V「〜という考えに賛成する」。", "relatedInfo": "agree with(人・意見) / agree to(提案・計画) の使い分けに注意。"}, {"id": 16, "type": "choice", "category": "エッセイ定型表現", "question": "「テクノロジーが私たちの生活を変えたという考えに賛成だ」という意味になるように、最も適切な表現を選びなさい。", "hint": "テクノロジーが私たちの生活を変えたという考えに賛成だ", "fullSentence": "I agree with the idea that technology has changed our lives.", "answer": "agree", "choices": ["agree", "agreed", "agreeing", "agrees"], "source": "IMG_0696", "explanation": "agree with the idea that S V「〜という考えに賛成する」。", "relatedInfo": "agree with(人・意見) / agree to(提案・計画) の使い分けに注意。"}, {"id": 17, "type": "fill", "category": "エッセイ定型表現", "question": "There is a growing _____ toward online shopping.", "hint": "オンラインショッピングへの傾向が強まっている、という意味にしてください。", "fullSentence": "There is a growing tendency toward online shopping.", "answer": "tendency", "source": "IMG_0696", "explanation": "a growing tendency toward 〜「〜への高まる傾向」。", "relatedInfo": "tendency の類義語に trend「傾向」がある。"}, {"id": 18, "type": "choice", "category": "エッセイ定型表現", "question": "「オンラインショッピングへの傾向が強まっている」という意味になるように、最も適切な表現を選びなさい。", "hint": "オンラインショッピングへの傾向が強まっている", "fullSentence": "There is a growing tendency toward online shopping.", "answer": "tendency", "choices": ["tendency", "attend", "intend", "tend"], "source": "IMG_0696", "explanation": "a growing tendency toward 〜「〜への高まる傾向」。", "relatedInfo": "tendency の類義語に trend「傾向」がある。"}, {"id": 19, "type": "fill", "category": "エッセイ定型表現", "question": "It is _____ that smartphones are indispensable to us.", "hint": "スマートフォンは私たちに不可欠だということは明らかだ、という意味にしてください。", "fullSentence": "It is obvious that smartphones are indispensable to us.", "answer": "obvious", "source": "IMG_0693", "explanation": "It is obvious that S V「〜は明らかだ」。indispensable「不可欠な」。", "relatedInfo": "indispensable「不可欠な」の類義語に essential, necessary がある。"}, {"id": 20, "type": "choice", "category": "エッセイ定型表現", "question": "「スマートフォンは私たちに不可欠だということは明らかだ」という意味になるように、最も適切な表現を選びなさい。", "hint": "スマートフォンは私たちに不可欠だということは明らかだ", "fullSentence": "It is obvious that smartphones are indispensable to us.", "answer": "obvious", "choices": ["obvious", "obviously", "observe", "obvi"], "source": "IMG_0693", "explanation": "It is obvious that S V「〜は明らかだ」。indispensable「不可欠な」。", "relatedInfo": "indispensable「不可欠な」の類義語に essential, necessary がある。"}, {"id": 21, "type": "fill", "category": "エッセイ定型表現", "question": "According to the reasons stated above, I _____ that pets make people happier.", "hint": "上述の理由から、ペットは人を幸せにすると信じる、という意味にしてください。", "fullSentence": "According to the reasons stated above, I believe that pets make people happier.", "answer": "believe", "source": "IMG_0696", "explanation": "According to the reasons stated above「上に述べた理由から」。結論部分の定型表現。", "relatedInfo": "According to the reasons stated above はエッセイの結論部でよく使う。"}, {"id": 22, "type": "choice", "category": "エッセイ定型表現", "question": "「上述の理由から、ペットは人を幸せにすると信じる」という意味になるように、最も適切な表現を選びなさい。", "hint": "上述の理由から、ペットは人を幸せにすると信じる", "fullSentence": "According to the reasons stated above, I believe that pets make people happier.", "answer": "believe", "choices": ["believe", "belief", "believed", "believing"], "source": "IMG_0696", "explanation": "According to the reasons stated above「上に述べた理由から」。結論部分の定型表現。", "relatedInfo": "According to the reasons stated above はエッセイの結論部でよく使う。"}, {"id": 23, "type": "fill", "category": "エッセイ定型表現", "question": "This is _____ online communication is convenient.", "hint": "これはオンラインでの意思疎通が便利だからだ、という意味にしてください。", "fullSentence": "This is because online communication is convenient.", "answer": "because", "source": "IMG_0696", "explanation": "This is because S V「これは〜だからだ」。理由を述べる定型表現。", "relatedInfo": "This is because(理由) / This is why(結果) を区別する。"}, {"id": 24, "type": "choice", "category": "エッセイ定型表現", "question": "「これはオンラインでの意思疎通が便利だからだ」という意味になるように、最も適切な表現を選びなさい。", "hint": "これはオンラインでの意思疎通が便利だからだ", "fullSentence": "This is because online communication is convenient.", "answer": "because", "choices": ["because", "why", "that", "so"], "source": "IMG_0696", "explanation": "This is because S V「これは〜だからだ」。理由を述べる定型表現。", "relatedInfo": "This is because(理由) / This is why(結果) を区別する。"}, {"id": 25, "type": "fill", "category": "文法パターン", "question": "It is difficult _____ young people to save money.", "hint": "若者にとってお金を貯めるのは難しい、という意味にしてください。", "fullSentence": "It is difficult for young people to save money.", "answer": "for", "source": "IMG_0649", "explanation": "It is 形容詞 for A to V「Aが〜するのは…だ」。", "relatedInfo": "It is 形容詞 for A to V の形容詞が人の性質を表す場合は of を使う(It is kind of you to V)。"}, {"id": 26, "type": "choice", "category": "文法パターン", "question": "「若者にとってお金を貯めるのは難しい」という意味になるように、最も適切な表現を選びなさい。", "hint": "若者にとってお金を貯めるのは難しい", "fullSentence": "It is difficult for young people to save money.", "answer": "for", "choices": ["for", "of", "to", "with"], "source": "IMG_0649", "explanation": "It is 形容詞 for A to V「Aが〜するのは…だ」。", "relatedInfo": "It is 形容詞 for A to V の形容詞が人の性質を表す場合は of を使う(It is kind of you to V)。"}, {"id": 27, "type": "fill", "category": "文法パターン", "question": "_____ you try hard, you can pass the exam.", "hint": "一生懸命努力する限り、試験に合格できる、という意味にしてください。", "fullSentence": "As long as you try hard, you can pass the exam.", "answer": "As long as", "source": "IMG_0679", "explanation": "as long as S V「〜する限り」。条件を表す表現。", "relatedInfo": "as long as(条件) と as far as(範囲・程度) は意味が異なる。"}, {"id": 28, "type": "choice", "category": "文法パターン", "question": "「一生懸命努力する限り、試験に合格できる」という意味になるように、最も適切な表現を選びなさい。", "hint": "一生懸命努力する限り、試験に合格できる", "fullSentence": "As long as you try hard, you can pass the exam.", "answer": "As long as", "choices": ["As long as", "As far as", "As soon as", "As well as"], "source": "IMG_0679", "explanation": "as long as S V「〜する限り」。条件を表す表現。", "relatedInfo": "as long as(条件) と as far as(範囲・程度) は意味が異なる。"}, {"id": 29, "type": "fill", "category": "文法パターン", "question": "She studied hard _____ she could pass the exam.", "hint": "彼女は試験に合格できるように一生懸命勉強した、という意味にしてください。", "fullSentence": "She studied hard so that she could pass the exam.", "answer": "so that", "source": "IMG_0670", "explanation": "so that S can/could V「〜できるように」。目的を表す。", "relatedInfo": "so that S can/could V の類似表現に in order that がある。"}, {"id": 30, "type": "choice", "category": "文法パターン", "question": "「彼女は試験に合格できるように一生懸命勉強した」という意味になるように、最も適切な表現を選びなさい。", "hint": "彼女は試験に合格できるように一生懸命勉強した", "fullSentence": "She studied hard so that she could pass the exam.", "answer": "so that", "choices": ["so that", "in order", "so as", "such that"], "source": "IMG_0670", "explanation": "so that S can/could V「〜できるように」。目的を表す。", "relatedInfo": "so that S can/could V の類似表現に in order that がある。"}, {"id": 31, "type": "fill", "category": "文法パターン", "question": "This city is not _____ clean as it used to be.", "hint": "この街はかつてほどきれいではない、という意味にしてください。", "fullSentence": "This city is not as clean as it used to be.", "answer": "as", "source": "IMG_0676", "explanation": "not as 原級 as 〜「〜ほど…でない」。", "relatedInfo": "not as/so 原級 as の as は省略できない。"}, {"id": 32, "type": "choice", "category": "文法パターン", "question": "「この街はかつてほどきれいではない」という意味になるように、最も適切な表現を選びなさい。", "hint": "この街はかつてほどきれいではない", "fullSentence": "This city is not as clean as it used to be.", "answer": "as", "choices": ["as", "so", "than", "like"], "source": "IMG_0676", "explanation": "not as 原級 as 〜「〜ほど…でない」。", "relatedInfo": "not as/so 原級 as の as は省略できない。"}, {"id": 33, "type": "fill", "category": "文法パターン", "question": "The _____ you practice, the better you become.", "hint": "練習すればするほど上手になる、という意味にしてください。", "fullSentence": "The more you practice, the better you become.", "answer": "more", "source": "IMG_0679", "explanation": "the 比較級 S V, the 比較級 S V「〜すればするほど…」。", "relatedInfo": "the 比較級, the 比較級 の構文は日常会話でもよく使われる。"}, {"id": 34, "type": "choice", "category": "文法パターン", "question": "「練習すればするほど上手になる」という意味になるように、最も適切な表現を選びなさい。", "hint": "練習すればするほど上手になる", "fullSentence": "The more you practice, the better you become.", "answer": "more", "choices": ["more", "most", "much", "many"], "source": "IMG_0679", "explanation": "the 比較級 S V, the 比較級 S V「〜すればするほど…」。", "relatedInfo": "the 比較級, the 比較級 の構文は日常会話でもよく使われる。"}, {"id": 35, "type": "fill", "category": "文法パターン", "question": "If I _____ you, I would apologize immediately.", "hint": "もし私があなたなら、すぐに謝るだろう、という意味にしてください。", "fullSentence": "If I were you, I would apologize immediately.", "answer": "were", "source": "IMG_0674", "explanation": "仮定法過去 If S 過去形, S would V「もし〜なら…だろう」。beはwereを使う。", "relatedInfo": "仮定法過去は現在の事実に反する仮定を表す。"}, {"id": 36, "type": "choice", "category": "文法パターン", "question": "「もし私があなたなら、すぐに謝るだろう」という意味になるように、最も適切な表現を選びなさい。", "hint": "もし私があなたなら、すぐに謝るだろう", "fullSentence": "If I were you, I would apologize immediately.", "answer": "were", "choices": ["were", "was", "am", "be"], "source": "IMG_0674", "explanation": "仮定法過去 If S 過去形, S would V「もし〜なら…だろう」。beはwereを使う。", "relatedInfo": "仮定法過去は現在の事実に反する仮定を表す。"}, {"id": 37, "type": "fill", "category": "文法パターン", "question": "It is _____ that the population will decrease.", "hint": "人口は減少すると予想されている、という意味にしてください。", "fullSentence": "It is expected that the population will decrease.", "answer": "expected", "source": "IMG_0693", "explanation": "It is expected that S V「〜と予想されている」。", "relatedInfo": "It is expected that の類似表現に S is expected to V がある。"}, {"id": 38, "type": "choice", "category": "文法パターン", "question": "「人口は減少すると予想されている」という意味になるように、最も適切な表現を選びなさい。", "hint": "人口は減少すると予想されている", "fullSentence": "It is expected that the population will decrease.", "answer": "expected", "choices": ["expected", "expecting", "expect", "expects"], "source": "IMG_0693", "explanation": "It is expected that S V「〜と予想されている」。", "relatedInfo": "It is expected that の類似表現に S is expected to V がある。"}, {"id": 39, "type": "fill", "category": "文法パターン", "question": "There is no scientific _____ that the diet works.", "hint": "そのダイエットが効果があるという科学的証拠はない、という意味にしてください。", "fullSentence": "There is no scientific evidence that the diet works.", "answer": "evidence", "source": "IMG_0691", "explanation": "evidence「証拠」。There is no evidence that S V「〜という証拠はない」。", "relatedInfo": "evidence は不可算名詞なので複数形にしない。"}, {"id": 40, "type": "choice", "category": "文法パターン", "question": "「そのダイエットが効果があるという科学的証拠はない」という意味になるように、最も適切な表現を選びなさい。", "hint": "そのダイエットが効果があるという科学的証拠はない", "fullSentence": "There is no scientific evidence that the diet works.", "answer": "evidence", "choices": ["evidence", "evidences", "evident", "evidencing"], "source": "IMG_0691", "explanation": "evidence「証拠」。There is no evidence that S V「〜という証拠はない」。", "relatedInfo": "evidence は不可算名詞なので複数形にしない。"}, {"id": 41, "type": "fill", "category": "熟語・フレーズ", "question": "He _____ to like Japanese food after living in Japan.", "hint": "彼は日本に住んでから日本食が好きになった、という意味にしてください。", "fullSentence": "He came to like Japanese food after living in Japan.", "answer": "came", "source": "IMG_0665", "explanation": "come to V「〜するようになる」。状態動詞と共に使われることが多い。", "relatedInfo": "come to V「〜するようになる」は状態の変化を表す動詞(know, like, understand等)と共に使われることが多い。"}, {"id": 42, "type": "choice", "category": "熟語・フレーズ", "question": "「彼は日本に住んでから日本食が好きになった」という意味になるように、最も適切な表現を選びなさい。", "hint": "彼は日本に住んでから日本食が好きになった", "fullSentence": "He came to like Japanese food after living in Japan.", "answer": "came", "choices": ["came", "come", "comes", "coming"], "source": "IMG_0665", "explanation": "come to V「〜するようになる」。状態動詞と共に使われることが多い。", "relatedInfo": "come to V「〜するようになる」は状態の変化を表す動詞(know, like, understand等)と共に使われることが多い。"}, {"id": 43, "type": "fill", "category": "熟語・フレーズ", "question": "She made an _____ to improve her English.", "hint": "彼女は英語を上達させる努力をした、という意味にしてください。", "fullSentence": "She made an effort to improve her English.", "answer": "effort", "source": "IMG_0684", "explanation": "make an effort to V「〜する努力をする」。", "relatedInfo": "make an effort to V の類似表現に try to V, strive to V がある。"}, {"id": 44, "type": "choice", "category": "熟語・フレーズ", "question": "「彼女は英語を上達させる努力をした」という意味になるように、最も適切な表現を選びなさい。", "hint": "彼女は英語を上達させる努力をした", "fullSentence": "She made an effort to improve her English.", "answer": "effort", "choices": ["effort", "affair", "offer", "effect"], "source": "IMG_0684", "explanation": "make an effort to V「〜する努力をする」。", "relatedInfo": "make an effort to V の類似表現に try to V, strive to V がある。"}, {"id": 45, "type": "fill", "category": "熟語・フレーズ", "question": "I _____ him for his brother.", "hint": "私は彼を彼の兄と間違えた、という意味にしてください。", "fullSentence": "I mistook him for his brother.", "answer": "mistook", "source": "IMG_0651", "explanation": "mistake A for B「AをBと間違える」。過去形はmistook。", "relatedInfo": "mistake A for B の受動態は A is mistaken for B。"}, {"id": 46, "type": "choice", "category": "熟語・フレーズ", "question": "「私は彼を彼の兄と間違えた」という意味になるように、最も適切な表現を選びなさい。", "hint": "私は彼を彼の兄と間違えた", "fullSentence": "I mistook him for his brother.", "answer": "mistook", "choices": ["mistook", "mistake", "mistaken", "mistaking"], "source": "IMG_0651", "explanation": "mistake A for B「AをBと間違える」。過去形はmistook。", "relatedInfo": "mistake A for B の受動態は A is mistaken for B。"}, {"id": 47, "type": "fill", "category": "熟語・フレーズ", "question": "He put his idea into _____.", "hint": "彼は自分の考えを実行に移した、という意味にしてください。", "fullSentence": "He put his idea into practice.", "answer": "practice", "source": "IMG_0670", "explanation": "put A into practice「Aを実行に移す」。", "relatedInfo": "put A into practice の類似表現に carry out A「Aを実行する」がある。"}, {"id": 48, "type": "choice", "category": "熟語・フレーズ", "question": "「彼は自分の考えを実行に移した」という意味になるように、最も適切な表現を選びなさい。", "hint": "彼は自分の考えを実行に移した", "fullSentence": "He put his idea into practice.", "answer": "practice", "choices": ["practice", "practices", "practicing", "practiced"], "source": "IMG_0670", "explanation": "put A into practice「Aを実行に移す」。", "relatedInfo": "put A into practice の類似表現に carry out A「Aを実行する」がある。"}, {"id": 49, "type": "fill", "category": "熟語・フレーズ", "question": "She came to _____ with the loss of her job.", "hint": "彼女は失業という事実を受け入れた、という意味にしてください。", "fullSentence": "She came to terms with the loss of her job.", "answer": "terms", "source": "IMG_0679", "explanation": "come to terms with 〜「〜を受け入れる」。", "relatedInfo": "come to terms with の類似表現に accept, come to accept がある。"}, {"id": 50, "type": "choice", "category": "熟語・フレーズ", "question": "「彼女は失業という事実を受け入れた」という意味になるように、最も適切な表現を選びなさい。", "hint": "彼女は失業という事実を受け入れた", "fullSentence": "She came to terms with the loss of her job.", "answer": "terms", "choices": ["terms", "term", "turns", "time"], "source": "IMG_0679", "explanation": "come to terms with 〜「〜を受け入れる」。", "relatedInfo": "come to terms with の類似表現に accept, come to accept がある。"}, {"id": 51, "type": "fill", "category": "熟語・フレーズ", "question": "He was at a _____ when he lost his passport.", "hint": "パスポートを失くした時、彼は途方に暮れた、という意味にしてください。", "fullSentence": "He was at a loss when he lost his passport.", "answer": "loss", "source": "IMG_0679", "explanation": "be at a loss「途方に暮れる」。", "relatedInfo": "be at a loss の類似表現に be at a loss for words「言葉に詰まる」がある。"}, {"id": 52, "type": "choice", "category": "熟語・フレーズ", "question": "「パスポートを失くした時、彼は途方に暮れた」という意味になるように、最も適切な表現を選びなさい。", "hint": "パスポートを失くした時、彼は途方に暮れた", "fullSentence": "He was at a loss when he lost his passport.", "answer": "loss", "choices": ["loss", "lost", "lose", "losing"], "source": "IMG_0679", "explanation": "be at a loss「途方に暮れる」。", "relatedInfo": "be at a loss の類似表現に be at a loss for words「言葉に詰まる」がある。"}, {"id": 53, "type": "fill", "category": "語彙(社会・時事)", "question": "Some countries still practice capital _____.", "hint": "いくつかの国はまだ死刑を実施している、という意味にしてください。", "fullSentence": "Some countries still practice capital punishment.", "answer": "punishment", "source": "IMG_0690", "explanation": "capital punishment「死刑」。", "relatedInfo": "capital punishment = the death penalty「死刑」。"}, {"id": 54, "type": "choice", "category": "語彙(社会・時事)", "question": "「いくつかの国はまだ死刑を実施している」という意味になるように、最も適切な表現を選びなさい。", "hint": "いくつかの国はまだ死刑を実施している", "fullSentence": "Some countries still practice capital punishment.", "answer": "punishment", "choices": ["punishment", "penalty", "charge", "crime"], "source": "IMG_0690", "explanation": "capital punishment「死刑」。", "relatedInfo": "capital punishment = the death penalty「死刑」。"}, {"id": 55, "type": "fill", "category": "語彙(社会・時事)", "question": "Many people believe that punishment acts as a _____ to crime.", "hint": "刑罰は犯罪の抑止力として機能すると信じる人が多い、という意味にしてください。", "fullSentence": "Many people believe that punishment acts as a deterrent to crime.", "answer": "deterrent", "source": "IMG_0691", "explanation": "a deterrent to 〜「〜への抑止力」。", "relatedInfo": "a deterrent to crime の deter は動詞で「思いとどまらせる」という意味。"}, {"id": 56, "type": "choice", "category": "語彙(社会・時事)", "question": "「刑罰は犯罪の抑止力として機能すると信じる人が多い」という意味になるように、最も適切な表現を選びなさい。", "hint": "刑罰は犯罪の抑止力として機能すると信じる人が多い", "fullSentence": "Many people believe that punishment acts as a deterrent to crime.", "answer": "deterrent", "choices": ["deterrent", "detergent", "deter", "determine"], "source": "IMG_0691", "explanation": "a deterrent to 〜「〜への抑止力」。", "relatedInfo": "a deterrent to crime の deter は動詞で「思いとどまらせる」という意味。"}, {"id": 57, "type": "fill", "category": "語彙(社会・時事)", "question": "The greenhouse _____ is a major cause of global warming.", "hint": "温室効果は地球温暖化の主な原因だ、という意味にしてください。", "fullSentence": "The greenhouse effect is a major cause of global warming.", "answer": "effect", "source": "IMG_0693", "explanation": "the greenhouse effect「温室効果」。", "relatedInfo": "greenhouse gases「温室効果ガス」も合わせて覚えよう。"}, {"id": 58, "type": "choice", "category": "語彙(社会・時事)", "question": "「温室効果は地球温暖化の主な原因だ」という意味になるように、最も適切な表現を選びなさい。", "hint": "温室効果は地球温暖化の主な原因だ", "fullSentence": "The greenhouse effect is a major cause of global warming.", "answer": "effect", "choices": ["effect", "affect", "effective", "effort"], "source": "IMG_0693", "explanation": "the greenhouse effect「温室効果」。", "relatedInfo": "greenhouse gases「温室効果ガス」も合わせて覚えよう。"}, {"id": 59, "type": "fill", "category": "語彙(社会・時事)", "question": "We should develop alternative energy _____.", "hint": "私たちは代替エネルギー源を開発すべきだ、という意味にしてください。", "fullSentence": "We should develop alternative energy sources.", "answer": "sources", "source": "IMG_0693", "explanation": "alternative energy sources「代替エネルギー源」。", "relatedInfo": "alternative の類義語に substitute がある。"}, {"id": 60, "type": "choice", "category": "語彙(社会・時事)", "question": "「私たちは代替エネルギー源を開発すべきだ」という意味になるように、最も適切な表現を選びなさい。", "hint": "私たちは代替エネルギー源を開発すべきだ", "fullSentence": "We should develop alternative energy sources.", "answer": "sources", "choices": ["sources", "source", "resource", "sourced"], "source": "IMG_0693", "explanation": "alternative energy sources「代替エネルギー源」。", "relatedInfo": "alternative の類義語に substitute がある。"}, {"id": 61, "type": "fill", "category": "語彙(社会・時事)", "question": "A narrow-_____ person often refuses to accept new ideas.", "hint": "視野の狭い人はしばしば新しい考えを受け入れることを拒む、という意味にしてください。", "fullSentence": "A narrow-minded person often refuses to accept new ideas.", "answer": "minded", "source": "IMG_0648", "explanation": "narrow-minded「視野が狭い、偏狭な」。", "relatedInfo": "narrow-minded の反対語は open-minded「心が広い」。"}, {"id": 62, "type": "choice", "category": "語彙(社会・時事)", "question": "「視野の狭い人はしばしば新しい考えを受け入れることを拒む」という意味になるように、最も適切な表現を選びなさい。", "hint": "視野の狭い人はしばしば新しい考えを受け入れることを拒む", "fullSentence": "A narrow-minded person often refuses to accept new ideas.", "answer": "minded", "choices": ["minded", "mind", "minding", "minds"], "source": "IMG_0648", "explanation": "narrow-minded「視野が狭い、偏狭な」。", "relatedInfo": "narrow-minded の反対語は open-minded「心が広い」。"}, {"id": 63, "type": "fill", "category": "語彙(社会・時事)", "question": "Many parents send their children to a _____ school.", "hint": "多くの親が子供を塾に通わせる、という意味にしてください。", "fullSentence": "Many parents send their children to a cram school.", "answer": "cram", "source": "IMG_0682", "explanation": "a cram school「塾」。", "relatedInfo": "cram「詰め込む」から派生した語。cram for an exam「試験のために詰め込み勉強する」。"}, {"id": 64, "type": "choice", "category": "語彙(社会・時事)", "question": "「多くの親が子供を塾に通わせる」という意味になるように、最も適切な表現を選びなさい。", "hint": "多くの親が子供を塾に通わせる", "fullSentence": "Many parents send their children to a cram school.", "answer": "cram", "choices": ["cram", "crammed", "study", "exam"], "source": "IMG_0682", "explanation": "a cram school「塾」。", "relatedInfo": "cram「詰め込む」から派生した語。cram for an exam「試験のために詰め込み勉強する」。"}, {"id": 65, "type": "fill", "category": "語彙(社会・時事)", "question": "_____ smoke can be harmful to those around us.", "hint": "受動喫煙は周囲の人にとって有害である可能性がある、という意味にしてください。", "fullSentence": "Secondhand smoke can be harmful to those around us.", "answer": "Secondhand", "source": "IMG_0688", "explanation": "secondhand smoke「受動喫煙」。", "relatedInfo": "secondhand の別の意味「中古の」も覚えておこう(secondhand car)。"}, {"id": 66, "type": "choice", "category": "語彙(社会・時事)", "question": "「受動喫煙は周囲の人にとって有害である可能性がある」という意味になるように、最も適切な表現を選びなさい。", "hint": "受動喫煙は周囲の人にとって有害である可能性がある", "fullSentence": "Secondhand smoke can be harmful to those around us.", "answer": "Secondhand", "choices": ["Secondhand", "Second-hand fire", "Passive fire", "Used"], "source": "IMG_0688", "explanation": "secondhand smoke「受動喫煙」。", "relatedInfo": "secondhand の別の意味「中古の」も覚えておこう(secondhand car)。"}, {"id": 67, "type": "fill", "category": "語彙(社会・時事)", "question": "Japan's nursing care _____ system supports elderly people.", "hint": "日本の介護保険制度は高齢者を支援する、という意味にしてください。", "fullSentence": "Japan's nursing care insurance system supports elderly people.", "answer": "insurance", "source": "IMG_0692", "explanation": "the nursing care insurance system「介護保険制度」。", "relatedInfo": "insurance「保険」の動詞形は insure「保険をかける」。"}, {"id": 68, "type": "choice", "category": "語彙(社会・時事)", "question": "「日本の介護保険制度は高齢者を支援する」という意味になるように、最も適切な表現を選びなさい。", "hint": "日本の介護保険制度は高齢者を支援する", "fullSentence": "Japan's nursing care insurance system supports elderly people.", "answer": "insurance", "choices": ["insurance", "assurance", "ensure", "insure"], "source": "IMG_0692", "explanation": "the nursing care insurance system「介護保険制度」。", "relatedInfo": "insurance「保険」の動詞形は insure「保険をかける」。"}, {"id": 69, "type": "fill", "category": "比較・数量表現", "question": "The number of foreign tourists h_____ increased as many as five times.", "hint": "外国人観光客の数は5倍も増加した、という意味にしてください。", "fullSentence": "The number of foreign tourists has increased as many as five times.", "answer": "as", "source": "IMG_0672", "explanation": "as many as 数字「〜もの数」。数の多さを強調する。", "relatedInfo": "as many as の類似表現に no less than がある。"}, {"id": 70, "type": "choice", "category": "比較・数量表現", "question": "「外国人観光客の数は5倍も増加した」という意味になるように、最も適切な表現を選びなさい。", "hint": "外国人観光客の数は5倍も増加した", "fullSentence": "The number of foreign tourists has increased as many as five times.", "answer": "as", "choices": ["as", "much", "so", "far"], "source": "IMG_0672", "explanation": "as many as 数字「〜もの数」。数の多さを強調する。", "relatedInfo": "as many as の類似表現に no less than がある。"}, {"id": 71, "type": "fill", "category": "比較・数量表現", "question": "One _____ of every three students has a part-time job.", "hint": "3人に1人の生徒がアルバイトをしている、という意味にしてください。", "fullSentence": "One out of every three students has a part-time job.", "answer": "out", "source": "IMG_0672", "explanation": "one out of every 数字「〜人に1人」。", "relatedInfo": "one out of every three = one in three。"}, {"id": 72, "type": "choice", "category": "比較・数量表現", "question": "「3人に1人の生徒がアルバイトをしている」という意味になるように、最も適切な表現を選びなさい。", "hint": "3人に1人の生徒がアルバイトをしている", "fullSentence": "One out of every three students has a part-time job.", "answer": "out", "choices": ["out", "in", "of", "off"], "source": "IMG_0672", "explanation": "one out of every 数字「〜人に1人」。", "relatedInfo": "one out of every three = one in three。"}, {"id": 73, "type": "fill", "category": "比較・数量表現", "question": "She has _____ as many books as her brother.", "hint": "彼女は兄の2倍の本を持っている、という意味にしてください。", "fullSentence": "She has twice as many books as her brother.", "answer": "twice", "source": "IMG_0675", "explanation": "倍数 + as many/much + as 〜「〜の…倍」。", "relatedInfo": "倍数表現: half(半分)、twice(2倍)、three times(3倍)。"}, {"id": 74, "type": "choice", "category": "比較・数量表現", "question": "「彼女は兄の2倍の本を持っている」という意味になるように、最も適切な表現を選びなさい。", "hint": "彼女は兄の2倍の本を持っている", "fullSentence": "She has twice as many books as her brother.", "answer": "twice", "choices": ["twice", "two times", "double", "second"], "source": "IMG_0675", "explanation": "倍数 + as many/much + as 〜「〜の…倍」。", "relatedInfo": "倍数表現: half(半分)、twice(2倍)、three times(3倍)。"}, {"id": 75, "type": "fill", "category": "比較・数量表現", "question": "This year's sales are far _____ than last year's.", "hint": "今年の売上は去年よりはるかに良い、という意味にしてください。", "fullSentence": "This year's sales are far better than last year's.", "answer": "better", "source": "IMG_0676", "explanation": "far + 比較級「はるかに〜」で比較級を強調する。", "relatedInfo": "比較級の強調には far, much, even, a lot などを使う。"}, {"id": 76, "type": "choice", "category": "比較・数量表現", "question": "「今年の売上は去年よりはるかに良い」という意味になるように、最も適切な表現を選びなさい。", "hint": "今年の売上は去年よりはるかに良い", "fullSentence": "This year's sales are far better than last year's.", "answer": "better", "choices": ["better", "good", "best", "well"], "source": "IMG_0676", "explanation": "far + 比較級「はるかに〜」で比較級を強調する。", "relatedInfo": "比較級の強調には far, much, even, a lot などを使う。"}, {"id": 77, "type": "fill", "category": "比較・数量表現", "question": "_____ and fewer people read newspapers these days.", "hint": "近頃新聞を読む人がますます少なくなっている、という意味にしてください。", "fullSentence": "Fewer and fewer people read newspapers these days.", "answer": "Fewer", "source": "IMG_0679", "explanation": "比較級 and 比較級「ますます〜」。可算名詞にはfewer、不可算名詞にはlessを使う。", "relatedInfo": "less and less は不可算名詞に使う(fewer and fewerは可算名詞)。"}, {"id": 78, "type": "choice", "category": "比較・数量表現", "question": "「近頃新聞を読む人がますます少なくなっている」という意味になるように、最も適切な表現を選びなさい。", "hint": "近頃新聞を読む人がますます少なくなっている", "fullSentence": "Fewer and fewer people read newspapers these days.", "answer": "Fewer", "choices": ["Fewer", "Less", "Few", "Little"], "source": "IMG_0679", "explanation": "比較級 and 比較級「ますます〜」。可算名詞にはfewer、不可算名詞にはlessを使う。", "relatedInfo": "less and less は不可算名詞に使う(fewer and fewerは可算名詞)。"}, {"id": 79, "type": "fill", "category": "比較・数量表現", "question": "The _____ of plastic waste is increasing every year.", "hint": "プラスチックごみの量は毎年増えている、という意味にしてください。", "fullSentence": "The amount of plastic waste is increasing every year.", "answer": "amount", "source": "IMG_0679", "explanation": "the amount of 〜(不可算名詞)「〜の量」。", "relatedInfo": "the amount of(不可算) / the number of(可算) を区別する。"}, {"id": 80, "type": "choice", "category": "比較・数量表現", "question": "「プラスチックごみの量は毎年増えている」という意味になるように、最も適切な表現を選びなさい。", "hint": "プラスチックごみの量は毎年増えている", "fullSentence": "The amount of plastic waste is increasing every year.", "answer": "amount", "choices": ["amount", "number", "account", "amounts"], "source": "IMG_0679", "explanation": "the amount of 〜(不可算名詞)「〜の量」。", "relatedInfo": "the amount of(不可算) / the number of(可算) を区別する。"}];
+const ORDER_QUESTIONS = [{"id": 1, "type": "reorder", "category": "メール・レター表現", "hint": "奨学金に応募するために書いています、という意味になるように並べ替えてください。", "tokens": ["I", "am", "writing", "to", "apply", "for", "the", "scholarship."], "fullSentence": "I am writing to apply for the scholarship.", "source": "IMG_0646", "explanation": "「〜に応募する」は apply for 〜。メールの書き出しで用件を伝える定型表現 I am writing to V は「〜するために書いています」という意味。", "relatedInfo": "同様の書き出しには I am writing to inform you that...(〜をお知らせするために書いています)もある。"}, {"id": 2, "type": "correction", "category": "メール・レター表現", "hint": "奨学金に応募するために書いています、という意味になるよう誤りを直してください。", "question": "I am writing to [[applying]] for the scholarship.", "wrongPart": "applying", "answer": "apply", "fullSentence": "I am writing to apply for the scholarship.", "source": "IMG_0646", "explanation": "「〜に応募する」は apply for 〜。メールの書き出しで用件を伝える定型表現 I am writing to V は「〜するために書いています」という意味。", "relatedInfo": "同様の書き出しには I am writing to inform you that...(〜をお知らせするために書いています)もある。"}, {"id": 3, "type": "reorder", "category": "メール・レター表現", "hint": "追試を受ける機会をお願いしたい、という意味になるように並べ替えてください。", "tokens": ["I", "would", "like", "to", "request", "an", "opportunity", "to", "take", "a", "makeup", "exam."], "fullSentence": "I would like to request an opportunity to take a makeup exam.", "source": "IMG_0646", "explanation": "「追試」は a makeup exam。request an opportunity to V「〜する機会をお願いする」。", "relatedInfo": "take an exam「試験を受ける」。postpone an exam「試験を延期する」も覚えておこう。"}, {"id": 4, "type": "correction", "category": "メール・レター表現", "hint": "追試を受ける機会をお願いしたい、という意味になるよう誤りを直してください。", "question": "I would like to request an opportunity to [[taking]] a makeup exam.", "wrongPart": "taking", "answer": "take", "fullSentence": "I would like to request an opportunity to take a makeup exam.", "source": "IMG_0646", "explanation": "「追試」は a makeup exam。request an opportunity to V「〜する機会をお願いする」。", "relatedInfo": "take an exam「試験を受ける」。postpone an exam「試験を延期する」も覚えておこう。"}, {"id": 5, "type": "reorder", "category": "メール・レター表現", "hint": "私の状況へのご配慮に感謝します、という意味になるように並べ替えてください。", "tokens": ["Thank", "you", "very", "much", "for", "your", "consideration", "of", "my", "situation."], "fullSentence": "Thank you very much for your consideration of my situation.", "source": "IMG_0646", "explanation": "consideration「配慮、考慮」。Thank you for your 〜 は感謝を伝える定型表現。", "relatedInfo": "consideration「配慮」の他、appreciation「感謝」も似た文脈で使われる。"}, {"id": 6, "type": "correction", "category": "メール・レター表現", "hint": "私の状況へのご配慮に感謝します、という意味になるよう誤りを直してください。", "question": "Thank you very much for your [[considerate]] of my situation.", "wrongPart": "considerate", "answer": "consideration", "fullSentence": "Thank you very much for your consideration of my situation.", "source": "IMG_0646", "explanation": "consideration「配慮、考慮」。Thank you for your 〜 は感謝を伝える定型表現。", "relatedInfo": "consideration「配慮」の他、appreciation「感謝」も似た文脈で使われる。"}, {"id": 7, "type": "reorder", "category": "メール・レター表現", "hint": "お返事をお待ちしております、という意味になるように並べ替えてください。", "tokens": ["I", "look", "forward", "to", "hearing", "from", "you."], "fullSentence": "I look forward to hearing from you.", "source": "IMG_0646", "explanation": "look forward to Ving「〜を楽しみに待つ」。toの後は動名詞。", "relatedInfo": "look forward to の後は動名詞。to不定詞と混同しないこと。"}, {"id": 8, "type": "correction", "category": "メール・レター表現", "hint": "お返事をお待ちしております、という意味になるよう誤りを直してください。", "question": "I look forward to [[hear]] from you.", "wrongPart": "hear", "answer": "hearing", "fullSentence": "I look forward to hearing from you.", "source": "IMG_0646", "explanation": "look forward to Ving「〜を楽しみに待つ」。toの後は動名詞。", "relatedInfo": "look forward to の後は動名詞。to不定詞と混同しないこと。"}, {"id": 9, "type": "reorder", "category": "メール・レター表現", "hint": "他に何かすべきことがあれば教えてください、という意味になるように並べ替えてください。", "tokens": ["Please", "let", "me", "know", "if", "there", "is", "anything", "else", "I", "need", "to", "do."], "fullSentence": "Please let me know if there is anything else I need to do.", "source": "IMG_0646", "explanation": "let me know if 〜「〜かどうか知らせてください」。need to V「〜する必要がある」。", "relatedInfo": "let me know if 〜「〜かどうか教えてください」。"}, {"id": 10, "type": "correction", "category": "メール・レター表現", "hint": "他に何かすべきことがあれば教えてください、という意味になるよう誤りを直してください。", "question": "Please let me know if there is anything else I [[needs]] to do.", "wrongPart": "needs", "answer": "need", "fullSentence": "Please let me know if there is anything else I need to do.", "source": "IMG_0646", "explanation": "let me know if 〜「〜かどうか知らせてください」。need to V「〜する必要がある」。", "relatedInfo": "let me know if 〜「〜かどうか教えてください」。"}, {"id": 11, "type": "reorder", "category": "メール・レター表現", "hint": "あなたが元気だと知って嬉しいです、という意味になるように並べ替えてください。", "tokens": ["I", "am", "pleased", "to", "hear", "that", "you", "are", "doing", "well."], "fullSentence": "I am pleased to hear that you are doing well.", "source": "IMG_0696", "explanation": "be pleased to V「〜して嬉しい」。hear that S V「〜と聞く」。", "relatedInfo": "be pleased to V の類似表現に be glad to V がある。"}, {"id": 12, "type": "correction", "category": "メール・レター表現", "hint": "あなたが元気だと知って嬉しいです、という意味になるよう誤りを直してください。", "question": "I am [[please]] to hear that you are doing well.", "wrongPart": "please", "answer": "pleased", "fullSentence": "I am pleased to hear that you are doing well.", "source": "IMG_0696", "explanation": "be pleased to V「〜して嬉しい」。hear that S V「〜と聞く」。", "relatedInfo": "be pleased to V の類似表現に be glad to V がある。"}, {"id": 13, "type": "reorder", "category": "エッセイ定型表現", "hint": "私の意見では、生徒はもっと休む時間を持つべきだ、という意味になるように並べ替えてください。", "tokens": ["In", "my", "opinion,", "students", "should", "have", "more", "time", "to", "rest."], "fullSentence": "In my opinion, students should have more time to rest.", "source": "IMG_0696", "explanation": "In my opinion「私の意見では」。エッセイの意見表明の定型表現。", "relatedInfo": "In my opinion の類似表現に I think that S V がある。"}, {"id": 14, "type": "correction", "category": "エッセイ定型表現", "hint": "私の意見では、生徒はもっと休む時間を持つべきだ、という意味になるよう誤りを直してください。", "question": "In my opinion, students should [[has]] more time to rest.", "wrongPart": "has", "answer": "have", "fullSentence": "In my opinion, students should have more time to rest.", "source": "IMG_0696", "explanation": "In my opinion「私の意見では」。エッセイの意見表明の定型表現。", "relatedInfo": "In my opinion の類似表現に I think that S V がある。"}, {"id": 15, "type": "reorder", "category": "エッセイ定型表現", "hint": "テクノロジーが私たちの生活を変えたという考えに賛成だ、という意味になるように並べ替えてください。", "tokens": ["I", "agree", "with", "the", "idea", "that", "technology", "has", "changed", "our", "lives."], "fullSentence": "I agree with the idea that technology has changed our lives.", "source": "IMG_0696", "explanation": "agree with the idea that S V「〜という考えに賛成する」。", "relatedInfo": "agree with(人・意見) / agree to(提案・計画) の使い分けに注意。"}, {"id": 16, "type": "correction", "category": "エッセイ定型表現", "hint": "テクノロジーが私たちの生活を変えたという考えに賛成だ、という意味になるよう誤りを直してください。", "question": "I agree [[to]] the idea that technology has changed our lives.", "wrongPart": "to", "answer": "with", "fullSentence": "I agree with the idea that technology has changed our lives.", "source": "IMG_0696", "explanation": "agree with the idea that S V「〜という考えに賛成する」。", "relatedInfo": "agree with(人・意見) / agree to(提案・計画) の使い分けに注意。"}, {"id": 17, "type": "reorder", "category": "エッセイ定型表現", "hint": "オンラインショッピングへの傾向が強まっている、という意味になるように並べ替えてください。", "tokens": ["There", "is", "a", "growing", "tendency", "toward", "online", "shopping."], "fullSentence": "There is a growing tendency toward online shopping.", "source": "IMG_0696", "explanation": "a growing tendency toward 〜「〜への高まる傾向」。", "relatedInfo": "tendency の類義語に trend「傾向」がある。"}, {"id": 18, "type": "correction", "category": "エッセイ定型表現", "hint": "オンラインショッピングへの傾向が強まっている、という意味になるよう誤りを直してください。", "question": "There is a [[grown]] tendency toward online shopping.", "wrongPart": "grown", "answer": "growing", "fullSentence": "There is a growing tendency toward online shopping.", "source": "IMG_0696", "explanation": "a growing tendency toward 〜「〜への高まる傾向」。", "relatedInfo": "tendency の類義語に trend「傾向」がある。"}, {"id": 19, "type": "reorder", "category": "エッセイ定型表現", "hint": "スマートフォンは私たちに不可欠だということは明らかだ、という意味になるように並べ替えてください。", "tokens": ["It", "is", "obvious", "that", "smartphones", "are", "indispensable", "to", "us."], "fullSentence": "It is obvious that smartphones are indispensable to us.", "source": "IMG_0693", "explanation": "It is obvious that S V「〜は明らかだ」。indispensable「不可欠な」。", "relatedInfo": "indispensable「不可欠な」の類義語に essential, necessary がある。"}, {"id": 20, "type": "correction", "category": "エッセイ定型表現", "hint": "スマートフォンは私たちに不可欠だということは明らかだ、という意味になるよう誤りを直してください。", "question": "It [[is]] obvious that smartphones is indispensable to us.", "wrongPart": "is", "answer": "are", "fullSentence": "It is obvious that smartphones are indispensable to us.", "source": "IMG_0693", "explanation": "It is obvious that S V「〜は明らかだ」。indispensable「不可欠な」。", "relatedInfo": "indispensable「不可欠な」の類義語に essential, necessary がある。"}, {"id": 21, "type": "reorder", "category": "エッセイ定型表現", "hint": "上述の理由から、ペットは人を幸せにすると信じる、という意味になるように並べ替えてください。", "tokens": ["According", "to", "the", "reasons", "stated", "above,", "I", "believe", "that", "pets", "make", "people", "happier."], "fullSentence": "According to the reasons stated above, I believe that pets make people happier.", "source": "IMG_0696", "explanation": "According to the reasons stated above「上に述べた理由から」。結論部分の定型表現。", "relatedInfo": "According to the reasons stated above はエッセイの結論部でよく使う。"}, {"id": 22, "type": "correction", "category": "エッセイ定型表現", "hint": "上述の理由から、ペットは人を幸せにすると信じる、という意味になるよう誤りを直してください。", "question": "[[Accord]] to the reasons stated above, I believe that pets make people happier.", "wrongPart": "Accord", "answer": "According", "fullSentence": "According to the reasons stated above, I believe that pets make people happier.", "source": "IMG_0696", "explanation": "According to the reasons stated above「上に述べた理由から」。結論部分の定型表現。", "relatedInfo": "According to the reasons stated above はエッセイの結論部でよく使う。"}, {"id": 23, "type": "reorder", "category": "エッセイ定型表現", "hint": "これはオンラインでの意思疎通が便利だからだ、という意味になるように並べ替えてください。", "tokens": ["This", "is", "because", "online", "communication", "is", "convenient."], "fullSentence": "This is because online communication is convenient.", "source": "IMG_0696", "explanation": "This is because S V「これは〜だからだ」。理由を述べる定型表現。", "relatedInfo": "This is because(理由) / This is why(結果) を区別する。"}, {"id": 24, "type": "correction", "category": "エッセイ定型表現", "hint": "これはオンラインでの意思疎通が便利だからだ、という意味になるよう誤りを直してください。", "question": "This is [[why]] online communication is convenient.", "wrongPart": "why", "answer": "because", "fullSentence": "This is because online communication is convenient.", "source": "IMG_0696", "explanation": "This is because S V「これは〜だからだ」。理由を述べる定型表現。", "relatedInfo": "This is because(理由) / This is why(結果) を区別する。"}, {"id": 25, "type": "reorder", "category": "文法パターン", "hint": "若者にとってお金を貯めるのは難しい、という意味になるように並べ替えてください。", "tokens": ["It", "is", "difficult", "for", "young", "people", "to", "save", "money."], "fullSentence": "It is difficult for young people to save money.", "source": "IMG_0649", "explanation": "It is 形容詞 for A to V「Aが〜するのは…だ」。", "relatedInfo": "It is 形容詞 for A to V の形容詞が人の性質を表す場合は of を使う(It is kind of you to V)。"}, {"id": 26, "type": "correction", "category": "文法パターン", "hint": "若者にとってお金を貯めるのは難しい、という意味になるよう誤りを直してください。", "question": "It is difficult [[of]] young people to save money.", "wrongPart": "of", "answer": "for", "fullSentence": "It is difficult for young people to save money.", "source": "IMG_0649", "explanation": "It is 形容詞 for A to V「Aが〜するのは…だ」。", "relatedInfo": "It is 形容詞 for A to V の形容詞が人の性質を表す場合は of を使う(It is kind of you to V)。"}, {"id": 27, "type": "reorder", "category": "文法パターン", "hint": "一生懸命努力する限り、試験に合格できる、という意味になるように並べ替えてください。", "tokens": ["As", "long", "as", "you", "try", "hard,", "you", "can", "pass", "the", "exam."], "fullSentence": "As long as you try hard, you can pass the exam.", "source": "IMG_0679", "explanation": "as long as S V「〜する限り」。条件を表す表現。", "relatedInfo": "as long as(条件) と as far as(範囲・程度) は意味が異なる。"}, {"id": 28, "type": "correction", "category": "文法パターン", "hint": "一生懸命努力する限り、試験に合格できる、という意味になるよう誤りを直してください。", "question": "As [[far]] as you try hard, you can pass the exam.", "wrongPart": "far", "answer": "long", "fullSentence": "As long as you try hard, you can pass the exam.", "source": "IMG_0679", "explanation": "as long as S V「〜する限り」。条件を表す表現。", "relatedInfo": "as long as(条件) と as far as(範囲・程度) は意味が異なる。"}, {"id": 29, "type": "reorder", "category": "文法パターン", "hint": "彼女は試験に合格できるように一生懸命勉強した、という意味になるように並べ替えてください。", "tokens": ["She", "studied", "hard", "so", "that", "she", "could", "pass", "the", "exam."], "fullSentence": "She studied hard so that she could pass the exam.", "source": "IMG_0670", "explanation": "so that S can/could V「〜できるように」。目的を表す。", "relatedInfo": "so that S can/could V の類似表現に in order that がある。"}, {"id": 30, "type": "correction", "category": "文法パターン", "hint": "彼女は試験に合格できるように一生懸命勉強した、という意味になるよう誤りを直してください。", "question": "She studied hard so that she [[can]] pass the exam.", "wrongPart": "can", "answer": "could", "fullSentence": "She studied hard so that she could pass the exam.", "source": "IMG_0670", "explanation": "so that S can/could V「〜できるように」。目的を表す。", "relatedInfo": "so that S can/could V の類似表現に in order that がある。"}, {"id": 31, "type": "reorder", "category": "文法パターン", "hint": "この街はかつてほどきれいではない、という意味になるように並べ替えてください。", "tokens": ["This", "city", "is", "not", "as", "clean", "as", "it", "used", "to", "be."], "fullSentence": "This city is not as clean as it used to be.", "source": "IMG_0676", "explanation": "not as 原級 as 〜「〜ほど…でない」。", "relatedInfo": "not as/so 原級 as の as は省略できない。"}, {"id": 32, "type": "correction", "category": "文法パターン", "hint": "この街はかつてほどきれいではない、という意味になるよう誤りを直してください。", "question": "This city is not as clean as it [[use]] to be.", "wrongPart": "use", "answer": "used", "fullSentence": "This city is not as clean as it used to be.", "source": "IMG_0676", "explanation": "not as 原級 as 〜「〜ほど…でない」。", "relatedInfo": "not as/so 原級 as の as は省略できない。"}, {"id": 33, "type": "reorder", "category": "文法パターン", "hint": "練習すればするほど上手になる、という意味になるように並べ替えてください。", "tokens": ["The", "more", "you", "practice,", "the", "better", "you", "become."], "fullSentence": "The more you practice, the better you become.", "source": "IMG_0679", "explanation": "the 比較級 S V, the 比較級 S V「〜すればするほど…」。", "relatedInfo": "the 比較級, the 比較級 の構文は日常会話でもよく使われる。"}, {"id": 34, "type": "correction", "category": "文法パターン", "hint": "練習すればするほど上手になる、という意味になるよう誤りを直してください。", "question": "The more you practice, the [[more good]] you become.", "wrongPart": "more good", "answer": "better", "fullSentence": "The more you practice, the better you become.", "source": "IMG_0679", "explanation": "the 比較級 S V, the 比較級 S V「〜すればするほど…」。", "relatedInfo": "the 比較級, the 比較級 の構文は日常会話でもよく使われる。"}, {"id": 35, "type": "reorder", "category": "文法パターン", "hint": "もし私があなたなら、すぐに謝るだろう、という意味になるように並べ替えてください。", "tokens": ["If", "I", "were", "you,", "I", "would", "apologize", "immediately."], "fullSentence": "If I were you, I would apologize immediately.", "source": "IMG_0674", "explanation": "仮定法過去 If S 過去形, S would V「もし〜なら…だろう」。beはwereを使う。", "relatedInfo": "仮定法過去は現在の事実に反する仮定を表す。"}, {"id": 36, "type": "correction", "category": "文法パターン", "hint": "もし私があなたなら、すぐに謝るだろう、という意味になるよう誤りを直してください。", "question": "If I [[was]] you, I would apologize immediately.", "wrongPart": "was", "answer": "were", "fullSentence": "If I were you, I would apologize immediately.", "source": "IMG_0674", "explanation": "仮定法過去 If S 過去形, S would V「もし〜なら…だろう」。beはwereを使う。", "relatedInfo": "仮定法過去は現在の事実に反する仮定を表す。"}, {"id": 37, "type": "reorder", "category": "文法パターン", "hint": "人口は減少すると予想されている、という意味になるように並べ替えてください。", "tokens": ["It", "is", "expected", "that", "the", "population", "will", "decrease."], "fullSentence": "It is expected that the population will decrease.", "source": "IMG_0693", "explanation": "It is expected that S V「〜と予想されている」。", "relatedInfo": "It is expected that の類似表現に S is expected to V がある。"}, {"id": 38, "type": "correction", "category": "文法パターン", "hint": "人口は減少すると予想されている、という意味になるよう誤りを直してください。", "question": "It is [[expecting]] that the population will decrease.", "wrongPart": "expecting", "answer": "expected", "fullSentence": "It is expected that the population will decrease.", "source": "IMG_0693", "explanation": "It is expected that S V「〜と予想されている」。", "relatedInfo": "It is expected that の類似表現に S is expected to V がある。"}, {"id": 39, "type": "reorder", "category": "文法パターン", "hint": "そのダイエットが効果があるという科学的証拠はない、という意味になるように並べ替えてください。", "tokens": ["There", "is", "no", "scientific", "evidence", "that", "the", "diet", "works."], "fullSentence": "There is no scientific evidence that the diet works.", "source": "IMG_0691", "explanation": "evidence「証拠」。There is no evidence that S V「〜という証拠はない」。", "relatedInfo": "evidence は不可算名詞なので複数形にしない。"}, {"id": 40, "type": "correction", "category": "文法パターン", "hint": "そのダイエットが効果があるという科学的証拠はない、という意味になるよう誤りを直してください。", "question": "There is no scientific [[evidences]] that the diet works.", "wrongPart": "evidences", "answer": "evidence", "fullSentence": "There is no scientific evidence that the diet works.", "source": "IMG_0691", "explanation": "evidence「証拠」。There is no evidence that S V「〜という証拠はない」。", "relatedInfo": "evidence は不可算名詞なので複数形にしない。"}, {"id": 41, "type": "reorder", "category": "熟語・フレーズ", "hint": "彼は日本に住んでから日本食が好きになった、という意味になるように並べ替えてください。", "tokens": ["He", "came", "to", "like", "Japanese", "food", "after", "living", "in", "Japan."], "fullSentence": "He came to like Japanese food after living in Japan.", "source": "IMG_0665", "explanation": "come to V「〜するようになる」。状態動詞と共に使われることが多い。", "relatedInfo": "come to V「〜するようになる」は状態の変化を表す動詞(know, like, understand等)と共に使われることが多い。"}, {"id": 42, "type": "correction", "category": "熟語・フレーズ", "hint": "彼は日本に住んでから日本食が好きになった、という意味になるよう誤りを直してください。", "question": "He [[come]] to like Japanese food after living in Japan.", "wrongPart": "come", "answer": "came", "fullSentence": "He came to like Japanese food after living in Japan.", "source": "IMG_0665", "explanation": "come to V「〜するようになる」。状態動詞と共に使われることが多い。", "relatedInfo": "come to V「〜するようになる」は状態の変化を表す動詞(know, like, understand等)と共に使われることが多い。"}, {"id": 43, "type": "reorder", "category": "熟語・フレーズ", "hint": "彼女は英語を上達させる努力をした、という意味になるように並べ替えてください。", "tokens": ["She", "made", "an", "effort", "to", "improve", "her", "English."], "fullSentence": "She made an effort to improve her English.", "source": "IMG_0684", "explanation": "make an effort to V「〜する努力をする」。", "relatedInfo": "make an effort to V の類似表現に try to V, strive to V がある。"}, {"id": 44, "type": "correction", "category": "熟語・フレーズ", "hint": "彼女は英語を上達させる努力をした、という意味になるよう誤りを直してください。", "question": "She made an [[efforts]] to improve her English.", "wrongPart": "efforts", "answer": "effort", "fullSentence": "She made an effort to improve her English.", "source": "IMG_0684", "explanation": "make an effort to V「〜する努力をする」。", "relatedInfo": "make an effort to V の類似表現に try to V, strive to V がある。"}, {"id": 45, "type": "reorder", "category": "熟語・フレーズ", "hint": "私は彼を彼の兄と間違えた、という意味になるように並べ替えてください。", "tokens": ["I", "mistook", "him", "for", "his", "brother."], "fullSentence": "I mistook him for his brother.", "source": "IMG_0651", "explanation": "mistake A for B「AをBと間違える」。過去形はmistook。", "relatedInfo": "mistake A for B の受動態は A is mistaken for B。"}, {"id": 46, "type": "correction", "category": "熟語・フレーズ", "hint": "私は彼を彼の兄と間違えた、という意味になるよう誤りを直してください。", "question": "I mistook him [[as]] his brother.", "wrongPart": "as", "answer": "for", "fullSentence": "I mistook him for his brother.", "source": "IMG_0651", "explanation": "mistake A for B「AをBと間違える」。過去形はmistook。", "relatedInfo": "mistake A for B の受動態は A is mistaken for B。"}, {"id": 47, "type": "reorder", "category": "熟語・フレーズ", "hint": "彼は自分の考えを実行に移した、という意味になるように並べ替えてください。", "tokens": ["He", "put", "his", "idea", "into", "practice."], "fullSentence": "He put his idea into practice.", "source": "IMG_0670", "explanation": "put A into practice「Aを実行に移す」。", "relatedInfo": "put A into practice の類似表現に carry out A「Aを実行する」がある。"}, {"id": 48, "type": "correction", "category": "熟語・フレーズ", "hint": "彼は自分の考えを実行に移した、という意味になるよう誤りを直してください。", "question": "He put his idea [[in]] practice.", "wrongPart": "in", "answer": "into", "fullSentence": "He put his idea into practice.", "source": "IMG_0670", "explanation": "put A into practice「Aを実行に移す」。", "relatedInfo": "put A into practice の類似表現に carry out A「Aを実行する」がある。"}, {"id": 49, "type": "reorder", "category": "熟語・フレーズ", "hint": "彼女は失業という事実を受け入れた、という意味になるように並べ替えてください。", "tokens": ["She", "came", "to", "terms", "with", "the", "loss", "of", "her", "job."], "fullSentence": "She came to terms with the loss of her job.", "source": "IMG_0679", "explanation": "come to terms with 〜「〜を受け入れる」。", "relatedInfo": "come to terms with の類似表現に accept, come to accept がある。"}, {"id": 50, "type": "correction", "category": "熟語・フレーズ", "hint": "彼女は失業という事実を受け入れた、という意味になるよう誤りを直してください。", "question": "She came to [[term]] with the loss of her job.", "wrongPart": "term", "answer": "terms", "fullSentence": "She came to terms with the loss of her job.", "source": "IMG_0679", "explanation": "come to terms with 〜「〜を受け入れる」。", "relatedInfo": "come to terms with の類似表現に accept, come to accept がある。"}, {"id": 51, "type": "reorder", "category": "熟語・フレーズ", "hint": "パスポートを失くした時、彼は途方に暮れた、という意味になるように並べ替えてください。", "tokens": ["He", "was", "at", "a", "loss", "when", "he", "lost", "his", "passport."], "fullSentence": "He was at a loss when he lost his passport.", "source": "IMG_0679", "explanation": "be at a loss「途方に暮れる」。", "relatedInfo": "be at a loss の類似表現に be at a loss for words「言葉に詰まる」がある。"}, {"id": 52, "type": "correction", "category": "熟語・フレーズ", "hint": "パスポートを失くした時、彼は途方に暮れた、という意味になるよう誤りを直してください。", "question": "He was [[in]] a loss when he lost his passport.", "wrongPart": "in", "answer": "at", "fullSentence": "He was at a loss when he lost his passport.", "source": "IMG_0679", "explanation": "be at a loss「途方に暮れる」。", "relatedInfo": "be at a loss の類似表現に be at a loss for words「言葉に詰まる」がある。"}, {"id": 53, "type": "reorder", "category": "語彙(社会・時事)", "hint": "いくつかの国はまだ死刑を実施している、という意味になるように並べ替えてください。", "tokens": ["Some", "countries", "still", "practice", "capital", "punishment."], "fullSentence": "Some countries still practice capital punishment.", "source": "IMG_0690", "explanation": "capital punishment「死刑」。", "relatedInfo": "capital punishment = the death penalty「死刑」。"}, {"id": 54, "type": "correction", "category": "語彙(社会・時事)", "hint": "いくつかの国はまだ死刑を実施している、という意味になるよう誤りを直してください。", "question": "Some countries still [[practices]] capital punishment.", "wrongPart": "practices", "answer": "practice", "fullSentence": "Some countries still practice capital punishment.", "source": "IMG_0690", "explanation": "capital punishment「死刑」。", "relatedInfo": "capital punishment = the death penalty「死刑」。"}, {"id": 55, "type": "reorder", "category": "語彙(社会・時事)", "hint": "刑罰は犯罪の抑止力として機能すると信じる人が多い、という意味になるように並べ替えてください。", "tokens": ["Many", "people", "believe", "that", "punishment", "acts", "as", "a", "deterrent", "to", "crime."], "fullSentence": "Many people believe that punishment acts as a deterrent to crime.", "source": "IMG_0691", "explanation": "a deterrent to 〜「〜への抑止力」。", "relatedInfo": "a deterrent to crime の deter は動詞で「思いとどまらせる」という意味。"}, {"id": 56, "type": "correction", "category": "語彙(社会・時事)", "hint": "刑罰は犯罪の抑止力として機能すると信じる人が多い、という意味になるよう誤りを直してください。", "question": "Many people believe that punishment acts as a [[detergent]] to crime.", "wrongPart": "detergent", "answer": "deterrent", "fullSentence": "Many people believe that punishment acts as a deterrent to crime.", "source": "IMG_0691", "explanation": "a deterrent to 〜「〜への抑止力」。", "relatedInfo": "a deterrent to crime の deter は動詞で「思いとどまらせる」という意味。"}, {"id": 57, "type": "reorder", "category": "語彙(社会・時事)", "hint": "温室効果は地球温暖化の主な原因だ、という意味になるように並べ替えてください。", "tokens": ["The", "greenhouse", "effect", "is", "a", "major", "cause", "of", "global", "warming."], "fullSentence": "The greenhouse effect is a major cause of global warming.", "source": "IMG_0693", "explanation": "the greenhouse effect「温室効果」。", "relatedInfo": "greenhouse gases「温室効果ガス」も合わせて覚えよう。"}, {"id": 58, "type": "correction", "category": "語彙(社会・時事)", "hint": "温室効果は地球温暖化の主な原因だ、という意味になるよう誤りを直してください。", "question": "The greenhouse [[affect]] is a major cause of global warming.", "wrongPart": "affect", "answer": "effect", "fullSentence": "The greenhouse effect is a major cause of global warming.", "source": "IMG_0693", "explanation": "the greenhouse effect「温室効果」。", "relatedInfo": "greenhouse gases「温室効果ガス」も合わせて覚えよう。"}, {"id": 59, "type": "reorder", "category": "語彙(社会・時事)", "hint": "私たちは代替エネルギー源を開発すべきだ、という意味になるように並べ替えてください。", "tokens": ["We", "should", "develop", "alternative", "energy", "sources."], "fullSentence": "We should develop alternative energy sources.", "source": "IMG_0693", "explanation": "alternative energy sources「代替エネルギー源」。", "relatedInfo": "alternative の類義語に substitute がある。"}, {"id": 60, "type": "correction", "category": "語彙(社会・時事)", "hint": "私たちは代替エネルギー源を開発すべきだ、という意味になるよう誤りを直してください。", "question": "We should develop [[alternate]] energy sources.", "wrongPart": "alternate", "answer": "alternative", "fullSentence": "We should develop alternative energy sources.", "source": "IMG_0693", "explanation": "alternative energy sources「代替エネルギー源」。", "relatedInfo": "alternative の類義語に substitute がある。"}, {"id": 61, "type": "reorder", "category": "語彙(社会・時事)", "hint": "視野の狭い人はしばしば新しい考えを受け入れることを拒む、という意味になるように並べ替えてください。", "tokens": ["A", "narrow-minded", "person", "often", "refuses", "to", "accept", "new", "ideas."], "fullSentence": "A narrow-minded person often refuses to accept new ideas.", "source": "IMG_0648", "explanation": "narrow-minded「視野が狭い、偏狭な」。", "relatedInfo": "narrow-minded の反対語は open-minded「心が広い」。"}, {"id": 62, "type": "correction", "category": "語彙(社会・時事)", "hint": "視野の狭い人はしばしば新しい考えを受け入れることを拒む、という意味になるよう誤りを直してください。", "question": "A narrow-minded person often [[refuse]] to accept new ideas.", "wrongPart": "refuse", "answer": "refuses", "fullSentence": "A narrow-minded person often refuses to accept new ideas.", "source": "IMG_0648", "explanation": "narrow-minded「視野が狭い、偏狭な」。", "relatedInfo": "narrow-minded の反対語は open-minded「心が広い」。"}, {"id": 63, "type": "reorder", "category": "語彙(社会・時事)", "hint": "多くの親が子供を塾に通わせる、という意味になるように並べ替えてください。", "tokens": ["Many", "parents", "send", "their", "children", "to", "a", "cram", "school."], "fullSentence": "Many parents send their children to a cram school.", "source": "IMG_0682", "explanation": "a cram school「塾」。", "relatedInfo": "cram「詰め込む」から派生した語。cram for an exam「試験のために詰め込み勉強する」。"}, {"id": 64, "type": "correction", "category": "語彙(社会・時事)", "hint": "多くの親が子供を塾に通わせる、という意味になるよう誤りを直してください。", "question": "Many parents [[sends]] their children to a cram school.", "wrongPart": "sends", "answer": "send", "fullSentence": "Many parents send their children to a cram school.", "source": "IMG_0682", "explanation": "a cram school「塾」。", "relatedInfo": "cram「詰め込む」から派生した語。cram for an exam「試験のために詰め込み勉強する」。"}, {"id": 65, "type": "reorder", "category": "語彙(社会・時事)", "hint": "受動喫煙は周囲の人にとって有害である可能性がある、という意味になるように並べ替えてください。", "tokens": ["Secondhand", "smoke", "can", "be", "harmful", "to", "those", "around", "us."], "fullSentence": "Secondhand smoke can be harmful to those around us.", "source": "IMG_0688", "explanation": "secondhand smoke「受動喫煙」。", "relatedInfo": "secondhand の別の意味「中古の」も覚えておこう(secondhand car)。"}, {"id": 66, "type": "correction", "category": "語彙(社会・時事)", "hint": "受動喫煙は周囲の人にとって有害である可能性がある、という意味になるよう誤りを直してください。", "question": "Secondhand smoke can be [[harm]] to those around us.", "wrongPart": "harm", "answer": "harmful", "fullSentence": "Secondhand smoke can be harmful to those around us.", "source": "IMG_0688", "explanation": "secondhand smoke「受動喫煙」。", "relatedInfo": "secondhand の別の意味「中古の」も覚えておこう(secondhand car)。"}, {"id": 67, "type": "reorder", "category": "語彙(社会・時事)", "hint": "日本の介護保険制度は高齢者を支援する、という意味になるように並べ替えてください。", "tokens": ["Japan's", "nursing", "care", "insurance", "system", "supports", "elderly", "people."], "fullSentence": "Japan's nursing care insurance system supports elderly people.", "source": "IMG_0692", "explanation": "the nursing care insurance system「介護保険制度」。", "relatedInfo": "insurance「保険」の動詞形は insure「保険をかける」。"}, {"id": 68, "type": "correction", "category": "語彙(社会・時事)", "hint": "日本の介護保険制度は高齢者を支援する、という意味になるよう誤りを直してください。", "question": "Japan's nursing care insurance system [[support]] elderly people.", "wrongPart": "support", "answer": "supports", "fullSentence": "Japan's nursing care insurance system supports elderly people.", "source": "IMG_0692", "explanation": "the nursing care insurance system「介護保険制度」。", "relatedInfo": "insurance「保険」の動詞形は insure「保険をかける」。"}, {"id": 69, "type": "reorder", "category": "比較・数量表現", "hint": "外国人観光客の数は5倍も増加した、という意味になるように並べ替えてください。", "tokens": ["The", "number", "of", "foreign", "tourists", "has", "increased", "as", "many", "as", "five", "times."], "fullSentence": "The number of foreign tourists has increased as many as five times.", "source": "IMG_0672", "explanation": "as many as 数字「〜もの数」。数の多さを強調する。", "relatedInfo": "as many as の類似表現に no less than がある。"}, {"id": 70, "type": "correction", "category": "比較・数量表現", "hint": "外国人観光客の数は5倍も増加した、という意味になるよう誤りを直してください。", "question": "The number of foreign tourists has increased as [[much]] as five times.", "wrongPart": "much", "answer": "many", "fullSentence": "The number of foreign tourists has increased as many as five times.", "source": "IMG_0672", "explanation": "as many as 数字「〜もの数」。数の多さを強調する。", "relatedInfo": "as many as の類似表現に no less than がある。"}, {"id": 71, "type": "reorder", "category": "比較・数量表現", "hint": "3人に1人の生徒がアルバイトをしている、という意味になるように並べ替えてください。", "tokens": ["One", "out", "of", "every", "three", "students", "has", "a", "part-time", "job."], "fullSentence": "One out of every three students has a part-time job.", "source": "IMG_0672", "explanation": "one out of every 数字「〜人に1人」。", "relatedInfo": "one out of every three = one in three。"}, {"id": 72, "type": "correction", "category": "比較・数量表現", "hint": "3人に1人の生徒がアルバイトをしている、という意味になるよう誤りを直してください。", "question": "One out of every three students [[have]] a part-time job.", "wrongPart": "have", "answer": "has", "fullSentence": "One out of every three students has a part-time job.", "source": "IMG_0672", "explanation": "one out of every 数字「〜人に1人」。", "relatedInfo": "one out of every three = one in three。"}, {"id": 73, "type": "reorder", "category": "比較・数量表現", "hint": "彼女は兄の2倍の本を持っている、という意味になるように並べ替えてください。", "tokens": ["She", "has", "twice", "as", "many", "books", "as", "her", "brother."], "fullSentence": "She has twice as many books as her brother.", "source": "IMG_0675", "explanation": "倍数 + as many/much + as 〜「〜の…倍」。", "relatedInfo": "倍数表現: half(半分)、twice(2倍)、three times(3倍)。"}, {"id": 74, "type": "correction", "category": "比較・数量表現", "hint": "彼女は兄の2倍の本を持っている、という意味になるよう誤りを直してください。", "question": "She has twice as [[much]] books as her brother.", "wrongPart": "much", "answer": "many", "fullSentence": "She has twice as many books as her brother.", "source": "IMG_0675", "explanation": "倍数 + as many/much + as 〜「〜の…倍」。", "relatedInfo": "倍数表現: half(半分)、twice(2倍)、three times(3倍)。"}, {"id": 75, "type": "reorder", "category": "比較・数量表現", "hint": "今年の売上は去年よりはるかに良い、という意味になるように並べ替えてください。", "tokens": ["This", "year's", "sales", "are", "far", "better", "than", "last", "year's."], "fullSentence": "This year's sales are far better than last year's.", "source": "IMG_0676", "explanation": "far + 比較級「はるかに〜」で比較級を強調する。", "relatedInfo": "比較級の強調には far, much, even, a lot などを使う。"}, {"id": 76, "type": "correction", "category": "比較・数量表現", "hint": "今年の売上は去年よりはるかに良い、という意味になるよう誤りを直してください。", "question": "This year's sales are far [[good]] than last year's.", "wrongPart": "good", "answer": "better", "fullSentence": "This year's sales are far better than last year's.", "source": "IMG_0676", "explanation": "far + 比較級「はるかに〜」で比較級を強調する。", "relatedInfo": "比較級の強調には far, much, even, a lot などを使う。"}, {"id": 77, "type": "reorder", "category": "比較・数量表現", "hint": "近頃新聞を読む人がますます少なくなっている、という意味になるように並べ替えてください。", "tokens": ["Fewer", "and", "fewer", "people", "read", "newspapers", "these", "days."], "fullSentence": "Fewer and fewer people read newspapers these days.", "source": "IMG_0679", "explanation": "比較級 and 比較級「ますます〜」。可算名詞にはfewer、不可算名詞にはlessを使う。", "relatedInfo": "less and less は不可算名詞に使う(fewer and fewerは可算名詞)。"}, {"id": 78, "type": "correction", "category": "比較・数量表現", "hint": "近頃新聞を読む人がますます少なくなっている、という意味になるよう誤りを直してください。", "question": "[[Less]] and fewer people read newspapers these days.", "wrongPart": "Less", "answer": "Fewer", "fullSentence": "Fewer and fewer people read newspapers these days.", "source": "IMG_0679", "explanation": "比較級 and 比較級「ますます〜」。可算名詞にはfewer、不可算名詞にはlessを使う。", "relatedInfo": "less and less は不可算名詞に使う(fewer and fewerは可算名詞)。"}, {"id": 79, "type": "reorder", "category": "比較・数量表現", "hint": "プラスチックごみの量は毎年増えている、という意味になるように並べ替えてください。", "tokens": ["The", "amount", "of", "plastic", "waste", "is", "increasing", "every", "year."], "fullSentence": "The amount of plastic waste is increasing every year.", "source": "IMG_0679", "explanation": "the amount of 〜(不可算名詞)「〜の量」。", "relatedInfo": "the amount of(不可算) / the number of(可算) を区別する。"}, {"id": 80, "type": "correction", "category": "比較・数量表現", "hint": "プラスチックごみの量は毎年増えている、という意味になるよう誤りを直してください。", "question": "The [[number]] of plastic waste is increasing every year.", "wrongPart": "number", "answer": "amount", "fullSentence": "The amount of plastic waste is increasing every year.", "source": "IMG_0679", "explanation": "the amount of 〜(不可算名詞)「〜の量」。", "relatedInfo": "the amount of(不可算) / the number of(可算) を区別する。"}];
+const WRITE_QUESTIONS = [{"id": 1, "type": "free", "category": "メール・レター表現", "hint": "奨学金に応募するために書いています、という英文を書いてください。", "keyPhrases": ["writing", "apply", "scholarship"], "answer": "I am writing to apply for the scholarship.", "fullSentence": "I am writing to apply for the scholarship.", "source": "IMG_0646", "explanation": "「〜に応募する」は apply for 〜。メールの書き出しで用件を伝える定型表現 I am writing to V は「〜するために書いています」という意味。", "relatedInfo": "同様の書き出しには I am writing to inform you that...(〜をお知らせするために書いています)もある。"}, {"id": 2, "type": "free", "category": "メール・レター表現", "hint": "追試を受ける機会をお願いしたい、という英文を書いてください。", "keyPhrases": ["would", "like", "request"], "answer": "I would like to request an opportunity to take a makeup exam.", "fullSentence": "I would like to request an opportunity to take a makeup exam.", "source": "IMG_0646", "explanation": "「追試」は a makeup exam。request an opportunity to V「〜する機会をお願いする」。", "relatedInfo": "take an exam「試験を受ける」。postpone an exam「試験を延期する」も覚えておこう。"}, {"id": 3, "type": "free", "category": "メール・レター表現", "hint": "私の状況へのご配慮に感謝します、という英文を書いてください。", "keyPhrases": ["thank", "very", "much"], "answer": "Thank you very much for your consideration of my situation.", "fullSentence": "Thank you very much for your consideration of my situation.", "source": "IMG_0646", "explanation": "consideration「配慮、考慮」。Thank you for your 〜 は感謝を伝える定型表現。", "relatedInfo": "consideration「配慮」の他、appreciation「感謝」も似た文脈で使われる。"}, {"id": 4, "type": "free", "category": "メール・レター表現", "hint": "お返事をお待ちしております、という英文を書いてください。", "keyPhrases": ["look", "forward", "hearing"], "answer": "I look forward to hearing from you.", "fullSentence": "I look forward to hearing from you.", "source": "IMG_0646", "explanation": "look forward to Ving「〜を楽しみに待つ」。toの後は動名詞。", "relatedInfo": "look forward to の後は動名詞。to不定詞と混同しないこと。"}, {"id": 5, "type": "free", "category": "メール・レター表現", "hint": "他に何かすべきことがあれば教えてください、という英文を書いてください。", "keyPhrases": ["please", "know", "there"], "answer": "Please let me know if there is anything else I need to do.", "fullSentence": "Please let me know if there is anything else I need to do.", "source": "IMG_0646", "explanation": "let me know if 〜「〜かどうか知らせてください」。need to V「〜する必要がある」。", "relatedInfo": "let me know if 〜「〜かどうか教えてください」。"}, {"id": 6, "type": "free", "category": "メール・レター表現", "hint": "あなたが元気だと知って嬉しいです、という英文を書いてください。", "keyPhrases": ["pleased", "hear", "that"], "answer": "I am pleased to hear that you are doing well.", "fullSentence": "I am pleased to hear that you are doing well.", "source": "IMG_0696", "explanation": "be pleased to V「〜して嬉しい」。hear that S V「〜と聞く」。", "relatedInfo": "be pleased to V の類似表現に be glad to V がある。"}, {"id": 7, "type": "free", "category": "エッセイ定型表現", "hint": "私の意見では、生徒はもっと休む時間を持つべきだ、という英文を書いてください。", "keyPhrases": ["opinion", "students", "should"], "answer": "In my opinion, students should have more time to rest.", "fullSentence": "In my opinion, students should have more time to rest.", "source": "IMG_0696", "explanation": "In my opinion「私の意見では」。エッセイの意見表明の定型表現。", "relatedInfo": "In my opinion の類似表現に I think that S V がある。"}, {"id": 8, "type": "free", "category": "エッセイ定型表現", "hint": "テクノロジーが私たちの生活を変えたという考えに賛成だ、という英文を書いてください。", "keyPhrases": ["agree", "with", "idea"], "answer": "I agree with the idea that technology has changed our lives.", "fullSentence": "I agree with the idea that technology has changed our lives.", "source": "IMG_0696", "explanation": "agree with the idea that S V「〜という考えに賛成する」。", "relatedInfo": "agree with(人・意見) / agree to(提案・計画) の使い分けに注意。"}, {"id": 9, "type": "free", "category": "エッセイ定型表現", "hint": "オンラインショッピングへの傾向が強まっている、という英文を書いてください。", "keyPhrases": ["there", "growing", "tendency"], "answer": "There is a growing tendency toward online shopping.", "fullSentence": "There is a growing tendency toward online shopping.", "source": "IMG_0696", "explanation": "a growing tendency toward 〜「〜への高まる傾向」。", "relatedInfo": "tendency の類義語に trend「傾向」がある。"}, {"id": 10, "type": "free", "category": "エッセイ定型表現", "hint": "スマートフォンは私たちに不可欠だということは明らかだ、という英文を書いてください。", "keyPhrases": ["obvious", "that", "smartphones"], "answer": "It is obvious that smartphones are indispensable to us.", "fullSentence": "It is obvious that smartphones are indispensable to us.", "source": "IMG_0693", "explanation": "It is obvious that S V「〜は明らかだ」。indispensable「不可欠な」。", "relatedInfo": "indispensable「不可欠な」の類義語に essential, necessary がある。"}, {"id": 11, "type": "free", "category": "エッセイ定型表現", "hint": "上述の理由から、ペットは人を幸せにすると信じる、という英文を書いてください。", "keyPhrases": ["according", "reasons", "stated"], "answer": "According to the reasons stated above, I believe that pets make people happier.", "fullSentence": "According to the reasons stated above, I believe that pets make people happier.", "source": "IMG_0696", "explanation": "According to the reasons stated above「上に述べた理由から」。結論部分の定型表現。", "relatedInfo": "According to the reasons stated above はエッセイの結論部でよく使う。"}, {"id": 12, "type": "free", "category": "エッセイ定型表現", "hint": "これはオンラインでの意思疎通が便利だからだ、という英文を書いてください。", "keyPhrases": ["this", "because", "online"], "answer": "This is because online communication is convenient.", "fullSentence": "This is because online communication is convenient.", "source": "IMG_0696", "explanation": "This is because S V「これは〜だからだ」。理由を述べる定型表現。", "relatedInfo": "This is because(理由) / This is why(結果) を区別する。"}, {"id": 13, "type": "free", "category": "文法パターン", "hint": "若者にとってお金を貯めるのは難しい、という英文を書いてください。", "keyPhrases": ["difficult", "young", "people"], "answer": "It is difficult for young people to save money.", "fullSentence": "It is difficult for young people to save money.", "source": "IMG_0649", "explanation": "It is 形容詞 for A to V「Aが〜するのは…だ」。", "relatedInfo": "It is 形容詞 for A to V の形容詞が人の性質を表す場合は of を使う(It is kind of you to V)。"}, {"id": 14, "type": "free", "category": "文法パターン", "hint": "一生懸命努力する限り、試験に合格できる、という英文を書いてください。", "keyPhrases": ["long", "hard", "pass"], "answer": "As long as you try hard, you can pass the exam.", "fullSentence": "As long as you try hard, you can pass the exam.", "source": "IMG_0679", "explanation": "as long as S V「〜する限り」。条件を表す表現。", "relatedInfo": "as long as(条件) と as far as(範囲・程度) は意味が異なる。"}, {"id": 15, "type": "free", "category": "文法パターン", "hint": "彼女は試験に合格できるように一生懸命勉強した、という英文を書いてください。", "keyPhrases": ["studied", "hard", "that"], "answer": "She studied hard so that she could pass the exam.", "fullSentence": "She studied hard so that she could pass the exam.", "source": "IMG_0670", "explanation": "so that S can/could V「〜できるように」。目的を表す。", "relatedInfo": "so that S can/could V の類似表現に in order that がある。"}, {"id": 16, "type": "free", "category": "文法パターン", "hint": "この街はかつてほどきれいではない、という英文を書いてください。", "keyPhrases": ["this", "city", "clean"], "answer": "This city is not as clean as it used to be.", "fullSentence": "This city is not as clean as it used to be.", "source": "IMG_0676", "explanation": "not as 原級 as 〜「〜ほど…でない」。", "relatedInfo": "not as/so 原級 as の as は省略できない。"}, {"id": 17, "type": "free", "category": "文法パターン", "hint": "練習すればするほど上手になる、という英文を書いてください。", "keyPhrases": ["more", "practice", "better"], "answer": "The more you practice, the better you become.", "fullSentence": "The more you practice, the better you become.", "source": "IMG_0679", "explanation": "the 比較級 S V, the 比較級 S V「〜すればするほど…」。", "relatedInfo": "the 比較級, the 比較級 の構文は日常会話でもよく使われる。"}, {"id": 18, "type": "free", "category": "文法パターン", "hint": "もし私があなたなら、すぐに謝るだろう、という英文を書いてください。", "keyPhrases": ["were", "would", "apologize"], "answer": "If I were you, I would apologize immediately.", "fullSentence": "If I were you, I would apologize immediately.", "source": "IMG_0674", "explanation": "仮定法過去 If S 過去形, S would V「もし〜なら…だろう」。beはwereを使う。", "relatedInfo": "仮定法過去は現在の事実に反する仮定を表す。"}, {"id": 19, "type": "free", "category": "文法パターン", "hint": "人口は減少すると予想されている、という英文を書いてください。", "keyPhrases": ["expected", "that", "population"], "answer": "It is expected that the population will decrease.", "fullSentence": "It is expected that the population will decrease.", "source": "IMG_0693", "explanation": "It is expected that S V「〜と予想されている」。", "relatedInfo": "It is expected that の類似表現に S is expected to V がある。"}, {"id": 20, "type": "free", "category": "文法パターン", "hint": "そのダイエットが効果があるという科学的証拠はない、という英文を書いてください。", "keyPhrases": ["there", "scientific", "evidence"], "answer": "There is no scientific evidence that the diet works.", "fullSentence": "There is no scientific evidence that the diet works.", "source": "IMG_0691", "explanation": "evidence「証拠」。There is no evidence that S V「〜という証拠はない」。", "relatedInfo": "evidence は不可算名詞なので複数形にしない。"}, {"id": 21, "type": "free", "category": "熟語・フレーズ", "hint": "彼は日本に住んでから日本食が好きになった、という英文を書いてください。", "keyPhrases": ["came", "like", "japanese"], "answer": "He came to like Japanese food after living in Japan.", "fullSentence": "He came to like Japanese food after living in Japan.", "source": "IMG_0665", "explanation": "come to V「〜するようになる」。状態動詞と共に使われることが多い。", "relatedInfo": "come to V「〜するようになる」は状態の変化を表す動詞(know, like, understand等)と共に使われることが多い。"}, {"id": 22, "type": "free", "category": "熟語・フレーズ", "hint": "彼女は英語を上達させる努力をした、という英文を書いてください。", "keyPhrases": ["made", "effort", "improve"], "answer": "She made an effort to improve her English.", "fullSentence": "She made an effort to improve her English.", "source": "IMG_0684", "explanation": "make an effort to V「〜する努力をする」。", "relatedInfo": "make an effort to V の類似表現に try to V, strive to V がある。"}, {"id": 23, "type": "free", "category": "熟語・フレーズ", "hint": "私は彼を彼の兄と間違えた、という英文を書いてください。", "keyPhrases": ["mistook", "brother"], "answer": "I mistook him for his brother.", "fullSentence": "I mistook him for his brother.", "source": "IMG_0651", "explanation": "mistake A for B「AをBと間違える」。過去形はmistook。", "relatedInfo": "mistake A for B の受動態は A is mistaken for B。"}, {"id": 24, "type": "free", "category": "熟語・フレーズ", "hint": "彼は自分の考えを実行に移した、という英文を書いてください。", "keyPhrases": ["idea", "into", "practice"], "answer": "He put his idea into practice.", "fullSentence": "He put his idea into practice.", "source": "IMG_0670", "explanation": "put A into practice「Aを実行に移す」。", "relatedInfo": "put A into practice の類似表現に carry out A「Aを実行する」がある。"}, {"id": 25, "type": "free", "category": "熟語・フレーズ", "hint": "彼女は失業という事実を受け入れた、という英文を書いてください。", "keyPhrases": ["came", "terms", "with"], "answer": "She came to terms with the loss of her job.", "fullSentence": "She came to terms with the loss of her job.", "source": "IMG_0679", "explanation": "come to terms with 〜「〜を受け入れる」。", "relatedInfo": "come to terms with の類似表現に accept, come to accept がある。"}, {"id": 26, "type": "free", "category": "熟語・フレーズ", "hint": "パスポートを失くした時、彼は途方に暮れた、という英文を書いてください。", "keyPhrases": ["loss", "when", "lost"], "answer": "He was at a loss when he lost his passport.", "fullSentence": "He was at a loss when he lost his passport.", "source": "IMG_0679", "explanation": "be at a loss「途方に暮れる」。", "relatedInfo": "be at a loss の類似表現に be at a loss for words「言葉に詰まる」がある。"}, {"id": 27, "type": "free", "category": "語彙(社会・時事)", "hint": "いくつかの国はまだ死刑を実施している、という英文を書いてください。", "keyPhrases": ["some", "countries", "still"], "answer": "Some countries still practice capital punishment.", "fullSentence": "Some countries still practice capital punishment.", "source": "IMG_0690", "explanation": "capital punishment「死刑」。", "relatedInfo": "capital punishment = the death penalty「死刑」。"}, {"id": 28, "type": "free", "category": "語彙(社会・時事)", "hint": "刑罰は犯罪の抑止力として機能すると信じる人が多い、という英文を書いてください。", "keyPhrases": ["many", "people", "believe"], "answer": "Many people believe that punishment acts as a deterrent to crime.", "fullSentence": "Many people believe that punishment acts as a deterrent to crime.", "source": "IMG_0691", "explanation": "a deterrent to 〜「〜への抑止力」。", "relatedInfo": "a deterrent to crime の deter は動詞で「思いとどまらせる」という意味。"}, {"id": 29, "type": "free", "category": "語彙(社会・時事)", "hint": "温室効果は地球温暖化の主な原因だ、という英文を書いてください。", "keyPhrases": ["greenhouse", "effect", "major"], "answer": "The greenhouse effect is a major cause of global warming.", "fullSentence": "The greenhouse effect is a major cause of global warming.", "source": "IMG_0693", "explanation": "the greenhouse effect「温室効果」。", "relatedInfo": "greenhouse gases「温室効果ガス」も合わせて覚えよう。"}, {"id": 30, "type": "free", "category": "語彙(社会・時事)", "hint": "私たちは代替エネルギー源を開発すべきだ、という英文を書いてください。", "keyPhrases": ["should", "develop", "alternative"], "answer": "We should develop alternative energy sources.", "fullSentence": "We should develop alternative energy sources.", "source": "IMG_0693", "explanation": "alternative energy sources「代替エネルギー源」。", "relatedInfo": "alternative の類義語に substitute がある。"}, {"id": 31, "type": "free", "category": "語彙(社会・時事)", "hint": "視野の狭い人はしばしば新しい考えを受け入れることを拒む、という英文を書いてください。", "keyPhrases": ["narrow-minded", "person", "often"], "answer": "A narrow-minded person often refuses to accept new ideas.", "fullSentence": "A narrow-minded person often refuses to accept new ideas.", "source": "IMG_0648", "explanation": "narrow-minded「視野が狭い、偏狭な」。", "relatedInfo": "narrow-minded の反対語は open-minded「心が広い」。"}, {"id": 32, "type": "free", "category": "語彙(社会・時事)", "hint": "多くの親が子供を塾に通わせる、という英文を書いてください。", "keyPhrases": ["many", "parents", "send"], "answer": "Many parents send their children to a cram school.", "fullSentence": "Many parents send their children to a cram school.", "source": "IMG_0682", "explanation": "a cram school「塾」。", "relatedInfo": "cram「詰め込む」から派生した語。cram for an exam「試験のために詰め込み勉強する」。"}, {"id": 33, "type": "free", "category": "語彙(社会・時事)", "hint": "受動喫煙は周囲の人にとって有害である可能性がある、という英文を書いてください。", "keyPhrases": ["secondhand", "smoke", "harmful"], "answer": "Secondhand smoke can be harmful to those around us.", "fullSentence": "Secondhand smoke can be harmful to those around us.", "source": "IMG_0688", "explanation": "secondhand smoke「受動喫煙」。", "relatedInfo": "secondhand の別の意味「中古の」も覚えておこう(secondhand car)。"}, {"id": 34, "type": "free", "category": "語彙(社会・時事)", "hint": "日本の介護保険制度は高齢者を支援する、という英文を書いてください。", "keyPhrases": ["japan's", "nursing", "care"], "answer": "Japan's nursing care insurance system supports elderly people.", "fullSentence": "Japan's nursing care insurance system supports elderly people.", "source": "IMG_0692", "explanation": "the nursing care insurance system「介護保険制度」。", "relatedInfo": "insurance「保険」の動詞形は insure「保険をかける」。"}, {"id": 35, "type": "free", "category": "比較・数量表現", "hint": "外国人観光客の数は5倍も増加した、という英文を書いてください。", "keyPhrases": ["number", "foreign", "tourists"], "answer": "The number of foreign tourists has increased as many as five times.", "fullSentence": "The number of foreign tourists has increased as many as five times.", "source": "IMG_0672", "explanation": "as many as 数字「〜もの数」。数の多さを強調する。", "relatedInfo": "as many as の類似表現に no less than がある。"}, {"id": 36, "type": "free", "category": "比較・数量表現", "hint": "3人に1人の生徒がアルバイトをしている、という英文を書いてください。", "keyPhrases": ["every", "three", "students"], "answer": "One out of every three students has a part-time job.", "fullSentence": "One out of every three students has a part-time job.", "source": "IMG_0672", "explanation": "one out of every 数字「〜人に1人」。", "relatedInfo": "one out of every three = one in three。"}, {"id": 37, "type": "free", "category": "比較・数量表現", "hint": "彼女は兄の2倍の本を持っている、という英文を書いてください。", "keyPhrases": ["twice", "many", "books"], "answer": "She has twice as many books as her brother.", "fullSentence": "She has twice as many books as her brother.", "source": "IMG_0675", "explanation": "倍数 + as many/much + as 〜「〜の…倍」。", "relatedInfo": "倍数表現: half(半分)、twice(2倍)、three times(3倍)。"}, {"id": 38, "type": "free", "category": "比較・数量表現", "hint": "今年の売上は去年よりはるかに良い、という英文を書いてください。", "keyPhrases": ["this", "year's", "sales"], "answer": "This year's sales are far better than last year's.", "fullSentence": "This year's sales are far better than last year's.", "source": "IMG_0676", "explanation": "far + 比較級「はるかに〜」で比較級を強調する。", "relatedInfo": "比較級の強調には far, much, even, a lot などを使う。"}, {"id": 39, "type": "free", "category": "比較・数量表現", "hint": "近頃新聞を読む人がますます少なくなっている、という英文を書いてください。", "keyPhrases": ["fewer", "people", "read"], "answer": "Fewer and fewer people read newspapers these days.", "fullSentence": "Fewer and fewer people read newspapers these days.", "source": "IMG_0679", "explanation": "比較級 and 比較級「ますます〜」。可算名詞にはfewer、不可算名詞にはlessを使う。", "relatedInfo": "less and less は不可算名詞に使う(fewer and fewerは可算名詞)。"}, {"id": 40, "type": "free", "category": "比較・数量表現", "hint": "プラスチックごみの量は毎年増えている、という英文を書いてください。", "keyPhrases": ["amount", "plastic", "waste"], "answer": "The amount of plastic waste is increasing every year.", "fullSentence": "The amount of plastic waste is increasing every year.", "source": "IMG_0679", "explanation": "the amount of 〜(不可算名詞)「〜の量」。", "relatedInfo": "the amount of(不可算) / the number of(可算) を区別する。"}, {"id": 41, "type": "match", "category": "メール・レター表現", "hint": "日本語と英語を正しく組み合わせてください", "pairs": [{"japanese": "〜するために書いています", "english": "I am writing to..."}, {"japanese": "奨学金に応募する", "english": "apply for the scholarship"}, {"japanese": "追試を受ける機会をお願いする", "english": "request an opportunity to take a makeup exam"}], "sources": ["IMG_0646"], "explanation": "メールの書き出しで用件を伝える定型表現をまとめて確認しよう。", "relatedInfo": "I am writing to V は最も基本的なメールの書き出し表現。"}, {"id": 42, "type": "match", "category": "メール・レター表現", "hint": "日本語と英語を正しく組み合わせてください", "pairs": [{"japanese": "ご配慮に感謝します", "english": "Thank you for your consideration"}, {"japanese": "お返事をお待ちしております", "english": "I look forward to hearing from you"}, {"japanese": "あなたが元気だと知って嬉しいです", "english": "I am pleased to hear that you are doing well"}], "sources": ["IMG_0646", "IMG_0696"], "explanation": "メールの結びでよく使う定型表現をまとめて確認しよう。", "relatedInfo": "look forward to の後は動名詞であることに注意。"}, {"id": 43, "type": "match", "category": "エッセイ定型表現", "hint": "日本語と英語を正しく組み合わせてください", "pairs": [{"japanese": "私の意見では", "english": "in my opinion"}, {"japanese": "〜という考えに賛成だ", "english": "I agree with the idea"}, {"japanese": "〜への傾向が強まっている", "english": "a growing tendency toward online shopping"}], "sources": ["IMG_0696"], "explanation": "意見文の書き出しでよく使う定型表現をまとめて確認しよう。", "relatedInfo": "In my opinion の後はカンマで区切る。"}, {"id": 44, "type": "match", "category": "エッセイ定型表現", "hint": "日本語と英語を正しく組み合わせてください", "pairs": [{"japanese": "〜は明らかだ", "english": "it is obvious that it is true"}, {"japanese": "上述の理由から", "english": "according to the reasons stated above"}, {"japanese": "これは〜だからだ", "english": "this is because it is convenient"}], "sources": ["IMG_0693", "IMG_0696"], "explanation": "エッセイの本論・結論部でよく使う定型表現をまとめて確認しよう。", "relatedInfo": "This is because(理由)とThis is why(結果)を区別する。"}, {"id": 45, "type": "match", "category": "文法パターン", "hint": "日本語と英語を正しく組み合わせてください", "pairs": [{"japanese": "人にとって〜するのは…だ", "english": "it is necessary for him to go"}, {"japanese": "〜する限り", "english": "as long as he works hard"}, {"japanese": "〜できるように", "english": "so that he can succeed"}, {"japanese": "〜ほど…でない", "english": "not as clean as it used to be"}], "sources": ["IMG_0649", "IMG_0679", "IMG_0670", "IMG_0676"], "explanation": "よく使う構文パターンをまとめて確認しよう。", "relatedInfo": "It is 形容詞 for A to V の形容詞が人の性質を表す場合はofを使う。"}, {"id": 46, "type": "match", "category": "文法パターン", "hint": "日本語と英語を正しく組み合わせてください", "pairs": [{"japanese": "〜すればするほど…", "english": "the more you try, the better it gets"}, {"japanese": "もし私が〜なら", "english": "if I were rich"}, {"japanese": "〜と予想されている", "english": "it is expected that it will rain"}, {"japanese": "〜という科学的証拠はない", "english": "there is no scientific evidence for it"}], "sources": ["IMG_0679", "IMG_0674", "IMG_0693", "IMG_0691"], "explanation": "比較・仮定法・受動表現の構文パターンをまとめて確認しよう。", "relatedInfo": "仮定法過去のbe動詞は主語に関わらずwereを使うのが原則。"}, {"id": 47, "type": "match", "category": "熟語・フレーズ", "hint": "日本語と英語を正しく組み合わせてください", "pairs": [{"japanese": "〜するようになる", "english": "come to like it"}, {"japanese": "〜する努力をする", "english": "make an effort to improve"}, {"japanese": "AをBと間違える", "english": "mistake him for his brother"}], "sources": ["IMG_0665", "IMG_0684", "IMG_0651"], "explanation": "日常でよく使う熟語表現をまとめて確認しよう。", "relatedInfo": "mistake A for B の受動態は A is mistaken for B。"}, {"id": 48, "type": "match", "category": "熟語・フレーズ", "hint": "日本語と英語を正しく組み合わせてください", "pairs": [{"japanese": "〜を実行に移す", "english": "put the idea into practice"}, {"japanese": "〜を受け入れる", "english": "come to terms with it"}, {"japanese": "途方に暮れる", "english": "be at a loss"}], "sources": ["IMG_0670", "IMG_0679"], "explanation": "日常でよく使う熟語表現をまとめて確認しよう。", "relatedInfo": "put A into practiceの類似表現にcarry out Aがある。"}, {"id": 49, "type": "match", "category": "語彙(社会・時事)", "hint": "日本語と英語を正しく組み合わせてください", "pairs": [{"japanese": "死刑", "english": "capital punishment"}, {"japanese": "犯罪の抑止力", "english": "a deterrent to crime"}, {"japanese": "温室効果", "english": "the greenhouse effect"}, {"japanese": "代替エネルギー源", "english": "alternative energy sources"}], "sources": ["IMG_0690", "IMG_0691", "IMG_0693"], "explanation": "社会・環境問題でよく使う語彙をまとめて確認しよう。", "relatedInfo": "capital punishment = the death penalty。"}, {"id": 50, "type": "match", "category": "語彙(社会・時事)", "hint": "日本語と英語を正しく組み合わせてください", "pairs": [{"japanese": "視野が狭い", "english": "narrow-minded"}, {"japanese": "塾", "english": "a cram school"}, {"japanese": "受動喫煙", "english": "secondhand smoke"}, {"japanese": "介護保険制度", "english": "nursing care insurance system"}], "sources": ["IMG_0648", "IMG_0682", "IMG_0688", "IMG_0692"], "explanation": "教育・健康・福祉に関する語彙をまとめて確認しよう。", "relatedInfo": "narrow-mindedの反対語はopen-minded。"}, {"id": 51, "type": "match", "category": "比較・数量表現", "hint": "日本語と英語を正しく組み合わせてください", "pairs": [{"japanese": "〜もの数(数の強調)", "english": "as many as five times"}, {"japanese": "3人に1人", "english": "one out of every three"}, {"japanese": "〜の2倍", "english": "twice as many books"}], "sources": ["IMG_0672", "IMG_0675"], "explanation": "数量・倍数を表す表現をまとめて確認しよう。", "relatedInfo": "as many asの類似表現にno less thanがある。"}, {"id": 52, "type": "match", "category": "比較・数量表現", "hint": "日本語と英語を正しく組み合わせてください", "pairs": [{"japanese": "はるかに〜", "english": "far better than before"}, {"japanese": "ますます少ない", "english": "fewer and fewer people"}, {"japanese": "〜の量", "english": "the amount of waste"}], "sources": ["IMG_0676", "IMG_0679"], "explanation": "比較の強調表現をまとめて確認しよう。", "relatedInfo": "the amount of(不可算)とthe number of(可算)を区別する。"}];
+
+const FOLDER = "writing表現";
+const STORAGE_KEY_FILLCHOICE  = 'wt_all_fillchoice_seen_' + FOLDER;
+const BOOKMARK_KEY_FILLCHOICE = 'wt_all_fillchoice_bookmark_' + FOLDER;
+const TRASH_KEY_FILLCHOICE    = 'wt_all_fillchoice_trash_' + FOLDER;
+const STORAGE_KEY_ORDER       = 'wt_all_order_seen_' + FOLDER;
+const BOOKMARK_KEY_ORDER      = 'wt_all_order_bookmark_' + FOLDER;
+const TRASH_KEY_ORDER         = 'wt_all_order_trash_' + FOLDER;
+const STORAGE_KEY_WRITE       = 'wt_all_write_seen_' + FOLDER;
+const BOOKMARK_KEY_WRITE      = 'wt_all_write_bookmark_' + FOLDER;
+const TRASH_KEY_WRITE         = 'wt_all_write_trash_' + FOLDER;
+
+let currentFormat = null;
+let currentMode = null;
+let currentCategory = null;
+let sessionQuestions = [];
+let currentIndex = 0;
+let score = 0;
+let answered = false;
+let lastUserAnswer = null;
+let matchState = null; // for match type UI state
+let reorderState = null; // for reorder type UI state
+let storageOK = true;
+
+try {
+  localStorage.setItem('__test__','1');
+  localStorage.removeItem('__test__');
+} catch (e) { storageOK = false; }
+
+function questionsFor(format) {
+  if (format === 'fillchoice') return FILLCHOICE_QUESTIONS;
+  if (format === 'order') return ORDER_QUESTIONS;
+  return WRITE_QUESTIONS;
+}
+function storageKeyFor(format) {
+  if (format === 'fillchoice') return STORAGE_KEY_FILLCHOICE;
+  if (format === 'order') return STORAGE_KEY_ORDER;
+  return STORAGE_KEY_WRITE;
+}
+function bookmarkKeyFor(format) {
+  if (format === 'fillchoice') return BOOKMARK_KEY_FILLCHOICE;
+  if (format === 'order') return BOOKMARK_KEY_ORDER;
+  return BOOKMARK_KEY_WRITE;
+}
+function trashKeyFor(format) {
+  if (format === 'fillchoice') return TRASH_KEY_FILLCHOICE;
+  if (format === 'order') return TRASH_KEY_ORDER;
+  return TRASH_KEY_WRITE;
+}
+function audioFolderFor(format) {
+  if (format === 'fillchoice') return 'audio_fillchoice';
+  if (format === 'order') return 'audio_order';
+  return 'audio_write';
+}
+function formatLabel(format) {
+  if (format === 'fillchoice') return '✏️ 穴埋め・選択肢';
+  if (format === 'order') return '📝 並べ替え・誤り訂正';
+  return '✍️ 自由記述・マッチング';
+}
+function formatBadgeEmoji(format) {
+  if (format === 'fillchoice') return '✏️';
+  if (format === 'order') return '📝';
+  return '✍️';
+}
+function formatLabelPlain(format) {
+  if (format === 'fillchoice') return '穴埋め・選択肢';
+  if (format === 'order') return '並べ替え・誤り訂正';
+  return '自由記述・マッチング';
+}
+
+function getStore(key) {
+  if (!storageOK) return [];
+  try { return JSON.parse(localStorage.getItem(key) || '[]'); } catch(e) { return []; }
+}
+function setStore(key, val) {
+  if (!storageOK) return;
+  try { localStorage.setItem(key, JSON.stringify(val)); } catch(e) {}
+}
+function getBookmarks(format) { return getStore(bookmarkKeyFor(format)); }
+function toggleBookmark(format, id) {
+  let list = getBookmarks(format);
+  list = list.includes(id) ? list.filter(x => x !== id) : [...list, id];
+  setStore(bookmarkKeyFor(format), list);
+  return list.includes(id);
+}
+function getTrash(format) { return getStore(trashKeyFor(format)); }
+function moveToTrash(format, id) {
+  const list = getTrash(format);
+  if (!list.includes(id)) { list.push(id); setStore(trashKeyFor(format), list); }
+}
+function restoreFromTrash(format, id) {
+  const list = getTrash(format).filter(x => x !== id);
+  setStore(trashKeyFor(format), list);
+}
+function activeQuestionsFor(format) {
+  const trashed = new Set(getTrash(format));
+  return questionsFor(format).filter(q => !trashed.has(q.id));
+}
+
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function getRandomSessionQuestions(format) {
+  const all = activeQuestionsFor(format);
+  if (!storageOK) return shuffle(all).slice(0, 20);
+  const seen = getStore(storageKeyFor(format));
+  const seenSet = new Set(seen);
+  const seenQuestions = all.filter(q => seenSet.has(q.id));
+  const unseenQuestions = all.filter(q => !seenSet.has(q.id));
+  if (seenQuestions.length > 0) {
+    const total = Math.min(20, all.length);
+    const fromSeen = Math.round(total * 0.3);
+    const fromUnseen = total - fromSeen;
+    const pickedSeen = shuffle(seenQuestions).slice(0, fromSeen);
+    const pickedUnseen = shuffle(unseenQuestions).slice(0, fromUnseen);
+    if (pickedUnseen.length < fromUnseen) {
+      const extra = shuffle(seenQuestions.filter(q => !pickedSeen.includes(q))).slice(0, fromUnseen - pickedUnseen.length);
+      return shuffle([...pickedSeen, ...pickedUnseen, ...extra]);
+    }
+    return shuffle([...pickedSeen, ...pickedUnseen]);
+  }
+  return shuffle(all).slice(0, 20);
+}
+function getAllSessionQuestions(format) { return shuffle(activeQuestionsFor(format)); }
+function getCategorySessionQuestions(format, categoryName) {
+  return shuffle(activeQuestionsFor(format).filter(q => q.category === categoryName));
+}
+function getBookmarkSessionQuestions(format) {
+  const bookmarks = new Set(getBookmarks(format));
+  return shuffle(activeQuestionsFor(format).filter(q => bookmarks.has(q.id)));
+}
+function saveSeenQuestions(format, questions) {
+  if (!storageOK) return;
+  const key = storageKeyFor(format);
+  const prev = getStore(key);
+  const merged = Array.from(new Set([...prev, ...questions.map(q => q.id)]));
+  setStore(key, merged);
+}
+
+function startTest(format, mode, categoryName) {
+  currentFormat = format;
+  currentMode = mode;
+  currentCategory = categoryName || null;
+  if (mode === 'random') sessionQuestions = getRandomSessionQuestions(format);
+  else if (mode === 'all') sessionQuestions = getAllSessionQuestions(format);
+  else if (mode === 'category') sessionQuestions = getCategorySessionQuestions(format, categoryName);
+  else if (mode === 'bookmark') sessionQuestions = getBookmarkSessionQuestions(format);
+  sessionQuestions = sessionQuestions.map(q => q.type === 'choice' ? Object.assign({}, q, { shuffledChoices: shuffle(q.choices) }) : q);
+  sessionQuestions = sessionQuestions.map(q => q.type === 'match' ? Object.assign({}, q, {
+    shuffledJapanese: shuffle(q.pairs.map((p,i)=>({text:p.japanese, idx:i}))),
+    shuffledEnglish: shuffle(q.pairs.map((p,i)=>({text:p.english, idx:i})))
+  }) : q);
+  currentIndex = 0;
+  score = 0;
+  answered = false;
+  lastUserAnswer = null;
+  lastFeedbackExtra = null;
+  lastAnswerCorrect = false;
+  reorderState = null;
+  matchState = null;
+  screen = 'question';
+  render();
+}
+
+/* ================== AUDIO ================== */
+let currentAudio = null;
+let currentBtn = null;
+function resetPlayBtn(btn) { btn.textContent = '🔊 英文を聞く'; btn.classList.remove('playing'); }
+function playAudio(btn, src) {
+  const isSameBtn = (currentBtn === btn);
+  if (currentAudio) { currentAudio.pause(); currentAudio.currentTime = 0; }
+  if (currentBtn) { resetPlayBtn(currentBtn); currentBtn = null; }
+  if (isSameBtn) { currentAudio = null; return; }
+  const audio = new Audio(src);
+  currentAudio = audio; currentBtn = btn;
+  btn.textContent = '■ 停止'; btn.classList.add('playing');
+  audio.onended = audio.onerror = () => { resetPlayBtn(btn); if (currentBtn === btn) { currentBtn = null; currentAudio = null; } };
+  audio.play();
+}
+
+/* ================== IMAGE MODAL ================== */
+function openImageModal(src) {
+  document.getElementById('imgModalImg').src = src;
+  document.getElementById('imgModal').classList.remove('hidden');
+}
+function closeImageModal() {
+  document.getElementById('imgModal').classList.add('hidden');
+  document.getElementById('imgModalImg').src = '';
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeImageModal(); });
+
+/* ================== RENDER ROUTER ================== */
+let screen = 'formatSelect'; // formatSelect | modeSelect | question | result | trash
+
+function render() {
+  const app = document.getElementById('app');
+  if (screen === 'formatSelect') app.innerHTML = renderFormatSelect();
+  else if (screen === 'modeSelect') app.innerHTML = renderModeSelect();
+  else if (screen === 'trash') app.innerHTML = renderTrash();
+  else if (screen === 'question') app.innerHTML = renderQuestionScreen();
+  else if (screen === 'result') app.innerHTML = renderResult();
+  window.scrollTo(0,0);
+}
+
+function showFormatSelect() { screen = 'formatSelect'; currentFormat = null; render(); }
+function showModeSelect(format) { screen = 'modeSelect'; currentFormat = format; currentCategory = null; render(); }
+function showTrash() { screen = 'trash'; render(); }
+function showQuestionScreen() { screen = 'question'; render(); }
+function showResult() { screen = 'result'; render(); }
+
+/* ================== FORMAT SELECT ================== */
+function renderFormatSelect() {
+  const fc = activeQuestionsFor('fillchoice').length;
+  const od = activeQuestionsFor('order').length;
+  const wr = activeQuestionsFor('write').length;
+  return `
+    <h1>📚 writing表現 総合テスト</h1>
+    <p class="sub">出題形式を選んでください。ノートから作成した3種類のテストに挑戦できます。</p>
+    <div class="format-grid">
+      <div class="format-card" onclick="showModeSelect('fillchoice')">
+        <div class="icon">✏️</div>
+        <h3>穴埋め・選択肢</h3>
+        <p>日本語ヒントから空所を埋める／正しい英語表現を4択で選ぶ</p>
+        <span class="count-badge">${fc}問</span>
+      </div>
+      <div class="format-card" onclick="showModeSelect('order')">
+        <div class="icon">📝</div>
+        <h3>並べ替え・誤り訂正</h3>
+        <p>日本語ヒントから正しい語順を組み立てる／文法ミスを見抜く</p>
+        <span class="count-badge">${od}問</span>
+      </div>
+      <div class="format-card" onclick="showModeSelect('write')">
+        <div class="icon">✍️</div>
+        <h3>自由記述・マッチング</h3>
+        <p>日本語から英文をゼロから書く／日英フレーズを対応づける</p>
+        <span class="count-badge">${wr}問</span>
+      </div>
+    </div>
+    ${!storageOK ? '<p class="sub" style="margin-top:16px;">⚠️ このブラウザでは保存機能(localStorage)が使えないため、常に「ランダム20問」でのみ出題します。</p>' : ''}
+  `;
+}
+
+/* ================== MODE SELECT ================== */
+function renderModeSelect() {
+  const format = currentFormat;
+  const all = activeQuestionsFor(format);
+  const bookmarks = getBookmarks(format);
+  const trash = getTrash(format);
+  const catCounts = {};
+  all.forEach(q => { catCounts[q.category] = (catCounts[q.category]||0) + 1; });
+  const categories = Object.keys(catCounts);
+  const catButtons = categories.map(c => `<div class="category-btn ${currentCategory===c?'selected':''}" onclick="selectCategory('${escapeAttr(c)}')">${escapeHtml(c)} (${catCounts[c]}問)</div>`).join('');
+
+  return `
+    <div class="link-back" onclick="showFormatSelect()">← 出題形式選択に戻る</div>
+    <h1>${formatLabel(format)}</h1>
+    <p class="sub">全 ${all.length} 問のプールから出題します。</p>
+    <div class="mode-grid">
+      <div class="mode-card" onclick="startTest('${format}','random')">
+        <div class="icon">🎲</div>
+        <h3>ランダム20問(おまかせ)</h3>
+        <p>前回の復習30%＋未出題70%で自動選出</p>
+        ${storageOK ? '<button class="btn">このモードで始める</button>' : '<button class="btn">このモードで始める</button>'}
+      </div>
+      <div class="mode-card ${storageOK?'':'disabled'}" onclick="${storageOK? `startTest('${format}','all')`:''}">
+        <div class="icon">📚</div>
+        <h3>全問題に挑戦</h3>
+        <p>${all.length}問すべてをランダム順で出題</p>
+        <button class="btn" ${storageOK?'':'disabled'}>このモードで始める</button>
+      </div>
+      <div class="mode-card ${storageOK?'':'disabled'}">
+        <div class="icon">🗂</div>
+        <h3>ジャンル別に挑戦</h3>
+        <p>ジャンルを1つ選んで、そのジャンルの全問題に挑戦</p>
+        <div class="category-btns">${catButtons}</div>
+        <button class="btn" ${(storageOK && currentCategory)?'':'disabled'} onclick="startTest('${format}','category', currentCategory)">選んだジャンルで始める</button>
+      </div>
+      <div class="mode-card ${(storageOK && bookmarks.length>0)?'':'disabled'}" onclick="${(storageOK && bookmarks.length>0)? `startTest('${format}','bookmark')`:''}">
+        <div class="icon">🔖</div>
+        <h3>復習リストから挑戦</h3>
+        <p>ブックマーク件数: ${bookmarks.length}問${bookmarks.length===0?'(復習リストは空です)':''}</p>
+        <button class="btn" ${(storageOK && bookmarks.length>0)?'':'disabled'}>復習リストで始める</button>
+      </div>
+    </div>
+    <div class="footer-link" onclick="showTrash()">🗑 ゴミ箱 (${trash.length}問)</div>
+  `;
+}
+
+function selectCategory(c) { currentCategory = c; render(); }
+
+/* ================== TRASH ================== */
+function renderTrash() {
+  const format = currentFormat;
+  const trashIds = new Set(getTrash(format));
+  const items = questionsFor(format).filter(q => trashIds.has(q.id));
+  const rows = items.map(q => {
+    const excerpt = q.question || q.hint || (q.pairs ? q.pairs.map(p=>p.japanese).join(' / ') : '');
+    const src = q.source || (q.sources ? q.sources[0] : '');
+    return `
+      <div class="trash-item">
+        <span class="type-badge type-${q.type}">${typeLabel(q.type)}</span>
+        <span class="cat-badge">${escapeHtml(q.category)}</span>
+        <div class="excerpt">${escapeHtml(stripMarkers(excerpt)).slice(0,80)}</div>
+        ${src ? `<div class="sub">📷 出典: ${escapeHtml(src)}</div>` : ''}
+        <button class="btn btn-secondary" style="margin-top:8px;" onclick="doRestore('${q.id}')">↩️ 元に戻す</button>
+      </div>
+    `;
+  }).join('');
+  return `
+    <div class="link-back" onclick="showModeSelect(currentFormat)">← モード選択に戻る</div>
+    <h1>🗑 ゴミ箱（${formatLabel(currentFormat)}）</h1>
+    ${items.length === 0 ? '<p class="sub">ゴミ箱は空です。</p>' : rows}
+  `;
+}
+function doRestore(id) {
+  restoreFromTrash(currentFormat, isNaN(id) ? id : Number(id));
+  render();
+}
+
+function typeLabel(t) {
+  return {fill:'穴埋め', choice:'選択肢', reorder:'並べ替え', correction:'誤り訂正', free:'自由記述', match:'マッチング'}[t] || t;
+}
+function stripMarkers(s) { return (s||'').replace(/\[\[|\]\]/g,''); }
+function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function escapeAttr(s) { return escapeHtml(s).replace(/`/g,'&#96;'); }
+
+/* ================== QUESTION SCREEN ================== */
+function currentQuestion() { return sessionQuestions[currentIndex]; }
+
+function renderQuestionScreen() {
+  const q = currentQuestion();
+  const total = sessionQuestions.length;
+  const pct = Math.round(((currentIndex) / total) * 100);
+  const bookmarks = new Set(getBookmarks(currentFormat));
+  const isBookmarked = bookmarks.has(q.id);
+
+  let body = '';
+  if (!answered) {
+    body = renderQuestionBody(q);
+  } else {
+    body = renderQuestionBody(q, true) + renderFeedback(q);
+  }
+
+  return `
+    <div class="header-bar">
+      <div>
+        <span class="format-badge">${formatBadgeEmoji(currentFormat)} ${formatLabelPlain(currentFormat)}</span>
+      </div>
+      <div class="q-num">Q ${currentIndex+1} / ${total}</div>
+    </div>
+    <div class="progress-wrap"><div class="progress-bar" style="width:${pct}%"></div></div>
+    <div class="link-back" onclick="confirmBackToModeSelect()">← スタート画面に戻る</div>
+    <div class="card">
+      <div class="q-top-row">
+        <div>
+          <span class="type-badge type-${q.type}">${typeLabel(q.type)}</span>
+          <span class="cat-badge">${escapeHtml(q.category)}</span>
+        </div>
+        <div class="trash-link" onclick="discardQuestion()">🗑 この問題は表示しない</div>
+      </div>
+      ${!answered ? `
+      <div class="bookmark-row">
+        <label><input type="checkbox" id="bookmarkChk" ${isBookmarked?'checked':''} onchange="onBookmarkToggle()"> この問題を復習リストに入れる</label>
+      </div>` : ''}
+      ${body}
+    </div>
+  `;
+}
+
+function onBookmarkToggle() {
+  const q = currentQuestion();
+  toggleBookmark(currentFormat, q.id);
+}
+
+function confirmBackToModeSelect() {
+  if (confirm('テストを中断してスタート画面に戻りますか？')) {
+    screen = 'modeSelect';
+    render();
+  }
+}
+
+function discardQuestion() {
+  if (!confirm('この問題をゴミ箱に移動しますか？（ゴミ箱からいつでも戻せます）')) return;
+  const q = currentQuestion();
+  moveToTrash(currentFormat, q.id);
+  const el = document.querySelector('.trash-link');
+  if (el) { el.textContent = '🗑 ゴミ箱に移動しました'; el.style.pointerEvents = 'none'; el.style.color = '#aaa'; }
+}
+
+function renderQuestionBody(q, locked) {
+  if (q.type === 'fill') return renderFill(q, locked);
+  if (q.type === 'choice') return renderChoice(q, locked);
+  if (q.type === 'reorder') return renderReorder(q, locked);
+  if (q.type === 'correction') return renderCorrection(q, locked);
+  if (q.type === 'free') return renderFree(q, locked);
+  if (q.type === 'match') return renderMatch(q, locked);
+  return '';
+}
+
+/* ---- fill ---- */
+function renderFill(q, locked) {
+  const val = locked && lastUserAnswer ? lastUserAnswer : '';
+  return `
+    <div class="hint-box">💡 ${escapeHtml(q.hint)}</div>
+    <div class="sentence-box">${escapeHtml(q.question).replace('_____','<span class="blank">_____</span>')}</div>
+    <input type="text" id="answerInput" placeholder="ここに単語を入力" value="${escapeAttr(val)}" ${locked?'disabled':''} onkeydown="if(event.key==='Enter') submitFill()">
+    <div class="action-row">
+      ${!locked ? `<button class="btn" onclick="submitFill()">回答する</button>` : `<button class="btn" onclick="nextQuestion()">${currentIndex+1>=sessionQuestions.length?'結果を見る':'次の問題 →'}</button>`}
+    </div>
+  `;
+}
+function submitFill() {
+  const input = document.getElementById('answerInput');
+  const val = input.value;
+  lastUserAnswer = val;
+  const q = currentQuestion();
+  const correct = val.trim().toLowerCase() === q.answer.trim().toLowerCase();
+  finalizeAnswer(correct);
+}
+
+/* ---- choice ---- */
+function renderChoice(q, locked) {
+  const choices = q.shuffledChoices || q.choices;
+  const selected = locked ? lastUserAnswer : null;
+  const rows = choices.map((c,i) => `
+    <label class="choice-item">
+      <input type="radio" name="choiceOpt" value="${escapeAttr(c)}" ${selected===c?'checked':''} ${locked?'disabled':''}>
+      ${escapeHtml(c)}
+    </label>
+  `).join('');
+  return `
+    <div class="hint-box">💡 ${escapeHtml(q.hint)}</div>
+    <div class="sentence-box">${escapeHtml(q.question)}</div>
+    <div class="choice-list">${rows}</div>
+    <div class="action-row">
+      ${!locked ? `<button class="btn" onclick="submitChoice()">回答する</button>` : `<button class="btn" onclick="nextQuestion()">${currentIndex+1>=sessionQuestions.length?'結果を見る':'次の問題 →'}</button>`}
+    </div>
+  `;
+}
+function submitChoice() {
+  const sel = document.querySelector('input[name="choiceOpt"]:checked');
+  if (!sel) { alert('選択肢を選んでください'); return; }
+  lastUserAnswer = sel.value;
+  const q = currentQuestion();
+  const correct = sel.value === q.answer;
+  finalizeAnswer(correct);
+}
+
+/* ---- reorder ---- */
+function renderReorder(q, locked) {
+  if (!reorderState || reorderState.qid !== q.id) {
+    reorderState = { qid: q.id, tiles: shuffle(q.tokens.map((t,i)=>({text:t, __uid:i}))), built: [] };
+  }
+  const builtHtml = reorderState.built.length === 0
+    ? '<span class="placeholder">タップして単語を選んでください</span>'
+    : reorderState.built.map((t,pos) => `<span class="tile" onclick="${locked?'':`removeTile(${pos})`}">${escapeHtml(t.text)}</span>`).join('');
+  const poolHtml = reorderState.tiles.map((t,i) => {
+    const used = reorderState.built.some(b => b.__uid === t.__uid);
+    return `<span class="tile ${used?'used':''}" onclick="${locked||used?'':`addTile(${i})`}">${escapeHtml(t.text)}</span>`;
+  }).join('');
+  const allUsed = reorderState.built.length === q.tokens.length;
+  return `
+    <div class="hint-box">💡 ${escapeHtml(q.hint)}</div>
+    <div class="tile-area">${builtHtml}</div>
+    <div class="tile-pool">${poolHtml}</div>
+    <div class="action-row">
+      ${!locked ? `<button class="btn btn-secondary" onclick="resetReorder()">リセット</button><button class="btn" ${allUsed?'':'disabled'} onclick="submitReorder()">回答する</button>` : `<button class="btn" onclick="nextQuestion()">${currentIndex+1>=sessionQuestions.length?'結果を見る':'次の問題 →'}</button>`}
+    </div>
+  `;
+}
+function addTile(i) {
+  const t = reorderState.tiles[i];
+  reorderState.built.push(t);
+  render();
+}
+function removeTile(pos) {
+  reorderState.built.splice(pos,1);
+  render();
+}
+function resetReorder() { reorderState.built = []; render(); }
+function submitReorder() {
+  const q = currentQuestion();
+  const userSeq = reorderState.built.map(t => t.text);
+  lastUserAnswer = userSeq;
+  const correct = userSeq.length === q.tokens.length && userSeq.every((w,i) => w === q.tokens[i]);
+  finalizeAnswer(correct);
+}
+
+/* ---- correction ---- */
+function renderCorrection(q, locked) {
+  const displayQ = escapeHtml(q.question).replace(/\[\[(.+?)\]\]/, '<span class="wrong-part">$1</span>');
+  const val = locked && lastUserAnswer ? lastUserAnswer : '';
+  return `
+    <div class="hint-box">💡 ${escapeHtml(q.hint)}</div>
+    <div class="sentence-box">${displayQ}</div>
+    <div class="sub" style="margin-bottom:6px;">正しい形に直してください</div>
+    <input type="text" id="answerInput" placeholder="正しい語句を入力" value="${escapeAttr(val)}" ${locked?'disabled':''} onkeydown="if(event.key==='Enter') submitCorrection()">
+    <div class="action-row">
+      ${!locked ? `<button class="btn" onclick="submitCorrection()">回答する</button>` : `<button class="btn" onclick="nextQuestion()">${currentIndex+1>=sessionQuestions.length?'結果を見る':'次の問題 →'}</button>`}
+    </div>
+  `;
+}
+function submitCorrection() {
+  const input = document.getElementById('answerInput');
+  const val = input.value;
+  lastUserAnswer = val;
+  const q = currentQuestion();
+  const correct = val.trim().toLowerCase() === q.answer.trim().toLowerCase();
+  finalizeAnswer(correct);
+}
+
+/* ---- free ---- */
+function renderFree(q, locked) {
+  const val = locked && lastUserAnswer ? lastUserAnswer : '';
+  return `
+    <div class="hint-box">💡 ${escapeHtml(q.hint)}</div>
+    <textarea id="answerInput" placeholder="英文を入力してください" ${locked?'disabled':''}>${escapeHtml(val)}</textarea>
+    <div class="action-row">
+      ${!locked ? `<button class="btn" onclick="submitFree()">回答する</button>` : `<button class="btn" onclick="nextQuestion()">${currentIndex+1>=sessionQuestions.length?'結果を見る':'次の問題 →'}</button>`}
+    </div>
+  `;
+}
+function submitFree() {
+  const input = document.getElementById('answerInput');
+  const val = input.value;
+  lastUserAnswer = val;
+  const q = currentQuestion();
+  const lower = val.trim().toLowerCase();
+  const missing = q.keyPhrases.filter(kp => !lower.includes(kp.toLowerCase()));
+  const correct = missing.length === 0;
+  finalizeAnswer(correct, { missing });
+}
+
+/* ---- match ---- */
+function renderMatch(q, locked) {
+  if (!matchState || matchState.qid !== q.id) {
+    matchState = { qid: q.id, selJ: null, selE: null, pairs: [] }; // pairs: [{jIdx, eIdx}]
+  }
+  const jItems = q.shuffledJapanese.map((item, pos) => {
+    const pairIdx = matchState.pairs.findIndex(p => p.jPos === pos);
+    const cls = pairIdx >= 0 ? `paired-${pairIdx%5}` : (matchState.selJ === pos ? 'selected' : '');
+    const disabled = locked || pairIdx >= 0;
+    return `<div class="match-btn ${cls} ${disabled?'disabled':''}" onclick="${disabled?'':`selectMatchJ(${pos})`}">${escapeHtml(item.text)}</div>`;
+  }).join('');
+  const eItems = q.shuffledEnglish.map((item, pos) => {
+    const pairIdx = matchState.pairs.findIndex(p => p.ePos === pos);
+    const cls = pairIdx >= 0 ? `paired-${pairIdx%5}` : (matchState.selE === pos ? 'selected' : '');
+    const disabled = locked || pairIdx >= 0;
+    return `<div class="match-btn ${cls} ${disabled?'disabled':''}" onclick="${disabled?'':`selectMatchE(${pos})`}">${escapeHtml(item.text)}</div>`;
+  }).join('');
+  const allPaired = matchState.pairs.length === q.pairs.length;
+  return `
+    <div class="hint-box">💡 ${escapeHtml(q.hint)}</div>
+    <div class="match-cols">
+      <div class="match-col">${jItems}</div>
+      <div class="match-col">${eItems}</div>
+    </div>
+    <div class="action-row">
+      ${!locked ? `<button class="btn btn-secondary" onclick="resetMatch()">リセット</button><button class="btn" ${allPaired?'':'disabled'} onclick="submitMatch()">回答する</button>` : `<button class="btn" onclick="nextQuestion()">${currentIndex+1>=sessionQuestions.length?'結果を見る':'次の問題 →'}</button>`}
+    </div>
+  `;
+}
+function selectMatchJ(pos) {
+  matchState.selJ = pos;
+  tryFormPair();
+  render();
+}
+function selectMatchE(pos) {
+  matchState.selE = pos;
+  tryFormPair();
+  render();
+}
+function tryFormPair() {
+  if (matchState.selJ !== null && matchState.selE !== null) {
+    matchState.pairs.push({ jPos: matchState.selJ, ePos: matchState.selE });
+    matchState.selJ = null; matchState.selE = null;
+  }
+}
+function resetMatch() { matchState.pairs = []; matchState.selJ = null; matchState.selE = null; render(); }
+function submitMatch() {
+  const q = currentQuestion();
+  let correctCount = 0;
+  const results = matchState.pairs.map(p => {
+    const jOrig = q.shuffledJapanese[p.jPos].idx;
+    const eOrig = q.shuffledEnglish[p.ePos].idx;
+    const ok = jOrig === eOrig;
+    if (ok) correctCount++;
+    return { jText: q.shuffledJapanese[p.jPos].text, eText: q.shuffledEnglish[p.ePos].text, ok };
+  });
+  lastUserAnswer = results;
+  const correct = correctCount === q.pairs.length;
+  finalizeAnswer(correct, { correctCount, totalPairs: q.pairs.length });
+}
+
+/* ================== FEEDBACK / SCORING ================== */
+let lastFeedbackExtra = null;
+let lastAnswerCorrect = false;
+function finalizeAnswer(correct, extra) {
+  answered = true;
+  lastFeedbackExtra = extra || null;
+  lastAnswerCorrect = correct;
+  if (correct) score++;
+  render();
+}
+
+function renderFeedback(q) {
+  let mainHtml = '';
+  if (q.type === 'fill' || q.type === 'choice') {
+    const ok = lastUserAnswer !== null && (q.type==='fill' ? lastUserAnswer.trim().toLowerCase()===q.answer.trim().toLowerCase() : lastUserAnswer===q.answer);
+    mainHtml = `
+      <div class="feedback-title ${ok?'correct-text':'incorrect-text'}">${ok?'✅ 正解！':'❌ 不正解'}</div>
+      <div class="feedback-row"><b>正解:</b> ${escapeHtml(q.answer)}</div>
+      <button class="play-btn" onclick="playAudio(this, audioFolderFor('fillchoice') + '/' + ${q.id} + '.mp3')">🔊 英文を聞く</button>
+      <div class="feedback-row" style="margin-top:8px;">${escapeHtml(q.fullSentence)}</div>
+    `;
+  } else if (q.type === 'reorder') {
+    const userSeq = Array.isArray(lastUserAnswer) ? lastUserAnswer.join(' ') : '';
+    const ok = Array.isArray(lastUserAnswer) && lastUserAnswer.length===q.tokens.length && lastUserAnswer.every((w,i)=>w===q.tokens[i]);
+    mainHtml = `
+      <div class="feedback-title ${ok?'correct-text':'incorrect-text'}">${ok?'✅ 正解！':'❌ 不正解'}</div>
+      ${!ok ? `<div class="feedback-row"><b>あなたの回答:</b> ${escapeHtml(userSeq)}</div>` : ''}
+      <div class="feedback-row"><b>正解の英文:</b> ${escapeHtml(q.tokens.join(' '))}</div>
+      <button class="play-btn" onclick="playAudio(this, audioFolderFor('order') + '/' + ${q.id} + '.mp3')">🔊 英文を聞く</button>
+    `;
+  } else if (q.type === 'correction') {
+    const ok = typeof lastUserAnswer === 'string' && lastUserAnswer.trim().toLowerCase() === q.answer.trim().toLowerCase();
+    mainHtml = `
+      <div class="feedback-title ${ok?'correct-text':'incorrect-text'}">${ok?'✅ 正解！':'❌ 不正解'}</div>
+      <div class="feedback-row"><b>正解:</b> ${escapeHtml(q.answer)}</div>
+      <div class="feedback-row"><b>正解の英文:</b> ${escapeHtml(q.fullSentence)}</div>
+      <button class="play-btn" onclick="playAudio(this, audioFolderFor('order') + '/' + ${q.id} + '.mp3')">🔊 英文を聞く</button>
+    `;
+  } else if (q.type === 'free') {
+    const missing = lastFeedbackExtra ? lastFeedbackExtra.missing : [];
+    const ok = missing.length === 0;
+    mainHtml = `
+      <div class="feedback-title ${ok?'correct-text':'incorrect-text'}">${ok?'✅ 正解！(必須語句を全て含む)':'❌ 不正解 (不足している語句: ' + escapeHtml(missing.join(', ')) + ')'}</div>
+      <div class="feedback-row"><b>模範解答:</b> ${escapeHtml(q.answer)}</div>
+      <button class="play-btn" onclick="playAudio(this, audioFolderFor('write') + '/' + ${q.id} + '.mp3')">🔊 英文を聞く</button>
+    `;
+  } else if (q.type === 'match') {
+    const cc = lastFeedbackExtra.correctCount, tot = lastFeedbackExtra.totalPairs;
+    const ok = cc === tot;
+    const userResults = lastUserAnswer || [];
+    const pairsHtml = q.pairs.map((p,idx) => {
+      const userR = userResults.find(r => r.jText === p.japanese);
+      const wasWrong = userR && !userR.ok;
+      return `<div class="feedback-row">${wasWrong?'❌ ':'✅ '}${escapeHtml(p.japanese)} → ${escapeHtml(p.english)}
+        <button class="play-btn" onclick="playAudio(this, audioFolderFor('write') + '/' + ${q.id} + '_p' + ${idx} + '.mp3')">🔊</button>
+      </div>`;
+    }).join('');
+    mainHtml = `
+      <div class="feedback-title ${ok?'correct-text':'incorrect-text'}">${ok?'✅ 全問正解！':'⚠️ ' + cc + ' / ' + tot + ' 正解'}</div>
+      ${pairsHtml}
+    `;
+  }
+
+  const sourceList = q.source ? [q.source] : (q.sources || []);
+  const thumbs = sourceList.map(s => `<img class="source-thumb" src="images/${s}.jpg" alt="${escapeAttr(s)}" loading="lazy" onclick="openImageModal('images/${s}.jpg')" onerror="this.style.display='none'">`).join('');
+
+  return `
+    <div class="feedback ${isCorrectClassHelper(q)}">
+      ${mainHtml}
+      ${sourceList.length ? `<div class="feedback-row" style="margin-top:10px;"><b>📷 出典:</b> ${sourceList.join(', ')}</div><div class="source-thumbs">${thumbs}</div>` : ''}
+      ${q.relatedInfo ? `<div class="feedback-row">💡 <b>関連知識:</b> ${escapeHtml(q.relatedInfo)}</div>` : ''}
+      ${q.explanation ? `<div class="feedback-row">📝 <b>解説:</b> ${escapeHtml(q.explanation)}</div>` : ''}
+    </div>
+  `;
+}
+function isCorrectClassHelper(q) {
+  return lastAnswerCorrect ? 'correct' : 'incorrect';
+}
+
+function nextQuestion() {
+  answered = false;
+  lastUserAnswer = null;
+  lastFeedbackExtra = null;
+  reorderState = null;
+  matchState = null;
+  if (currentIndex + 1 >= sessionQuestions.length) {
+    if (currentMode === 'random') saveSeenQuestions(currentFormat, sessionQuestions);
+    showResult();
+  } else {
+    currentIndex++;
+    showQuestionScreen();
+  }
+}
+
+/* ================== RESULT ================== */
+function renderResult() {
+  const total = sessionQuestions.length;
+  const pct = total ? Math.round((score/total)*100) : 0;
+  let stars = '★☆☆', msg = 'ノートを見直して再チャレンジ！';
+  if (pct >= 90) { stars = '★★★'; msg = 'Excellent! TOEFL満点レベルの実力です'; }
+  else if (pct >= 70) { stars = '★★'; msg = 'Good! あと少しで完璧です'; }
+  else if (pct >= 50) { stars = '★'; msg = 'Keep going! 復習して再挑戦しましょう'; }
+  return `
+    <div class="card">
+      <h1 style="text-align:center;">${formatLabel(currentFormat)}</h1>
+      <div class="result-score">${score} / ${total}</div>
+      <div class="sub" style="text-align:center;">正解率 ${pct}%</div>
+      <div class="result-stars">${stars}</div>
+      <div class="result-msg">${msg}</div>
+      <div class="action-row" style="justify-content:center;">
+        <button class="btn" onclick="startTest(currentFormat, currentMode, currentCategory)">もう一度同じ形式・モードで挑戦する</button>
+        <button class="btn btn-secondary" onclick="showModeSelect(currentFormat)">別のモードに挑戦する</button>
+        <button class="btn btn-secondary" onclick="showFormatSelect()">🏠 最初から</button>
+      </div>
+    </div>
+  `;
+}
+
+/* ================== INIT ================== */
+render();
+</script>
+</body>
+</html>

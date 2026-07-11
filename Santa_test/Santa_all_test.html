@@ -1,0 +1,1121 @@
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Santa ノート 総合テスト</title>
+<style>
+:root{--main:#2f6fed;--main-dark:#1e4fc4;--bg:#f4f6fb;--card:#ffffff;--text:#1f2430;--sub:#6b7280;--good:#1a9b5c;--bad:#e0483c;--border:#e2e6ee;}
+*{box-sizing:border-box;}
+body{margin:0;font-family:"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;background:var(--bg);color:var(--text);line-height:1.6;padding-bottom:40px;}
+#app{max-width:720px;margin:0 auto;padding:16px;}
+.hidden{display:none !important;}
+h1{font-size:1.4rem;margin:8px 0 4px;}
+h2{font-size:1.15rem;margin:6px 0;}
+.sub{color:var(--sub);font-size:0.92rem;}
+.card{background:var(--card);border-radius:14px;padding:20px;box-shadow:0 2px 10px rgba(0,0,0,0.06);margin-bottom:16px;}
+.btn{display:inline-block;background:var(--main);color:#fff;border:none;border-radius:10px;padding:12px 18px;font-size:1rem;cursor:pointer;text-align:center;margin:4px 0;}
+.btn:hover{background:var(--main-dark);}
+.btn:disabled{background:#b7c2d6;cursor:not-allowed;}
+.btn-sub{background:#eef1f8;color:var(--main-dark);}
+.btn-sub:hover{background:#dde4f5;}
+.btn-block{display:block;width:100%;}
+.link{color:var(--main);cursor:pointer;text-decoration:underline;font-size:0.92rem;}
+.badge{display:inline-block;background:#eef1f8;color:var(--main-dark);font-size:0.78rem;border-radius:999px;padding:3px 10px;margin-right:6px;}
+.badge-cat{background:#fff1de;color:#9a5b00;}
+.format-grid{display:flex;flex-direction:column;gap:14px;}
+.format-card{border:2px solid var(--border);border-radius:14px;padding:18px;cursor:pointer;transition:.15s;}
+.format-card:hover{border-color:var(--main);}
+.format-card h2{margin-top:0;}
+.mode-grid{display:flex;flex-direction:column;gap:12px;}
+.mode-card{border:1.5px solid var(--border);border-radius:12px;padding:14px 16px;}
+.mode-card h3{margin:0 0 4px;font-size:1rem;}
+.cat-btn{display:inline-block;border:1.5px solid var(--border);border-radius:999px;padding:6px 14px;margin:4px 6px 4px 0;cursor:pointer;font-size:0.88rem;background:#fff;}
+.cat-btn.selected{border-color:var(--main);background:#eaf0ff;color:var(--main-dark);font-weight:bold;}
+.progress-wrap{background:#e5e9f2;border-radius:999px;height:8px;overflow:hidden;margin:10px 0 16px;}
+.progress-bar{background:var(--main);height:100%;transition:width .2s;}
+.q-header{display:flex;justify-content:space-between;align-items:center;font-size:0.88rem;color:var(--sub);margin-bottom:4px;}
+.q-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;}
+.bookmark-row{display:flex;align-items:center;gap:6px;font-size:0.88rem;margin:10px 0;}
+.trash-link{font-size:0.8rem;color:var(--bad);cursor:pointer;}
+.q-hint{background:#f7f9fd;border-left:4px solid var(--main);padding:10px 12px;border-radius:6px;margin-bottom:14px;font-size:0.95rem;}
+.q-question{white-space:pre-line;font-size:1.08rem;margin-bottom:14px;font-weight:600;}
+input[type=text],textarea{width:100%;border:1.5px solid var(--border);border-radius:8px;padding:10px 12px;font-size:1rem;font-family:inherit;}
+textarea{min-height:80px;resize:vertical;}
+.choice-opt{display:block;border:1.5px solid var(--border);border-radius:10px;padding:10px 14px;margin-bottom:8px;cursor:pointer;}
+.choice-opt.selected{border-color:var(--main);background:#eaf0ff;}
+.tile-pool,.assembly-area{display:flex;flex-wrap:wrap;gap:8px;min-height:44px;margin-bottom:10px;}
+.assembly-area{border:1.5px dashed var(--border);border-radius:10px;padding:8px;background:#f9fafc;}
+.tile{background:var(--main);color:#fff;border-radius:8px;padding:8px 12px;cursor:pointer;font-size:0.95rem;}
+.tile.placed{background:#a8b6d6;}
+.assembly-tile{background:var(--main-dark);color:#fff;border-radius:8px;padding:8px 12px;cursor:pointer;font-size:0.95rem;}
+.placeholder{color:var(--sub);font-size:0.9rem;padding:6px;}
+.correction-text{background:#fff8e6;border-radius:8px;padding:12px 14px;margin-bottom:14px;font-size:1.05rem;}
+.wrong-part{background:#ffd7d0;text-decoration:underline;text-decoration-color:var(--bad);font-weight:bold;padding:0 3px;border-radius:3px;}
+.match-cols{display:flex;gap:14px;}
+.match-col{flex:1;display:flex;flex-direction:column;gap:8px;}
+.match-btn{border:1.5px solid var(--border);border-radius:8px;padding:10px;text-align:left;cursor:pointer;background:#fff;font-size:0.92rem;}
+.match-btn.selecting{border-color:var(--main);box-shadow:0 0 0 2px #cfe0ff;}
+.match-btn.pair0{background:#ffe4e1;border-color:#ff9b93;}
+.match-btn.pair1{background:#e1f3ff;border-color:#7ec4ff;}
+.match-btn.pair2{background:#e6ffe4;border-color:#8fdc85;}
+.match-btn.pair3{background:#fff3d6;border-color:#ffcf5c;}
+.feedback{border-radius:10px;padding:14px 16px;margin-top:14px;}
+.feedback.correct{background:#e8f9ef;border:1.5px solid var(--good);}
+.feedback.incorrect{background:#fdecea;border:1.5px solid var(--bad);}
+.feedback-title{font-weight:bold;font-size:1.05rem;margin-bottom:6px;}
+.feedback-title.correct{color:var(--good);}
+.feedback-title.incorrect{color:var(--bad);}
+.audio-btn{background:#fff;border:1.5px solid var(--main);color:var(--main-dark);border-radius:999px;padding:6px 14px;cursor:pointer;font-size:0.88rem;margin:6px 0;}
+.audio-btn.playing{background:var(--main);color:#fff;}
+.source-thumbs{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0;}
+.source-thumb{width:110px;height:110px;object-fit:cover;border-radius:8px;cursor:zoom-in;border:1px solid var(--border);}
+.info-block{font-size:0.92rem;margin-top:8px;}
+.info-block b{color:var(--main-dark);}
+.trash-note{font-size:0.82rem;color:var(--bad);margin-top:10px;cursor:pointer;text-decoration:underline;}
+.result-star{font-size:1.6rem;letter-spacing:4px;color:#f5a623;margin:10px 0;}
+.trash-item{border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:10px;}
+.footer-links{text-align:center;margin-top:10px;}
+.img-modal{position:fixed;inset:0;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;z-index:999;cursor:zoom-out;}
+.img-modal img{max-width:92%;max-height:92%;border-radius:6px;}
+.img-modal-close{position:absolute;top:18px;right:26px;color:#fff;font-size:2rem;cursor:pointer;}
+@media(max-width:480px){.match-cols{gap:8px;}.source-thumb{width:80px;height:80px;}}
+</style>
+<div id="app"></div>
+<div class="img-modal hidden" id="imgModal" onclick="closeImageModal()">
+  <span class="img-modal-close" onclick="closeImageModal()">&times;</span>
+  <img id="imgModalImg" src="" alt="出典画像">
+</div>
+<script>
+/* ================= DATA ================= */
+const FILLCHOICE_QUESTIONS = [];
+const ORDER_QUESTIONS = [];
+const WRITE_QUESTIONS = [];
+
+const CAT_A = "学術語彙";
+const CAT_B = "熟語・フレーズ";
+const CAT_C = "文法パターン";
+const CAT_D = "メール・レター表現";
+const CAT_E = "日常会話・キャンパス表現";
+
+const ITEMS = [
+{cat:CAT_A, src:"IMG_0619", full:"The study required a considerable amount of time and effort.",
+ fillQ:"The study required a _____ amount of time and effort.", fillHint:"「(量や程度が)かなりの、相当な」という意味の形容詞を入れましょう。", fillAns:"considerable",
+ choiceQ:"「(量や程度が)かなりの、相当な」という意味の形容詞はどれ？", choices:["considerable","negligible","minimal","occasional"],
+ tokens:["The","study","required","a","considerable","amount","of","time","and","effort."],
+ wrongPart:"require", corrAns:"required", corrSentence:"The study require a considerable amount of time and effort.",
+ explanation:"considerableは「(量・程度が)かなりの、相当な」という意味の形容詞。amount, distance, timeなどの名詞を修飾する。", related:"類義語にsubstantial, significantがある。反意語はnegligible(取るに足らない)。",
+ meaning:"その研究にはかなりの量の時間と労力が必要だった。"},
+
+{cat:CAT_A, src:"IMG_0619", full:"Reading to children supports their cognitive development.",
+ fillQ:"Reading to children supports their _____ development.", fillHint:"「認知の」という意味の形容詞を入れましょう。", fillAns:"cognitive",
+ choiceQ:"「認知の」という意味の形容詞はどれ？", choices:["cognitive","physical","financial","cultural"],
+ tokens:["Reading","to","children","supports","their","cognitive","development."],
+ wrongPart:"support", corrAns:"supports", corrSentence:"Reading to children support their cognitive development.",
+ explanation:"cognitiveは「認知の、知的な」という意味。cognitive developmentで「認知発達」。", related:"sensory(感覚の)、primordial(原始的な)もセットで覚えておくとよい。",
+ meaning:"子供に読み聞かせをすることは、彼らの認知発達を支える。"},
+
+{cat:CAT_A, src:"IMG_0619", full:"The cell membrane is selectively permeable to certain molecules.",
+ fillQ:"The cell membrane is selectively _____ to certain molecules.", fillHint:"「透過性の」という意味の形容詞を入れましょう。", fillAns:"permeable",
+ choiceQ:"「透過性の」という意味の形容詞はどれ？", choices:["permeable","impermeable","invisible","flexible"],
+ tokens:["The","cell","membrane","is","selectively","permeable","to","certain","molecules."],
+ wrongPart:"selective", corrAns:"selectively", corrSentence:"The cell membrane is selective permeable to certain molecules.",
+ explanation:"permeableは「透過性のある」という意味。細胞膜(membrane)は特定の分子だけを通すselectively permeableな性質を持つ。", related:"bilayer(二重層)、phospholipids(リン脂質)もセットで覚える。",
+ meaning:"細胞膜は特定の分子を選択的に透過させる。"},
+
+{cat:CAT_A, src:"IMG_0622", full:"Excessive stress can be detrimental to your health.",
+ fillQ:"Excessive stress can be _____ to your health.", fillHint:"「有害な」という意味の形容詞を入れましょう。", fillAns:"detrimental",
+ choiceQ:"「有害な」という意味の形容詞はどれ？", choices:["detrimental","beneficial","irrelevant","temporary"],
+ tokens:["Excessive","stress","can","be","detrimental","to","your","health."],
+ wrongPart:"for", corrAns:"to", corrSentence:"Excessive stress can be detrimental for your health.",
+ explanation:"detrimental to Aで「Aにとって有害な」。harmfulとほぼ同義。", related:"反意語はbeneficial(有益な)。thrive(繁栄する)と対で覚えるとよい。",
+ meaning:"過度なストレスは健康に有害な場合がある。"},
+
+{cat:CAT_A, src:"IMG_0622", full:"The material is resilient enough to withstand heavy impacts.",
+ fillQ:"The material is _____ enough to withstand heavy impacts.", fillHint:"「回復力のある、しなやかな」という意味の形容詞を入れましょう。", fillAns:"resilient",
+ choiceQ:"「回復力のある、しなやかな」という意味の形容詞はどれ？", choices:["resilient","fragile","rigid","disposable"],
+ tokens:["The","material","is","resilient","enough","to","withstand","heavy","impacts."],
+ wrongPart:"for", corrAns:"to", corrSentence:"The material is resilient enough for withstand heavy impacts.",
+ explanation:"resilientは「弾力があり回復力のある」という意味。durability(耐久性)やcomposite(複合の)と関連する語彙。", related:"反意語はfragile(壊れやすい)。",
+ meaning:"その素材は強い衝撃にも耐えられるほど回復力がある。"},
+
+{cat:CAT_A, src:"IMG_0619", full:"The device began to malfunction after the update.",
+ fillQ:"The device began to _____ after the update.", fillHint:"「(機械が)誤作動する」という意味の動詞を入れましょう。", fillAns:"malfunction",
+ choiceQ:"「(機械が)誤作動する」という意味の動詞はどれ？", choices:["malfunction","improve","expand","disconnect"],
+ tokens:["The","device","began","to","malfunction","after","the","update."],
+ wrongPart:"malfunctioning", corrAns:"malfunction", corrSentence:"The device began to malfunctioning after the update.",
+ explanation:"malfunctionは名詞・動詞両方で使える「(機械の)不具合、誤作動(する)」という意味。", related:"leaky(漏れやすい)、stiff(硬い)も機械の不具合を表す形容詞として一緒に覚える。",
+ meaning:"その機器はアップデート後に誤作動し始めた。"},
+
+{cat:CAT_A, src:"IMG_0617", full:"Persistent effort is the key to mastering a new language.",
+ fillQ:"_____ effort is the key to mastering a new language.", fillHint:"「持続的な、粘り強い」という意味の形容詞を入れましょう。", fillAns:"persistent",
+ choiceQ:"「持続的な、粘り強い」という意味の形容詞はどれ？", choices:["persistent","occasional","careless","brief"],
+ tokens:["Persistent","effort","is","the","key","to","mastering","a","new","language."],
+ wrongPart:"are", corrAns:"is", corrSentence:"Persistent effort are the key to mastering a new language.",
+ explanation:"persistentは「持続的な、諦めない」という意味。persistent effort(粘り強い努力)。", related:"privilege(特権)、causes of ~(~の原因)などと同じノートに登場した語。",
+ meaning:"粘り強い努力が新しい言語を習得する鍵だ。"},
+
+{cat:CAT_A, src:"IMG_0835", full:"The artist chose to deconstruct the human figure into geometric shapes.",
+ fillQ:"The artist chose to _____ the human figure into geometric shapes.", fillHint:"「(作品などを)分解する」という意味の動詞を入れましょう。", fillAns:"deconstruct",
+ choiceQ:"「(作品などを)分解する」という意味の動詞はどれ？", choices:["deconstruct","decorate","duplicate","disguise"],
+ tokens:["The","artist","chose","to","deconstruct","the","human","figure","into","geometric shapes."],
+ wrongPart:"choose", corrAns:"chose", corrSentence:"The artist choose to deconstruct the human figure into geometric shapes.",
+ explanation:"deconstruct A into Bで「AをBに分解する」。抽象芸術(abstract art)の文脈で使われる表現。", related:"geometric shapes(幾何学的形状)、gestural brushwork(身振り的な筆致)も関連語。",
+ meaning:"その芸術家は人物像を幾何学的な形に分解することを選んだ。"},
+
+{cat:CAT_B, src:"IMG_0623", full:"I decided to reach out to my professor for advice.",
+ fillQ:"I decided to _____ to my professor for advice.", fillHint:"「(助けを求めて)連絡する」という意味の熟語を入れましょう。", fillAns:"reach out",
+ choiceQ:"「(助けを求めて)連絡する」という意味の熟語はどれ？", choices:["reach out","look through","hear back","give up"],
+ tokens:["I","decided","to","reach out","to","my professor","for","advice."],
+ wrongPart:"for", corrAns:"to", corrSentence:"I decided to reach out for my professor for advice.",
+ explanation:"reach out to Aで「Aに連絡を取る」という意味。助けや情報を求めて自分から働きかけるニュアンス。", related:"hear back(返事をもらう)とセットで使われることが多い。",
+ meaning:"私はアドバイスをもらうために教授に連絡することにした。"},
+
+{cat:CAT_B, src:"IMG_0623", full:"I haven't heard back from the company yet.",
+ fillQ:"I haven't _____ from the company yet.", fillHint:"「返事をもらう」という意味の熟語(過去分詞形)を入れましょう。", fillAns:"heard back",
+ choiceQ:"「返事をもらう」という意味の熟語(過去分詞形)はどれ？", choices:["heard back","reached out","looked through","given up"],
+ tokens:["I","haven't","heard back","from","the company","yet."],
+ wrongPart:"hear", corrAns:"heard", corrSentence:"I haven't hear back from the company yet.",
+ explanation:"hear back from Aで「Aから返事をもらう」。ビジネスメールでよく使われる表現。", related:"reach outとセットで、連絡→返信の流れを表す。",
+ meaning:"私はまだその会社から返事をもらっていない。"},
+
+{cat:CAT_B, src:"IMG_0624", full:"It is hard to keep up with all of my commitments this semester.",
+ fillQ:"It is hard to _____ all of my commitments this semester.", fillHint:"「~についていく、対応し続ける」という意味の熟語を入れましょう。", fillAns:"keep up with",
+ choiceQ:"「(予定などに)ついていく、対応し続ける」という意味の熟語はどれ？", choices:["keep up with","catch up on","keep away from","look down on"],
+ tokens:["It","is","hard","to","keep up with","all of my commitments","this semester."],
+ wrongPart:"for", corrAns:"with", corrSentence:"It is hard to keep up for all of my commitments this semester.",
+ explanation:"keep up with Aで「Aに遅れずについていく」という意味。commitments(約束事)と一緒に使われている。", related:"family commitment(家族の用事)もこのノートに登場した表現。",
+ meaning:"今学期は自分のすべての予定についていくのが大変だ。"},
+
+{cat:CAT_B, src:"IMG_0834", full:"She volunteered to take the lead on the group project.",
+ fillQ:"She volunteered to _____ on the group project.", fillHint:"「主導権を握る」という意味の熟語を入れましょう。", fillAns:"take the lead",
+ choiceQ:"「主導権を握る」という意味の熟語はどれ？", choices:["take the lead","take turns","take over","take a shot"],
+ tokens:["She","volunteered","to","take the lead","on","the group project."],
+ wrongPart:"of", corrAns:"on", corrSentence:"She volunteered to take the lead of the group project.",
+ explanation:"take the lead on Aで「Aで主導権を握る」という意味。", related:"take turns(交代でする)、take over(引き継ぐ)も似た形の熟語として整理しておく。",
+ meaning:"彼女はグループ課題で主導権を握ることを自ら志願した。"},
+
+{cat:CAT_B, src:"IMG_0625", full:"Security guards must stay alert at all times.",
+ fillQ:"Security guards must _____ at all times.", fillHint:"「警戒を怠らない」という意味の熟語を入れましょう。", fillAns:"stay alert",
+ choiceQ:"「警戒を怠らない」という意味の熟語はどれ？", choices:["stay alert","give it a shot","look through","sign off"],
+ tokens:["Security guards","must","stay alert","at","all times."],
+ wrongPart:"on", corrAns:"at", corrSentence:"Security guards must stay alert on all times.",
+ explanation:"stay alertは「警戒を続ける、油断しない」という意味。suspicious activity(不審な活動)と一緒によく使われる。", related:"report A to B(AをBに報告する)とセットで安全に関する表現として覚える。",
+ meaning:"警備員は常に警戒を怠ってはならない。"},
+
+{cat:CAT_B, src:"IMG_0625", full:"I have never tried water aerobics, but I will give it a shot.",
+ fillQ:"I have never tried water aerobics, but I will _____.", fillHint:"「試しにやってみる」という意味の熟語を入れましょう。", fillAns:"give it a shot",
+ choiceQ:"「試しにやってみる」という意味の熟語はどれ？", choices:["give it a shot","give it up","take it back","make it up"],
+ tokens:["I","have never tried","water aerobics,","but","I","will","give it a shot."],
+ wrongPart:"gave", corrAns:"give", corrSentence:"I have never tried water aerobics, but I will gave it a shot.",
+ explanation:"give it a shotは「とりあえずやってみる」というカジュアルな表現。", related:"try one's bestとは異なり、結果よりもまず挑戦することに重点がある表現。",
+ meaning:"水中エアロビクスは試したことがないが、挑戦してみるつもりだ。"},
+
+{cat:CAT_B, src:"IMG_0623", full:"The school is known for its strong science program.",
+ fillQ:"The school is _____ its strong science program.", fillHint:"「~で知られている」という意味の熟語を入れましょう(forを含む形)。", fillAns:"known for",
+ choiceQ:"「~で知られている」という意味の熟語はどれ？", choices:["known for","looked through","attended in","reached out"],
+ tokens:["The school","is","known for","its strong","science program."],
+ wrongPart:"of", corrAns:"for", corrSentence:"The school is known of its strong science program.",
+ explanation:"be known for Aで「Aで知られている」という意味。", related:"look through A(Aに目を通す)、attend in person(対面で出席する)も同じノートに登場。",
+ meaning:"その学校は理科プログラムが強いことで知られている。"},
+
+{cat:CAT_B, src:"IMG_0623", full:"Please look through the roster before the meeting.",
+ fillQ:"Please _____ the roster before the meeting.", fillHint:"「(資料などに)目を通す」という意味の熟語を入れましょう。", fillAns:"look through",
+ choiceQ:"「(資料などに)目を通す」という意味の熟語はどれ？", choices:["look through","look down","look up to","look out for"],
+ tokens:["Please","look through","the roster","before","the meeting."],
+ wrongPart:"looked", corrAns:"look", corrSentence:"Please looked through the roster before the meeting.",
+ explanation:"look through Aで「Aにざっと目を通す」という意味。", related:"roster(名簿)、eligibility(資格)と一緒によく使われる表現。",
+ meaning:"会議の前に名簿に目を通してください。"},
+
+{cat:CAT_C, src:"IMG_0614", full:"The new policy allows students to submit assignments online.",
+ fillQ:"The new policy _____ students to submit assignments online.", fillHint:"「AがBすることを許す」という意味の動詞を入れましょう(allow A to Bの文型)。", fillAns:"allows",
+ choiceQ:"次の英文の空所に入る最も適切な形はどれ？\n「The new policy allows students _____ assignments online.」(新しい方針により、学生は課題をオンラインで提出できるようになった)", choices:["to submit","submit","submitting","submitted"], choiceAnsOverride:"to submit",
+ tokens:["The new policy","allows","students","to submit","assignments","online."],
+ wrongPart:"submitting", corrAns:"to submit", corrSentence:"The new policy allows students submitting assignments online.",
+ explanation:"allow A to V「AがVするのを許可する」。to不定詞を続ける点に注意。", related:"compel A to V「AにVすることを強制する」も同じto不定詞パターン。",
+ meaning:"新しい方針により、学生は課題をオンラインで提出できるようになった。"},
+
+{cat:CAT_C, src:"IMG_0621", full:"The heavy rain compelled us to cancel the outdoor event.",
+ fillQ:"The heavy rain _____ us to cancel the outdoor event.", fillHint:"「AにVすることを強制する」という意味の動詞(過去形)を入れましょう。", fillAns:"compelled",
+ choiceQ:"次の英文の空所に入る最も適切な形はどれ？\n「The heavy rain compelled us _____ the outdoor event.」(大雨のせいで屋外イベントを中止せざるを得なかった)", choices:["to cancel","cancel","cancelling","cancelled"], choiceAnsOverride:"to cancel",
+ tokens:["The heavy rain","compelled","us","to cancel","the outdoor event."],
+ wrongPart:"cancel", corrAns:"to cancel", corrSentence:"The heavy rain compelled us cancel the outdoor event.",
+ explanation:"compel A to Vは「AにVすることを余儀なくさせる」というやや強制的なニュアンスの表現。", related:"allow A to Vとセットでto不定詞をとる動詞として整理する。",
+ meaning:"大雨のせいで屋外イベントを中止せざるを得なかった。"},
+
+{cat:CAT_C, src:"IMG_0620", full:"It can be difficult to distinguish organic produce from non-organic produce.",
+ fillQ:"It can be difficult to _____ organic produce from non-organic produce.", fillHint:"「AをBと見分ける」という意味の動詞を入れましょう(distinguish A from Bの文型)。", fillAns:"distinguish",
+ choiceQ:"次の英文の空所に入る最も適切な前置詞はどれ？\n「It can be difficult to distinguish organic produce _____ non-organic produce.」(有機栽培の農産物とそうでないものを見分けるのは難しいことがある)", choices:["from","with","to","of"], choiceAnsOverride:"from",
+ tokens:["It","can be","difficult","to distinguish","organic produce","from","non-organic produce."],
+ wrongPart:"with", corrAns:"from", corrSentence:"It can be difficult to distinguish organic produce with non-organic produce.",
+ explanation:"distinguish A from Bは「AをBと区別する」。fromを使う点に注意。", related:"precise(正確な)、concise(簡潔な)もこのノートに登場した語。",
+ meaning:"有機栽培の農産物とそうでないものを見分けるのは難しいことがある。"},
+
+{cat:CAT_C, src:"IMG_0617", full:"I would rather walk to the station than wait for the bus.",
+ fillQ:"I would _____ walk to the station than wait for the bus.", fillHint:"「むしろ~したい」という意味を作る語を入れましょう(would rather A than Bの文型)。", fillAns:"rather",
+ choiceQ:"次の英文の空所に入る最も適切な語はどれ？\n「I would rather walk to the station _____ wait for the bus.」(バスを待つより駅まで歩くほうがいい)", choices:["than","then","as","or"], choiceAnsOverride:"than",
+ tokens:["I","would rather","walk","to the station","than","wait","for the bus."],
+ wrongPart:"then", corrAns:"than", corrSentence:"I would rather walk to the station then wait for the bus.",
+ explanation:"would rather A than Bは「BよりAをしたい」という比較の文型。thanのスペルに注意(thenと混同しやすい)。", related:"prefer A to Bも似た意味の表現として一緒に覚える。",
+ meaning:"私はバスを待つより駅まで歩くほうがいい。"},
+
+{cat:CAT_C, src:"IMG_0621", full:"The program is designed to help first-year students adjust to campus life.",
+ fillQ:"The program is _____ to help first-year students adjust to campus life.", fillHint:"「Vするように設計されている」という意味の過去分詞を入れましょう。", fillAns:"designed",
+ choiceQ:"次の英文の空所に入る最も適切な形はどれ？\n「The program is _____ to help first-year students adjust to campus life.」(このプログラムは新入生がキャンパス生活に慣れるのを助けるために設計されている)", choices:["designed","design","designing","designs"], choiceAnsOverride:"designed",
+ tokens:["The program","is designed","to help","first-year students","adjust","to campus life."],
+ wrongPart:"design", corrAns:"designed", corrSentence:"The program is design to help first-year students adjust to campus life.",
+ explanation:"be designed to Vは「Vするために作られている」という意味の受動態表現。", related:"be tailored to A(Aに合わせて調整される)も似た意味の表現。",
+ meaning:"このプログラムは新入生がキャンパス生活に慣れるのを助けるために設計されている。"},
+
+{cat:CAT_C, src:"IMG_0834", full:"Please mark the completed ballots as counted.",
+ fillQ:"Please _____ the completed ballots as counted.", fillHint:"「AをBとしてマークする」という意味の動詞を入れましょう(mark A as Bの文型)。", fillAns:"mark",
+ choiceQ:"次の英文の空所に入る最も適切な語はどれ？\n「Please mark the completed ballots _____ counted.」(記入済みの投票用紙には集計済みの印をつけてください)", choices:["as","for","to","with"], choiceAnsOverride:"as",
+ tokens:["Please","mark","the completed ballots","as","counted."],
+ wrongPart:"for", corrAns:"as", corrSentence:"Please mark the completed ballots for counted.",
+ explanation:"mark A as Bは「AをBとして印をつける」という意味。投票(ballot)の集計場面で使われた表現。", related:"custodian(管理人)、podium(演壇)も同じ投票のシーンに登場した語。",
+ meaning:"記入済みの投票用紙には集計済みの印をつけてください。"},
+
+{cat:CAT_C, src:"IMG_0625", full:"There are far more people who prefer the quality yogurt than those who prefer the cheaper one.",
+ fillQ:"There are far more people who prefer the quality yogurt _____ those who prefer the cheaper one.", fillHint:"比較を表す語を入れましょう(far more A than Bの文型)。", fillAns:"than",
+ choiceQ:"次の英文の空所に入る最も適切な語はどれ？\n「There are far more people who prefer the quality yogurt _____ those who prefer the cheaper one.」(安いヨーグルトより高品質なヨーグルトを好む人の方がはるかに多い)", choices:["than","then","as","that"], choiceAnsOverride:"than",
+ tokens:["There are","far more people","who prefer","the quality yogurt","than","those","who prefer","the cheaper one."],
+ wrongPart:"then", corrAns:"than", corrSentence:"There are far more people who prefer the quality yogurt then those who prefer the cheaper one.",
+ explanation:"far more A than Bは「Bよりはるかに多くのA」という比較表現。", related:"it would benefit more people to V(Vする方がより多くの人の利益になる)も同じ文脈で使われた表現。",
+ meaning:"安いヨーグルトより高品質なヨーグルトを好む人の方がはるかに多い。"},
+
+{cat:CAT_C, src:"IMG_0614", full:"Ocean currents carry heat from the equator to the poles.",
+ fillQ:"Ocean currents _____ heat from the equator to the poles.", fillHint:"「(熱などを)運ぶ」という意味の動詞を入れましょう。", fillAns:"carry",
+ choiceQ:"次の英文の空所に入る最も適切な前置詞はどれ？\n「Ocean currents carry heat _____ the equator to the poles.」(海流は赤道から極地へ熱を運ぶ)", choices:["from","of","with","by"], choiceAnsOverride:"from",
+ tokens:["Ocean currents","carry","heat","from","the equator","to","the poles."],
+ wrongPart:"of", corrAns:"from", corrSentence:"Ocean currents carry heat of the equator to the poles.",
+ explanation:"carry O from A to Bは「AからBへOを運ぶ」という意味。海流(ocean currents)が熱を運ぶ仕組みを説明する文で使われた。", related:"helping to distribute heat(熱を分配するのを助ける)、making its climate milder(気候を穏やかにする)も同じ文脈。",
+ meaning:"海流は赤道から極地へ熱を運ぶ。"},
+
+{cat:CAT_D, src:"IMG_0616", full:"I am pleased to announce the launch of our community-wide recycling initiative.",
+ fillQ:"I am _____ to announce the launch of our community-wide recycling initiative.", fillHint:"「~をお知らせできて嬉しく思う」という定型表現の一部を入れましょう。", fillAns:"pleased",
+ choiceQ:"次の空所に入る語はどれ？\n「I am _____ to announce the launch of our recycling initiative.」(地域全体のリサイクル運動の開始をお知らせできることを嬉しく思います)", choices:["pleased","please","pleasing","pleasure"], choiceAnsOverride:"pleased",
+ tokens:["I am","pleased","to announce","the launch","of our","community-wide","recycling initiative."],
+ wrongPart:"please", corrAns:"pleased", corrSentence:"I am please to announce the launch of our community-wide recycling initiative.",
+ explanation:"I am pleased to announceはお知らせ・案内メールの冒頭でよく使われる丁寧な定型表現。", related:"the launch of A(Aの開始)、initiative(取り組み)もセットで覚える。",
+ meaning:"地域全体のリサイクル運動の開始をお知らせできることを嬉しく思います。"},
+
+{cat:CAT_D, src:"IMG_0617", full:"Can you make it to the meeting at that time?",
+ fillQ:"Can you _____ to the meeting at that time?", fillHint:"「(都合をつけて)来られる」という意味の熟語を入れましょう。", fillAns:"make it",
+ choiceQ:"「(その時間に)来られますか」の「来られる」にあたる熟語はどれ？", choices:["make it","take it","give it","hold it"],
+ tokens:["Can","you","make it","to the meeting","at that time?"],
+ wrongPart:"made", corrAns:"make", corrSentence:"Can you made it to the meeting at that time?",
+ explanation:"make it (to A)は「(Aに)都合をつけて来られる、間に合う」という意味のカジュアルな熟語。", related:"sign up(登録する)、work fine(問題なくうまくいく)も同じノートに登場した表現。",
+ meaning:"その時間に会議に来られますか。"},
+
+{cat:CAT_D, src:"IMG_0617", full:"Please notify the office if you cannot attend.",
+ fillQ:"Please _____ the office if you cannot attend.", fillHint:"「知らせる、通知する」という意味の動詞を入れましょう。", fillAns:"notify",
+ choiceQ:"「知らせる、通知する」という意味の動詞はどれ？", choices:["notify","notice","announce","inform"],
+ tokens:["Please","notify","the office","if","you cannot","attend."],
+ wrongPart:"notice", corrAns:"notify", corrSentence:"Please notice the office if you cannot attend.",
+ explanation:"notify Aで「Aに知らせる、通知する」という意味。noticeは名詞または「気づく」という意味の動詞なので注意。", related:"sign up、Can you make itと同じくメール・連絡関連の表現としてまとめて覚える。",
+ meaning:"出席できない場合は事務局に知らせてください。"},
+
+{cat:CAT_D, src:"IMG_0617", full:"You need to sign up for the workshop by Friday.",
+ fillQ:"You need to _____ for the workshop by Friday.", fillHint:"「登録する、申し込む」という意味の熟語を入れましょう。", fillAns:"sign up",
+ choiceQ:"「登録する、申し込む」という意味の熟語はどれ？", choices:["sign up","sign off","sign out","sign in"],
+ tokens:["You","need to","sign up","for the workshop","by Friday."],
+ wrongPart:"signing up", corrAns:"sign up", corrSentence:"You need to signing up for the workshop by Friday.",
+ explanation:"sign up for Aで「Aに登録する、申し込む」という意味。sign off(承認する)、sign out(署名して持ち出す)と混同しないよう注意。", related:"eligibility(資格)、roster(名簿)も関連語。",
+ meaning:"金曜日までにワークショップに申し込む必要がある。"},
+
+{cat:CAT_D, src:"IMG_0834", full:"He has not mentioned receiving any update from you.",
+ fillQ:"He has not mentioned _____ any update from you.", fillHint:"mentionの後に続く動詞の形を考えましょう(動名詞をとる動詞)。", fillAns:"receiving",
+ choiceQ:"次の空所に入る最も適切な形はどれ？\n「He has not mentioned _____ any update from you.」(彼はあなたから更新を受け取ったことに一切言及していない)", choices:["receiving","receive","received","to receive"], choiceAnsOverride:"receiving",
+ tokens:["He","has not","mentioned","receiving","any update","from you."],
+ wrongPart:"to receive", corrAns:"receiving", corrSentence:"He has not mentioned to receive any update from you.",
+ explanation:"mentionは目的語に動名詞(Ving)をとる動詞。to不定詞は続けられない点に注意。", related:"everyone/anyone/someone/no oneの使い分けも同じノートに登場。",
+ meaning:"彼はあなたから更新を受け取ったことに一切言及していない。"},
+
+{cat:CAT_D, src:"IMG_0625", full:"Sorry, I have a last-minute family commitment and cannot attend.",
+ fillQ:"Sorry, I have a _____ family commitment and cannot attend.", fillHint:"「直前の」という意味のハイフン付き形容詞を入れましょう。", fillAns:"last-minute",
+ choiceQ:"「直前の」という意味のハイフン付き形容詞はどれ？", choices:["last-minute","first-minute","final-minute","late-minute"],
+ tokens:["Sorry,","I have","a last-minute","family commitment","and","cannot attend."],
+ wrongPart:"attending", corrAns:"attend", corrSentence:"Sorry, I have a last-minute family commitment and cannot attending.",
+ explanation:"last-minuteは「直前の、土壇場の」という意味の形容詞。family commitment(家族の用事)を修飾する。", related:"keep up with commitments(約束を守り続ける)と一緒に覚えておくとよい。",
+ meaning:"すみません、直前に家族の用事ができて出席できません。"},
+
+{cat:CAT_D, src:"IMG_0624", full:"I can't make the meeting, so please go over the notes for me.",
+ fillQ:"I can't make the meeting, so please _____ the notes for me.", fillHint:"「(資料などを)見直す」という意味の熟語を入れましょう。", fillAns:"go over",
+ choiceQ:"「(資料などを)見直す、確認する」という意味の熟語はどれ？", choices:["go over","go through","go off","go around"],
+ tokens:["I can't","make the meeting,","so please","go over","the notes","for me."],
+ wrongPart:"went", corrAns:"go", corrSentence:"I can't make the meeting, so please went over the notes for me.",
+ explanation:"go over Aで「Aを見直す、点検する」という意味。", related:"elaborate(詳しく説明する)、off-site employee(現地外の従業員)も同じノートに登場。",
+ meaning:"会議に出席できないので、私の代わりにノートを見直しておいてください。"},
+
+{cat:CAT_E, src:"IMG_0625", full:"I don't know which option is better, but our conversation should end the confusion.",
+ fillQ:"I don't know _____ option is better, but our conversation should end the confusion.", fillHint:"「どちらの」という意味の疑問詞を入れましょう。", fillAns:"which",
+ choiceQ:"次の空所に入る最も適切な疑問詞はどれ？\n「I don't know _____ option is better.」(どちらの案が良いか分からない)", choices:["which","what","that","how"], choiceAnsOverride:"which",
+ tokens:["I don't know","which option","is better,","but","our conversation","should end","the confusion."],
+ wrongPart:"what", corrAns:"which", corrSentence:"I don't know what option is better, but our conversation should end the confusion.",
+ explanation:"which option「どちらの選択肢」のように、2つ以上の選択肢から選ぶときはwhichを使う。", related:"I wonder if ~(~かなと思う)も似た構文として一緒に整理する。",
+ meaning:"どちらの案が良いか分からないが、私たちの話し合いで混乱を終わらせるべきだ。"},
+
+{cat:CAT_E, src:"IMG_0625", full:"The water aerobics class will start in half an hour.",
+ fillQ:"The water aerobics class will start _____ half an hour.", fillHint:"「(今から)~後に」という意味の前置詞を入れましょう。", fillAns:"in",
+ choiceQ:"次の空所に入る最も適切な前置詞はどれ？\n「The class will start _____ half an hour.」(そのクラスは30分後に始まる)", choices:["in","at","for","within"], choiceAnsOverride:"in",
+ tokens:["The water aerobics class","will start","in","half","an hour."],
+ wrongPart:"at", corrAns:"in", corrSentence:"The water aerobics class will start at half an hour.",
+ explanation:"in + 時間で「(今から)~後に」という未来の時点を表す。", related:"end in ten minutes(10分で終わる)も同じ構文。",
+ meaning:"水中エアロビクスのクラスは30分後に始まる。"},
+
+{cat:CAT_E, src:"IMG_0625", full:"Report any suspicious activity to the front desk immediately.",
+ fillQ:"Report any _____ activity to the front desk immediately.", fillHint:"「不審な」という意味の形容詞を入れましょう。", fillAns:"suspicious",
+ choiceQ:"「不審な」という意味の形容詞はどれ？", choices:["suspicious","positive","routine","official"],
+ tokens:["Report","any suspicious activity","to","the front desk","immediately."],
+ wrongPart:"for", corrAns:"to", corrSentence:"Report any suspicious activity for the front desk immediately.",
+ explanation:"suspicious activityで「不審な行動、不審な活動」という意味。", related:"stay alert(警戒を怠らない)とセットで安全管理の表現として覚える。",
+ meaning:"不審な行動があればすぐにフロントデスクに報告してください。"},
+
+{cat:CAT_E, src:"IMG_0625", full:"If something feels out of place, report it right away.",
+ fillQ:"If something feels _____, report it right away.", fillHint:"「違和感がある、場違いに感じる」という意味の熟語を入れましょう。", fillAns:"out of place",
+ choiceQ:"「違和感がある、場違いに感じる」という意味の熟語はどれ？", choices:["out of place","out of order","out of date","out of reach"],
+ tokens:["If","something feels","out of place,","report","it","right away."],
+ wrongPart:"right way", corrAns:"right away", corrSentence:"If something feels out of place, report it right way.",
+ explanation:"feel out of placeは「違和感がある、場にそぐわない感じがする」という意味。", related:"fight away(すぐに立ち去る)、positive outcome(良い結果)も同じ文脈のノートに登場。",
+ meaning:"何か違和感を感じたら、すぐに報告してください。"},
+
+{cat:CAT_E, src:"IMG_0835", full:"Spots are first come, first served, so arrive early.",
+ fillQ:"Spots are first come, first _____, so arrive early.", fillHint:"「先着順」を作る過去分詞を入れましょう。", fillAns:"served",
+ choiceQ:"「先着順」という意味の定型表現はどれ？", choices:["first served","first serve","first serving","first serves"], choiceAnsOverride:"first served",
+ tokens:["Spots are","first come,","first served,","so","arrive early."],
+ wrongPart:"serve", corrAns:"served", corrSentence:"Spots are first come, first serve, so arrive early.",
+ explanation:"first come, first servedは「早い者勝ち、先着順」という意味の決まり文句。", related:"per day(一日あたり)、certain students(特定の学生)も同じノートに登場した表現。",
+ meaning:"席は先着順なので、早めに来てください。"},
+
+{cat:CAT_E, src:"IMG_0834", full:"The lockers are available for temporary storage use only.",
+ fillQ:"The lockers are available for _____ storage use only.", fillHint:"「一時的な」という意味の形容詞を入れましょう。", fillAns:"temporary",
+ choiceQ:"「一時的な」という意味の形容詞はどれ？", choices:["temporary","permanent","private","official"],
+ tokens:["The lockers","are available","for","temporary storage","use only."],
+ wrongPart:"uses", corrAns:"use", corrSentence:"The lockers are available for temporary storage uses only.",
+ explanation:"temporary storageで「一時保管」という意味。", related:"sign-out clipboard(サインアウト用クリップボード)も同じ文脈で登場。",
+ meaning:"そのロッカーは一時保管のためだけに利用可能だ。"},
+
+{cat:CAT_E, src:"IMG_0834", full:"It usually takes several years to obtain permanent residency.",
+ fillQ:"It usually takes several years to _____ permanent residency.", fillHint:"「取得する」という意味の動詞を入れましょう。", fillAns:"obtain",
+ choiceQ:"「取得する」という意味の動詞はどれ？", choices:["obtain","obtaining","obtained","obtains"],
+ tokens:["It","usually takes","several years","to obtain","permanent residency."],
+ wrongPart:"obtaining", corrAns:"obtain", corrSentence:"It usually takes several years to obtaining permanent residency.",
+ explanation:"obtain Aで「Aを取得する、獲得する」というやや堅い表現。", related:"start dating(付き合い始める)、depends on my budget(予算次第だ)も同じノートに登場した日常表現。",
+ meaning:"永住権を取得するには通常数年かかる。"}
+];
+
+ITEMS.forEach((it, idx) => {
+  const n = idx + 1;
+  const fillId = 2*n - 1, choiceId = 2*n;
+  FILLCHOICE_QUESTIONS.push({
+    id: fillId, type: "fill", category: it.cat, question: it.fillQ, hint: it.fillHint,
+    fullSentence: it.full, answer: it.fillAns, source: it.src,
+    explanation: it.explanation, relatedInfo: it.related
+  });
+  FILLCHOICE_QUESTIONS.push({
+    id: choiceId, type: "choice", category: it.cat, question: it.choiceQ, hint: it.fillHint,
+    fullSentence: it.full, answer: it.choiceAnsOverride || it.fillAns, choices: it.choices, source: it.src,
+    explanation: it.explanation, relatedInfo: it.related
+  });
+  ORDER_QUESTIONS.push({
+    id: fillId, type: "reorder", category: it.cat,
+    hint: "「" + it.meaning + "」という意味になるように単語を並べ替えましょう。",
+    tokens: it.tokens, fullSentence: it.full, source: it.src,
+    explanation: it.explanation, relatedInfo: it.related
+  });
+  const wrongPartEscaped = it.wrongPart.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const wrongPartRegex = new RegExp("\\b" + wrongPartEscaped + "\\b");
+  ORDER_QUESTIONS.push({
+    id: choiceId, type: "correction", category: it.cat,
+    hint: "「" + it.meaning + "」という意味の英文です。誤っている部分を正しい形に直しましょう。",
+    question: it.corrSentence.replace(wrongPartRegex, "[[" + it.wrongPart + "]]"),
+    wrongPart: it.wrongPart, answer: it.corrAns, fullSentence: it.full, source: it.src,
+    explanation: it.explanation, relatedInfo: it.related
+  });
+  WRITE_QUESTIONS.push({
+    id: n, type: "free", category: it.cat,
+    hint: "「" + it.meaning + "」という意味の英文を書いてください。",
+    keyPhrases: [it.fillAns.toLowerCase()], answer: it.full, fullSentence: it.full, source: it.src,
+    explanation: it.explanation, relatedInfo: it.related
+  });
+});
+
+const MATCH_SETS = [
+{id:39, cat:CAT_A, src:["IMG_0619"], pairs:[
+  {japanese:"膜", english:"membrane"},
+  {japanese:"透過性の", english:"permeable"},
+  {japanese:"脂質", english:"lipid"},
+  {japanese:"誤作動", english:"malfunction"}],
+  explanation:"細胞の構造に関する語彙セット。膜(membrane)の性質を表す語を中心にまとめた。", related:"bilayer(二重層)、self-assembly(自己組織化)も関連語。"},
+{id:40, cat:CAT_A, src:["IMG_0622"], pairs:[
+  {japanese:"もろい、壊れやすい", english:"fragile"},
+  {japanese:"高山の", english:"alpine"},
+  {japanese:"植物相", english:"flora"},
+  {japanese:"動物相", english:"fauna"}],
+  explanation:"高山生態系に関する語彙セット。", related:"durability(耐久性)、composite(複合の)と合わせて理科系語彙として整理する。"},
+{id:41, cat:CAT_B, src:["IMG_0618"], pairs:[
+  {japanese:"~に注意する", english:"watch out for"},
+  {japanese:"念のため", english:"just in case"},
+  {japanese:"引き継ぐ", english:"take over"},
+  {japanese:"~を担当している", english:"be in charge of"}],
+  explanation:"職場・日常でよく使う「対応・注意」を表す熟語セット。", related:"authorize(許可する)、sign off(承認する)も関連語。"},
+{id:42, cat:CAT_C, src:["IMG_0620"], pairs:[
+  {japanese:"良い面としては", english:"on the upside"},
+  {japanese:"~に見られるように", english:"as seen in"},
+  {japanese:"~に合わせて調整される", english:"be tailored to"},
+  {japanese:"自立", english:"self-reliance"}],
+  explanation:"マイクロファイナンスの説明で使われる表現セット。", related:"collateral(担保)、repayment(返済)と合わせて経済語彙として整理する。"},
+{id:43, cat:CAT_D, src:["IMG_0834"], pairs:[
+  {japanese:"発信文書", english:"outgoing letters"},
+  {japanese:"置かれる", english:"be dropped off"},
+  {japanese:"ラミネート加工の通知", english:"laminated notice"},
+  {japanese:"毎日処理される", english:"be processed daily"}],
+  explanation:"オフィス・事務手続きに関するメール表現セット。", related:"unclaimed property(未請求の財産)、record laws(記録法)も関連語。"},
+{id:44, cat:CAT_A, src:["IMG_0620"], pairs:[
+  {japanese:"マイクロファイナンス", english:"microfinance"},
+  {japanese:"担保", english:"collateral"},
+  {japanese:"返済", english:"repayment"},
+  {japanese:"世帯収入", english:"household incomes"}],
+  explanation:"マイクロファイナンスの仕組みに関する経済語彙セット。", related:"self-reliance(自立)、interest(利子)も同じ文脈で登場した語。"},
+{id:45, cat:CAT_A, src:["IMG_0835"], pairs:[
+  {japanese:"抽象芸術", english:"abstract art"},
+  {japanese:"物議を醸す", english:"controversial"},
+  {japanese:"顔料", english:"pigment"},
+  {japanese:"著名な", english:"prominent"}],
+  explanation:"抽象芸術の解説でよく使われる美術史語彙セット。", related:"gestural brushwork(身振り的な筆致)、proliferation(増殖)も関連語。"},
+{id:46, cat:CAT_E, src:["IMG_0834"], pairs:[
+  {japanese:"管理人", english:"custodian"},
+  {japanese:"演壇", english:"podium"},
+  {japanese:"投票箱", english:"the ballot box"},
+  {japanese:"投票する", english:"cast their ballots"}],
+  explanation:"学校行事(投票)で使われるキャンパス語彙セット。", related:"completed ballot(記入済み投票用紙)、submit a ballot(投票を提出する)も関連語。"},
+{id:47, cat:CAT_A, src:["IMG_0618"], pairs:[
+  {japanese:"さなぎ", english:"chrysalis"},
+  {japanese:"脱皮する", english:"molt"},
+  {japanese:"節足動物", english:"arthropods"},
+  {japanese:"脆弱な", english:"vulnerable"}],
+  explanation:"昆虫の変態に関する生物語彙セット。", related:"shed(脱ぐ)、swell(膨らむ)、outgrow(大きくなりすぎる)も関連語。"}
+];
+
+MATCH_SETS.forEach(m => {
+  WRITE_QUESTIONS.push({
+    id: m.id, type: "match", category: m.cat,
+    hint: "日本語と英語を正しく組み合わせてください",
+    pairs: m.pairs, sources: m.src,
+    explanation: m.explanation, relatedInfo: m.related
+  });
+});
+
+/* ================= STORAGE KEYS ================= */
+const STORAGE_KEY_FILLCHOICE  = "wt_all_fillchoice_seen_Santa";
+const BOOKMARK_KEY_FILLCHOICE = "wt_all_fillchoice_bookmark_Santa";
+const TRASH_KEY_FILLCHOICE    = "wt_all_fillchoice_trash_Santa";
+const STORAGE_KEY_ORDER       = "wt_all_order_seen_Santa";
+const BOOKMARK_KEY_ORDER      = "wt_all_order_bookmark_Santa";
+const TRASH_KEY_ORDER         = "wt_all_order_trash_Santa";
+const STORAGE_KEY_WRITE       = "wt_all_write_seen_Santa";
+const BOOKMARK_KEY_WRITE      = "wt_all_write_bookmark_Santa";
+const TRASH_KEY_WRITE         = "wt_all_write_trash_Santa";
+
+const FORMAT_LABEL = {fillchoice:"穴埋め・選択肢", order:"並べ替え・誤り訂正", write:"自由記述・マッチング"};
+const FORMAT_BADGE = {fillchoice:"✏️", order:"📝", write:"✍️"};
+const TYPE_LABEL = {fill:"穴埋め", choice:"選択肢", reorder:"並べ替え", correction:"誤り訂正", free:"自由記述", match:"マッチング"};
+
+let hasStorage = true;
+try { localStorage.setItem("__t","1"); localStorage.removeItem("__t"); } catch(e){ hasStorage = false; }
+
+let currentFormat = null, currentMode = null, currentCategory = null;
+let sessionQuestions = [], currentIndex = 0, score = 0;
+let answered = false;
+let currentAudio = null, currentBtn = null;
+let currentView = "format";
+let pendingCategory = null;
+let trashedThisQuestion = false;
+let lastResult = null;
+
+let reorderTiles = [], reorderAssembled = [];
+let matchShuffledJ = [], matchShuffledE = [], matchAssignment = {}, matchSelectedJ = null;
+let choiceSelectedIdx = null;
+
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]] = [a[j],a[i]];
+  }
+  return a;
+}
+
+function questionsFor(format){
+  if(format === "fillchoice") return FILLCHOICE_QUESTIONS;
+  if(format === "order") return ORDER_QUESTIONS;
+  return WRITE_QUESTIONS;
+}
+function storageKeyFor(format){
+  if(format === "fillchoice") return STORAGE_KEY_FILLCHOICE;
+  if(format === "order") return STORAGE_KEY_ORDER;
+  return STORAGE_KEY_WRITE;
+}
+function bookmarkKeyFor(format){
+  if(format === "fillchoice") return BOOKMARK_KEY_FILLCHOICE;
+  if(format === "order") return BOOKMARK_KEY_ORDER;
+  return BOOKMARK_KEY_WRITE;
+}
+function trashKeyFor(format){
+  if(format === "fillchoice") return TRASH_KEY_FILLCHOICE;
+  if(format === "order") return TRASH_KEY_ORDER;
+  return TRASH_KEY_WRITE;
+}
+function audioFolderFor(format){
+  if(format === "fillchoice") return "audio_fillchoice";
+  if(format === "order") return "audio_order";
+  return "audio_write";
+}
+
+function getBookmarks(format){
+  if(!hasStorage) return [];
+  return JSON.parse(localStorage.getItem(bookmarkKeyFor(format)) || "[]");
+}
+function toggleBookmark(format, id){
+  if(!hasStorage) return false;
+  let list = getBookmarks(format);
+  list = list.includes(id) ? list.filter(x => x !== id) : [...list, id];
+  localStorage.setItem(bookmarkKeyFor(format), JSON.stringify(list));
+  return list.includes(id);
+}
+function getTrash(format){
+  if(!hasStorage) return [];
+  return JSON.parse(localStorage.getItem(trashKeyFor(format)) || "[]");
+}
+function moveToTrash(format, id){
+  if(!hasStorage) return;
+  const list = getTrash(format);
+  if(!list.includes(id)){
+    list.push(id);
+    localStorage.setItem(trashKeyFor(format), JSON.stringify(list));
+  }
+}
+function restoreFromTrash(format, id){
+  if(!hasStorage) return;
+  const list = getTrash(format).filter(x => x !== id);
+  localStorage.setItem(trashKeyFor(format), JSON.stringify(list));
+}
+function activeQuestionsFor(format){
+  const trashed = new Set(getTrash(format));
+  return questionsFor(format).filter(q => !trashed.has(q.id));
+}
+
+function getRandomSessionQuestions(format){
+  const all = activeQuestionsFor(format);
+  if(!hasStorage) return shuffle(all).slice(0,20);
+  const seen = JSON.parse(localStorage.getItem(storageKeyFor(format)) || "[]");
+  const seenSet = new Set(seen);
+  const seenQuestions = all.filter(q => seenSet.has(q.id));
+  const unseenQuestions = all.filter(q => !seenSet.has(q.id));
+  if(seenQuestions.length > 0){
+    const total = Math.min(20, all.length);
+    const fromSeen = Math.round(total * 0.3);
+    const fromUnseen = total - fromSeen;
+    const pickedSeen = shuffle(seenQuestions).slice(0, fromSeen);
+    const pickedUnseen = shuffle(unseenQuestions).slice(0, fromUnseen);
+    if(pickedUnseen.length < fromUnseen){
+      const extra = shuffle(seenQuestions.filter(q => !pickedSeen.includes(q))).slice(0, fromUnseen - pickedUnseen.length);
+      return shuffle([...pickedSeen, ...pickedUnseen, ...extra]);
+    }
+    return shuffle([...pickedSeen, ...pickedUnseen]);
+  }
+  return shuffle(all).slice(0,20);
+}
+function getAllSessionQuestions(format){ return shuffle(activeQuestionsFor(format)); }
+function getCategorySessionQuestions(format, categoryName){
+  return shuffle(activeQuestionsFor(format).filter(q => q.category === categoryName));
+}
+function getBookmarkSessionQuestions(format){
+  const bookmarks = new Set(getBookmarks(format));
+  return shuffle(activeQuestionsFor(format).filter(q => bookmarks.has(q.id)));
+}
+
+function saveSeenQuestions(format, questions){
+  if(!hasStorage) return;
+  const key = storageKeyFor(format);
+  const prev = JSON.parse(localStorage.getItem(key) || "[]");
+  const merged = Array.from(new Set([...prev, ...questions.map(q => q.id)]));
+  localStorage.setItem(key, JSON.stringify(merged));
+}
+
+function startTest(format, mode, categoryName){
+  currentFormat = format;
+  currentMode = mode;
+  currentCategory = categoryName || null;
+  if(mode === "random") sessionQuestions = getRandomSessionQuestions(format);
+  else if(mode === "all") sessionQuestions = getAllSessionQuestions(format);
+  else if(mode === "category") sessionQuestions = getCategorySessionQuestions(format, categoryName);
+  else if(mode === "bookmark") sessionQuestions = getBookmarkSessionQuestions(format);
+  sessionQuestions = sessionQuestions.map(q => q.type === "choice" ? Object.assign({}, q, {shuffledChoices: shuffle(q.choices)}) : q);
+  currentIndex = 0;
+  score = 0;
+  currentView = "question";
+  initQuestionState();
+  render();
+}
+
+/* ================= AUDIO ================= */
+function resetPlayBtn(btn){ btn.textContent = "🔊 英文を聞く"; btn.classList.remove("playing"); }
+function playAudio(btn, src){
+  const isSameBtn = (currentBtn === btn);
+  if(currentAudio){ currentAudio.pause(); currentAudio.currentTime = 0; }
+  if(currentBtn){ resetPlayBtn(currentBtn); currentBtn = null; }
+  if(isSameBtn){ currentAudio = null; return; }
+  const audio = new Audio(src);
+  currentAudio = audio; currentBtn = btn;
+  btn.textContent = "■ 停止"; btn.classList.add("playing");
+  audio.onended = audio.onerror = () => { resetPlayBtn(btn); if(currentBtn === btn){ currentBtn = null; currentAudio = null; } };
+  audio.play();
+}
+
+/* ================= IMAGE MODAL ================= */
+function openImageModal(src){
+  document.getElementById("imgModalImg").src = src;
+  document.getElementById("imgModal").classList.remove("hidden");
+}
+function closeImageModal(){
+  document.getElementById("imgModal").classList.add("hidden");
+  document.getElementById("imgModalImg").src = "";
+}
+document.addEventListener("keydown", e => { if(e.key === "Escape") closeImageModal(); });
+
+function sourceThumbsHtml(q){
+  const list = q.source ? [q.source] : (q.sources || []);
+  if(list.length === 0) return "";
+  return '<div class="source-thumbs">' + list.map(s =>
+    '<img class="source-thumb" src="images/' + s + '.jpg" alt="' + s + '" loading="lazy" onclick="openImageModal(\'images/' + s + '.jpg\')" onerror="this.style.display=\'none\'">'
+  ).join("") + '</div>';
+}
+
+/* ================= QUESTION STATE INIT ================= */
+function initQuestionState(){
+  const q = sessionQuestions[currentIndex];
+  answered = false;
+  lastResult = null;
+  trashedThisQuestion = false;
+  reorderTiles = []; reorderAssembled = [];
+  matchShuffledJ = []; matchShuffledE = []; matchAssignment = {}; matchSelectedJ = null;
+  choiceSelectedIdx = null;
+  if(!q) return;
+  if(q.type === "reorder"){
+    reorderTiles = shuffle(q.tokens.map(t => ({text:t}))).map(t => ({text:t.text, used:false}));
+    reorderAssembled = [];
+  } else if(q.type === "match"){
+    matchShuffledJ = shuffle(q.pairs.map((p,i) => ({text:p.japanese, pairIndex:i})));
+    matchShuffledE = shuffle(q.pairs.map((p,i) => ({text:p.english, pairIndex:i})));
+  }
+}
+
+/* ================= NAVIGATION ================= */
+function showFormatSelect(){ currentFormat=null; currentMode=null; currentCategory=null; pendingCategory=null; currentView="format"; render(); }
+function showModeSelect(format){ currentFormat=format; pendingCategory=null; currentView="mode"; render(); }
+function selectCategory(cat){ pendingCategory = cat; render(); }
+function startCategoryTest(){ if(pendingCategory) startTest(currentFormat, "category", pendingCategory); }
+function showTrashScreen(){ currentView="trash"; render(); }
+function backToModeSelect(){ currentView="mode"; render(); }
+
+function bookmarkToggleUI(id){ toggleBookmark(currentFormat, id); render(); }
+function trashCurrentQuestion(){
+  const q = sessionQuestions[currentIndex];
+  if(confirm("この問題をゴミ箱に移動しますか？(ゴミ箱からいつでも戻せます)")){
+    moveToTrash(currentFormat, q.id);
+    trashedThisQuestion = true;
+    render();
+  }
+}
+
+/* ================= INTERACTIVE HANDLERS ================= */
+function choiceSelect(i){ if(answered) return; choiceSelectedIdx = i; render(); }
+function reorderTileClick(i){
+  if(answered || reorderTiles[i].used) return;
+  reorderTiles[i].used = true;
+  reorderAssembled.push(i);
+  render();
+}
+function reorderRemoveAt(pos){
+  if(answered) return;
+  const tileIdx = reorderAssembled[pos];
+  reorderTiles[tileIdx].used = false;
+  reorderAssembled.splice(pos,1);
+  render();
+}
+function reorderReset(){
+  if(answered) return;
+  reorderTiles.forEach(t => t.used = false);
+  reorderAssembled = [];
+  render();
+}
+function matchClickJ(di){ if(answered) return; matchSelectedJ = di; render(); }
+function matchClickE(di){
+  if(answered || matchSelectedJ === null) return;
+  Object.keys(matchAssignment).forEach(jd => { if(matchAssignment[jd] === di) delete matchAssignment[jd]; });
+  matchAssignment[matchSelectedJ] = di;
+  matchSelectedJ = null;
+  render();
+}
+
+/* ================= SCORING ================= */
+function submitAnswer(){
+  const q = sessionQuestions[currentIndex];
+  if(q.type === "fill" || q.type === "correction"){
+    const input = document.getElementById("answerInput");
+    const val = (input.value || "").trim().toLowerCase();
+    const correct = val === q.answer.trim().toLowerCase();
+    lastResult = {correct};
+    if(correct) score++;
+  } else if(q.type === "choice"){
+    if(choiceSelectedIdx === null) return;
+    const val = (q.shuffledChoices || q.choices)[choiceSelectedIdx];
+    const correct = val === q.answer;
+    lastResult = {correct};
+    if(correct) score++;
+  } else if(q.type === "reorder"){
+    if(reorderAssembled.length !== q.tokens.length) return;
+    const userTokens = reorderAssembled.map(i => reorderTiles[i].text);
+    const correct = userTokens.every((t,i) => t === q.tokens[i]);
+    lastResult = {correct};
+    if(correct) score++;
+  } else if(q.type === "free"){
+    const ta = document.getElementById("answerInput");
+    const val = (ta.value || "").trim().toLowerCase();
+    const missing = q.keyPhrases.filter(kp => !val.includes(kp.toLowerCase()));
+    const correct = missing.length === 0;
+    lastResult = {correct, missing};
+    if(correct) score++;
+  } else if(q.type === "match"){
+    if(Object.keys(matchAssignment).length !== q.pairs.length) return;
+    let correctCount = 0;
+    const results = [];
+    Object.keys(matchAssignment).forEach(jd => {
+      const ed = matchAssignment[jd];
+      const jItem = matchShuffledJ[jd];
+      const eItem = matchShuffledE[ed];
+      const ok = jItem.pairIndex === eItem.pairIndex;
+      if(ok) correctCount++;
+      results.push({japanese:jItem.text, english:eItem.text, ok, pairIndex:jItem.pairIndex});
+    });
+    const correct = correctCount === q.pairs.length;
+    lastResult = {correct, correctCount, total:q.pairs.length, results};
+    if(correct) score++;
+  }
+  answered = true;
+  render();
+}
+
+function nextQuestion(){
+  if(currentIndex < sessionQuestions.length - 1){
+    currentIndex++;
+    initQuestionState();
+    render();
+  } else {
+    if(currentMode === "random") saveSeenQuestions(currentFormat, sessionQuestions);
+    currentView = "results";
+    render();
+  }
+}
+
+/* ================= RENDER: MAIN ================= */
+function render(){
+  const app = document.getElementById("app");
+  if(currentView === "format") app.innerHTML = renderFormatSelect();
+  else if(currentView === "mode") app.innerHTML = renderModeSelect();
+  else if(currentView === "question") app.innerHTML = renderQuestionScreen();
+  else if(currentView === "results") app.innerHTML = renderResultsScreen();
+  else if(currentView === "trash") app.innerHTML = renderTrashScreen();
+}
+
+function renderFormatSelect(){
+  return `
+    <h1>📚 Santa ノート 総合テスト</h1>
+    <p class="sub">writing ノートの内容から作成した3つの出題形式です。挑戦したい形式を選んでください。</p>
+    <div class="format-grid">
+      <div class="format-card" onclick="showModeSelect('fillchoice')">
+        <h2>✏️ 穴埋め・選択肢</h2>
+        <p class="sub">日本語ヒントから空所を埋める／正しい英語表現を4択で選ぶ</p>
+        <p class="sub">問題プール数: ${FILLCHOICE_QUESTIONS.length}問</p>
+        <button class="btn">この形式で挑戦</button>
+      </div>
+      <div class="format-card" onclick="showModeSelect('order')">
+        <h2>📝 並べ替え・誤り訂正</h2>
+        <p class="sub">日本語ヒントから正しい語順を組み立てる／文法ミスを見抜く</p>
+        <p class="sub">問題プール数: ${ORDER_QUESTIONS.length}問</p>
+        <button class="btn">この形式で挑戦</button>
+      </div>
+      <div class="format-card" onclick="showModeSelect('write')">
+        <h2>✍️ 自由記述・マッチング</h2>
+        <p class="sub">日本語から英文をゼロから書く／日英フレーズを対応づける</p>
+        <p class="sub">問題プール数: ${WRITE_QUESTIONS.length}問</p>
+        <button class="btn">この形式で挑戦</button>
+      </div>
+    </div>
+  `;
+}
+
+function renderModeSelect(){
+  const format = currentFormat;
+  const all = activeQuestionsFor(format);
+  const total = all.length;
+  const bookmarks = getBookmarks(format);
+  const trash = getTrash(format);
+  const cats = {};
+  all.forEach(q => { cats[q.category] = (cats[q.category]||0)+1; });
+  const catButtons = Object.keys(cats).map(c =>
+    `<span class="cat-btn ${pendingCategory===c?'selected':''}" onclick="selectCategory('${c.replace(/'/g,"\\'")}')">${c} (${cats[c]}問)</span>`
+  ).join("");
+  const bmCount = all.filter(q=>bookmarks.includes(q.id)).length;
+  return `
+    <div class="link" onclick="showFormatSelect()">&larr; 出題形式選択に戻る</div>
+    <h1>${FORMAT_BADGE[format]} ${FORMAT_LABEL[format]}</h1>
+    <p class="sub">問題プール総数: ${total}問</p>
+    <div class="mode-grid">
+      <div class="mode-card">
+        <h3>🎲 ランダム20問(おまかせ)</h3>
+        <p class="sub">前回の復習30%＋未出題70%で自動選出</p>
+        <button class="btn" onclick="startTest('${format}','random')">このモードで始める</button>
+      </div>
+      <div class="mode-card">
+        <h3>📚 全問題に挑戦</h3>
+        <p class="sub">${total}問すべてをランダム順で出題</p>
+        <button class="btn" ${(total===0||!hasStorage)?'disabled':''} onclick="startTest('${format}','all')">このモードで始める</button>
+      </div>
+      <div class="mode-card">
+        <h3>🗂 ジャンル別に挑戦</h3>
+        <div>${catButtons || '<span class="sub">ジャンルがありません</span>'}</div>
+        <button class="btn" ${(pendingCategory&&hasStorage)?'':'disabled'} onclick="startCategoryTest()">選んだジャンルで始める</button>
+      </div>
+      <div class="mode-card">
+        <h3>🔖 復習リストから挑戦</h3>
+        <p class="sub">ブックマーク: ${bmCount}問</p>
+        <button class="btn" ${(bmCount===0||!hasStorage)?'disabled':''} onclick="startTest('${format}','bookmark')">復習リストで始める</button>
+        ${bmCount===0?'<p class="sub">問題画面の🔖チェックボックスでブックマークできます。</p>':''}
+      </div>
+    </div>
+    <div class="footer-links">
+      <span class="link" onclick="showTrashScreen()">🗑 ゴミ箱 (${trash.length}問)</span>
+    </div>
+    ${hasStorage?'':'<p class="sub">※このブラウザはlocalStorageに対応していないため、常にランダム20問モードのみ利用できます。</p>'}
+  `;
+}
+
+function renderQuestionScreen(){
+  const q = sessionQuestions[currentIndex];
+  const total = sessionQuestions.length;
+  const pct = Math.round((currentIndex/total)*100);
+  const bookmarks = getBookmarks(currentFormat);
+  const isBookmarked = bookmarks.includes(q.id);
+  let bodyHtml = "";
+  if(q.type === "fill") bodyHtml = renderFillBody(q);
+  else if(q.type === "choice") bodyHtml = renderChoiceBody(q);
+  else if(q.type === "reorder") bodyHtml = renderReorderBody(q);
+  else if(q.type === "correction") bodyHtml = renderCorrectionBody(q);
+  else if(q.type === "free") bodyHtml = renderFreeBody(q);
+  else if(q.type === "match") bodyHtml = renderMatchBody(q);
+
+  const feedbackHtml = answered ? renderFeedback(q) : "";
+
+  return `
+    <div class="q-header">
+      <span>${FORMAT_BADGE[currentFormat]} ${FORMAT_LABEL[currentFormat]}</span>
+      <span>Q ${currentIndex+1} / ${total}</span>
+    </div>
+    <div class="progress-wrap"><div class="progress-bar" style="width:${pct}%"></div></div>
+    <div class="card">
+      <div class="q-top">
+        <div>
+          <span class="badge">${TYPE_LABEL[q.type]}</span>
+          <span class="badge badge-cat">${q.category}</span>
+        </div>
+        <span class="trash-link" onclick="trashCurrentQuestion()">${trashedThisQuestion?'🗑 ゴミ箱に移動しました':'🗑 この問題は表示しない'}</span>
+      </div>
+      <label class="bookmark-row">
+        <input type="checkbox" ${isBookmarked?'checked':''} onchange="bookmarkToggleUI(${q.id})"> この問題を復習リストに入れる
+      </label>
+      ${bodyHtml}
+      ${feedbackHtml}
+    </div>
+    <div class="link" onclick="if(confirm('スタート画面に戻りますか？(現在の進捗は保存されません)')) backToModeSelect()">&larr; スタート画面に戻る</div>
+  `;
+}
+
+function renderFillBody(q){
+  return `
+    <div class="q-hint">${q.hint}</div>
+    <div class="q-question">${q.question}</div>
+    <input type="text" id="answerInput" ${answered?'disabled':''} placeholder="英語で入力">
+    ${answered?'':'<button class="btn" style="margin-top:10px" onclick="submitAnswer()">回答する</button>'}
+  `;
+}
+function renderChoiceBody(q){
+  const opts = (q.shuffledChoices || q.choices).map((c,i) => {
+    const sel = choiceSelectedIdx === i;
+    return `<div class="choice-opt ${sel?'selected':''}" onclick="choiceSelect(${i})">${c}</div>`;
+  }).join("");
+  return `
+    <div class="q-hint">${q.hint}</div>
+    <div class="q-question">${q.question}</div>
+    ${opts}
+    ${answered?'':'<button class="btn" style="margin-top:10px" '+(choiceSelectedIdx===null?'disabled':'')+' onclick="submitAnswer()">回答する</button>'}
+  `;
+}
+function renderReorderBody(q){
+  const poolHtml = reorderTiles.map((t,i) => t.used ? '' : `<span class="tile" onclick="reorderTileClick(${i})">${t.text}</span>`).join("");
+  const assembledHtml = reorderAssembled.length === 0
+    ? '<span class="placeholder">タップして単語を選んでください</span>'
+    : reorderAssembled.map((tileIdx,pos) => `<span class="assembly-tile" onclick="reorderRemoveAt(${pos})">${reorderTiles[tileIdx].text}</span>`).join("");
+  const full = reorderAssembled.length === q.tokens.length;
+  return `
+    <div class="q-hint">${q.hint}</div>
+    <div class="assembly-area">${assembledHtml}</div>
+    <div class="tile-pool">${poolHtml}</div>
+    ${answered?'':'<button class="btn btn-sub" onclick="reorderReset()">リセット</button> <button class="btn" '+(full?'':'disabled')+' onclick="submitAnswer()">回答する</button>'}
+  `;
+}
+function renderCorrectionBody(q){
+  const displayQ = q.question.replace("[[" + q.wrongPart + "]]", '<span class="wrong-part">' + q.wrongPart + '</span>');
+  return `
+    <div class="q-hint">${q.hint}</div>
+    <div class="correction-text">${displayQ}</div>
+    <input type="text" id="answerInput" ${answered?'disabled':''} placeholder="正しい形に直してください">
+    ${answered?'':'<button class="btn" style="margin-top:10px" onclick="submitAnswer()">回答する</button>'}
+  `;
+}
+function renderFreeBody(q){
+  return `
+    <div class="q-hint">${q.hint}</div>
+    <textarea id="answerInput" ${answered?'disabled':''} placeholder="英文を自由入力"></textarea>
+    ${answered?'':'<button class="btn" style="margin-top:10px" onclick="submitAnswer()">回答する</button>'}
+  `;
+}
+function renderMatchBody(q){
+  const jHtml = matchShuffledJ.map((item, di) => {
+    let cls = "match-btn";
+    const assignedE = matchAssignment[di];
+    if(assignedE !== undefined) cls += " pair" + (di % 4);
+    if(matchSelectedJ === di) cls += " selecting";
+    return `<div class="${cls}" onclick="matchClickJ(${di})">${item.text}</div>`;
+  }).join("");
+  const eHtml = matchShuffledE.map((item, di) => {
+    let cls = "match-btn";
+    let assignedJ = null;
+    Object.keys(matchAssignment).forEach(jd => { if(matchAssignment[jd] === di) assignedJ = parseInt(jd); });
+    if(assignedJ !== null) cls += " pair" + (assignedJ % 4);
+    return `<div class="${cls}" onclick="matchClickE(${di})">${item.text}</div>`;
+  }).join("");
+  const full = Object.keys(matchAssignment).length === q.pairs.length;
+  return `
+    <div class="q-hint">${q.hint}</div>
+    <div class="match-cols">
+      <div class="match-col">${jHtml}</div>
+      <div class="match-col">${eHtml}</div>
+    </div>
+    ${answered?'':'<button class="btn" style="margin-top:10px" '+(full?'':'disabled')+' onclick="submitAnswer()">回答する</button>'}
+  `;
+}
+
+function renderFeedback(q){
+  let title = "", body = "";
+  if(q.type === "fill" || q.type === "correction"){
+    title = lastResult.correct ? "✅ 正解！" : "❌ 不正解";
+    body = `<p>正解: <b>${q.answer}</b></p>`;
+  } else if(q.type === "choice"){
+    title = lastResult.correct ? "✅ 正解！" : "❌ 不正解";
+    body = `<p>正解: <b>${q.answer}</b></p>`;
+  } else if(q.type === "reorder"){
+    title = lastResult.correct ? "✅ 正解！" : "❌ 不正解";
+    body = `<p>正解の英文: <b>${q.tokens.join(" ")}</b></p>`;
+  } else if(q.type === "free"){
+    title = lastResult.correct ? "✅ 正解！(必須語句をすべて含んでいます)" : "❌ 不正解(不足している語句があります)";
+    body = `<p>模範解答: <b>${q.answer}</b></p>` + ((lastResult.missing && lastResult.missing.length) ? `<p>不足している語句: ${lastResult.missing.join(", ")}</p>` : "");
+  } else if(q.type === "match"){
+    title = lastResult.correct ? "✅ 全問正解！" : `⚠️ ${lastResult.correctCount} / ${lastResult.total} 正解`;
+    body = '<div class="info-block"><b>正しい組み合わせ:</b><br>' + q.pairs.map((p,i) => {
+      const r = lastResult.results.find(x => x.pairIndex === i);
+      const mark = r ? (r.ok ? "✅" : "❌") : "";
+      return `${p.japanese} → ${p.english} <button class="audio-btn" onclick="playAudio(this, audioFolderFor('write') + '/' + ${q.id} + '_p' + ${i} + '.mp3')">🔊</button> ${mark}`;
+    }).join("<br>") + '</div>';
+  }
+
+  let audioBtnHtml = "";
+  if(q.type === "fill" || q.type === "choice"){
+    audioBtnHtml = `<button class="audio-btn" onclick="playAudio(this, audioFolderFor('fillchoice') + '/' + ${q.id} + '.mp3')">🔊 英文を聞く</button>`;
+  } else if(q.type === "reorder" || q.type === "correction"){
+    audioBtnHtml = `<button class="audio-btn" onclick="playAudio(this, audioFolderFor('order') + '/' + ${q.id} + '.mp3')">🔊 英文を聞く</button>`;
+  } else if(q.type === "free"){
+    audioBtnHtml = `<button class="audio-btn" onclick="playAudio(this, audioFolderFor('write') + '/' + ${q.id} + '.mp3')">🔊 英文を聞く</button>`;
+  }
+
+  const trashLinkHtml = trashedThisQuestion
+    ? '<p class="trash-note">🗑 ゴミ箱に移動しました</p>'
+    : '<p class="trash-note" onclick="trashCurrentQuestion()">🗑 この問題は表記ミスなどがあり変です</p>';
+
+  const nextLabel = (currentIndex === sessionQuestions.length - 1) ? "結果を見る" : "次の問題 →";
+
+  return `
+    <div class="feedback ${lastResult.correct?'correct':'incorrect'}">
+      <div class="feedback-title ${lastResult.correct?'correct':'incorrect'}">${title}</div>
+      ${body}
+      ${audioBtnHtml}
+      ${sourceThumbsHtml(q)}
+      ${q.relatedInfo ? '<div class="info-block">💡 <b>関連知識:</b> ' + q.relatedInfo + '</div>' : ''}
+      ${q.explanation ? '<div class="info-block">📝 <b>解説:</b> ' + q.explanation + '</div>' : ''}
+      ${trashLinkHtml}
+      <button class="btn btn-block" style="margin-top:12px" onclick="nextQuestion()">${nextLabel}</button>
+    </div>
+  `;
+}
+
+function renderResultsScreen(){
+  const total = sessionQuestions.length;
+  const pct = total ? Math.round((score/total)*100) : 0;
+  let stars = "", msg = "";
+  if(pct >= 90){ stars="★★★"; msg="Excellent! TOEFL満点レベルの実力です"; }
+  else if(pct >= 70){ stars="★★"; msg="Good! あと少しで完璧です"; }
+  else if(pct >= 50){ stars="★"; msg="Keep going! 復習して再挑戦しましょう"; }
+  else { stars="—"; msg="ノートを見直して再チャレンジ！"; }
+  return `
+    <h1>結果発表</h1>
+    <div class="card">
+      <p>${FORMAT_BADGE[currentFormat]} ${FORMAT_LABEL[currentFormat]}</p>
+      <h2>${score} / ${total} 問正解 (${pct}%)</h2>
+      <div class="result-star">${stars}</div>
+      <p>${msg}</p>
+      <button class="btn btn-block" onclick="startTest(currentFormat, currentMode, currentCategory)">もう一度同じ形式・モードで挑戦する</button>
+      <button class="btn btn-sub btn-block" onclick="showFormatSelect()">別の形式に挑戦する</button>
+      <button class="btn btn-sub btn-block" onclick="showFormatSelect()">🏠 最初から</button>
+    </div>
+  `;
+}
+
+function renderTrashScreen(){
+  const format = currentFormat;
+  const trashIds = getTrash(format);
+  const all = questionsFor(format);
+  const items = trashIds.map(id => all.find(q => q.id === id)).filter(Boolean);
+  const listHtml = items.length === 0
+    ? '<p class="sub">ゴミ箱は空です</p>'
+    : items.map(q => {
+        const text = q.question || q.hint || (q.pairs ? q.pairs.map(p=>p.japanese+" / "+p.english).join(", ") : "");
+        const src = q.source ? [q.source] : (q.sources || []);
+        return `
+          <div class="trash-item">
+            <span class="badge">${TYPE_LABEL[q.type]}</span>
+            <span class="badge badge-cat">${q.category}</span>
+            <p>${text}</p>
+            ${src.length ? '<p class="sub">📷 出典: ' + src.join(", ") + '</p>' : ''}
+            <button class="btn btn-sub" onclick="restoreFromTrash('${format}', ${q.id}); render()">↩️ 元に戻す</button>
+          </div>
+        `;
+      }).join("");
+  return `
+    <div class="link" onclick="backToModeSelect()">&larr; モード選択に戻る</div>
+    <h1>🗑 ゴミ箱 (${FORMAT_LABEL[format]})</h1>
+    ${listHtml}
+  `;
+}
+
+/* ================= INIT ================= */
+render();
+</script>
+

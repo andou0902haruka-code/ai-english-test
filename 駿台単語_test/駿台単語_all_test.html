@@ -1,0 +1,1039 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>駿台単語 穴埋め・選択肢テスト</title>
+<style>
+  :root {
+    --bg: #f4f6fb;
+    --card-bg: #ffffff;
+    --text: #1f2430;
+    --sub: #6b7280;
+    --accent: #4f6df5;
+    --accent-dark: #3a52d1;
+    --green: #16a34a;
+    --red: #dc2626;
+    --border: #e5e7eb;
+    --badge-fill: #e0e7ff;
+    --badge-fill-text: #3730a3;
+    --badge-choice: #fce7f3;
+    --badge-choice-text: #9d174d;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    padding-bottom: 40px;
+  }
+  #app { max-width: 720px; margin: 0 auto; padding: 16px; }
+  .card {
+    background: var(--card-bg);
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    margin-bottom: 16px;
+  }
+  h1 { font-size: 1.4rem; margin: 8px 0 4px; }
+  h2 { font-size: 1.15rem; margin: 0 0 8px; }
+  .sub { color: var(--sub); font-size: 0.9rem; margin-bottom: 16px; }
+  .center { text-align: center; }
+  .btn {
+    display: inline-block;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 12px 20px;
+    font-size: 1rem;
+    cursor: pointer;
+    text-align: center;
+    transition: background 0.15s;
+  }
+  .btn:hover { background: var(--accent-dark); }
+  .btn:disabled { background: #c7cbd6; cursor: not-allowed; }
+  .btn-block { display: block; width: 100%; margin: 8px 0; }
+  .btn-secondary { background: #fff; color: var(--accent); border: 1.5px solid var(--accent); }
+  .btn-secondary:hover { background: #eef1ff; }
+  .mode-card {
+    display: block;
+    width: 100%;
+    text-align: left;
+    background: var(--card-bg);
+    border: 1.5px solid var(--border);
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 12px;
+    cursor: pointer;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .mode-card:hover { border-color: var(--accent); box-shadow: 0 2px 10px rgba(79,109,245,0.12); }
+  .mode-card .mtitle { font-weight: 700; font-size: 1.05rem; margin-bottom: 4px; }
+  .mode-card .mdesc { color: var(--sub); font-size: 0.88rem; }
+  .genre-list { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+  .genre-btn {
+    border: 1.5px solid var(--border);
+    background: #fff;
+    border-radius: 999px;
+    padding: 8px 14px;
+    font-size: 0.88rem;
+    cursor: pointer;
+  }
+  .genre-btn.selected { border-color: var(--accent); background: var(--badge-fill); color: var(--badge-fill-text); font-weight: 600; }
+  .progress-wrap { background: var(--border); border-radius: 999px; height: 8px; overflow: hidden; margin: 8px 0 4px; }
+  .progress-bar { background: var(--accent); height: 100%; transition: width 0.2s; }
+  .qmeta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+  .badge { display: inline-block; border-radius: 999px; padding: 4px 10px; font-size: 0.78rem; font-weight: 700; }
+  .badge-fill { background: var(--badge-fill); color: var(--badge-fill-text); }
+  .badge-choice { background: var(--badge-choice); color: var(--badge-choice-text); }
+  .badge-genre { background: #f1f5f9; color: #475569; font-weight: 500; }
+  .qnum { color: var(--sub); font-size: 0.85rem; }
+  .hint { background: #f8fafc; border-left: 4px solid var(--accent); padding: 10px 14px; border-radius: 8px; font-size: 0.95rem; margin-bottom: 14px; }
+  .qtext { font-size: 1.15rem; margin-bottom: 16px; line-height: 1.7; }
+  .qtext .blank { color: var(--accent); font-weight: 700; letter-spacing: 1px; }
+  input[type="text"] {
+    width: 100%;
+    padding: 12px 14px;
+    font-size: 1.05rem;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    margin-bottom: 14px;
+  }
+  input[type="text"]:focus { outline: none; border-color: var(--accent); }
+  .choice-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
+  .choice-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+    cursor: pointer;
+  }
+  .choice-item:hover { border-color: var(--accent); }
+  .choice-item.selected { border-color: var(--accent); background: var(--badge-fill); }
+  .choice-item input { margin: 0; }
+  .bookmark-row { display: flex; align-items: center; gap: 8px; font-size: 0.9rem; color: var(--sub); margin-bottom: 10px; }
+  .trash-link { font-size: 0.82rem; color: var(--sub); text-decoration: underline; cursor: pointer; float: right; }
+  .feedback-box { border-radius: 12px; padding: 16px; margin: 14px 0; }
+  .feedback-correct { background: #ecfdf5; border: 1.5px solid #6ee7b7; }
+  .feedback-wrong { background: #fef2f2; border: 1.5px solid #fca5a5; }
+  .feedback-title { font-weight: 700; font-size: 1.05rem; margin-bottom: 6px; }
+  .feedback-title.ok { color: var(--green); }
+  .feedback-title.ng { color: var(--red); }
+  .answer-line { margin: 6px 0; }
+  .play-btn {
+    background: #fff;
+    border: 1.5px solid var(--accent);
+    color: var(--accent);
+    border-radius: 999px;
+    padding: 6px 14px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    margin: 6px 0;
+  }
+  .play-btn.playing { background: var(--accent); color: #fff; }
+  .source-thumbs { display: flex; gap: 8px; flex-wrap: wrap; margin: 8px 0; }
+  .source-thumb { width: 90px; height: 90px; object-fit: cover; border-radius: 8px; cursor: zoom-in; border: 1px solid var(--border); }
+  .info-line { font-size: 0.9rem; margin: 6px 0; }
+  .trash-report-link { font-size: 0.82rem; color: var(--sub); text-decoration: underline; cursor: pointer; display: inline-block; margin-top: 8px; }
+  .footer-links { text-align: center; margin-top: 12px; }
+  .footer-links a { color: var(--sub); font-size: 0.88rem; text-decoration: underline; cursor: pointer; }
+  .result-score { font-size: 2.2rem; font-weight: 800; text-align: center; margin: 8px 0; }
+  .result-stars { text-align: center; font-size: 1.6rem; color: #f59e0b; margin-bottom: 8px; }
+  .result-msg { text-align: center; color: var(--sub); margin-bottom: 20px; }
+  .trash-item { border: 1.5px solid var(--border); border-radius: 10px; padding: 12px; margin-bottom: 10px; }
+  .trash-item .ttext { font-size: 0.92rem; margin: 6px 0; color: #374151; }
+  .img-modal {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 1000; padding: 20px;
+  }
+  .img-modal.hidden { display: none; }
+  .img-modal img { max-width: 100%; max-height: 100%; border-radius: 8px; }
+  .img-modal-close {
+    position: absolute; top: 16px; right: 24px; color: #fff;
+    font-size: 2rem; cursor: pointer; line-height: 1;
+  }
+  .hidden { display: none !important; }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #14161f;
+      --card-bg: #1e2130;
+      --text: #e5e7eb;
+      --sub: #9aa0ac;
+      --border: #333a4d;
+      --badge-fill: #2a3163;
+      --badge-fill-text: #c7d2fe;
+      --badge-choice: #4a1942;
+      --badge-choice-text: #fbcfe8;
+    }
+    .hint { background: #262b3d; }
+    .feedback-correct { background: #0f2e22; border-color: #16a34a; }
+    .feedback-wrong { background: #3a1414; border-color: #dc2626; }
+    input[type="text"] { background: #262b3d; color: var(--text); }
+    .genre-btn { background: #1e2130; color: var(--text); }
+    .choice-item { background: #1e2130; }
+  }
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<div class="img-modal hidden" id="imgModal" onclick="closeImageModal()">
+  <span class="img-modal-close" onclick="closeImageModal()">&times;</span>
+  <img id="imgModalImg" src="" alt="出典画像">
+</div>
+
+<script>
+const FILLCHOICE_QUESTIONS = [
+// ===== カテゴリ: 語根パターン (pete/pose/voc) =====
+{ id: 1, type: "fill", category: "語根パターン", question: "Many small shops cannot _____ with large supermarkets.", hint: "「競争する」", fullSentence: "Many small shops cannot compete with large supermarkets.", answer: "compete", source: "IMG_0184", explanation: "compete: 競争する。competition(競争)、competent(有能な)と同じpete/pet「求める」語根。", relatedInfo: "" },
+{ id: 2, type: "choice", category: "語根パターン", question: "「食欲」を意味する単語はどれ？", hint: "compete(競争する)と同じpete語根の名詞", fullSentence: "She has lost her appetite because of the heat.", answer: "appetite", choices: ["appetite", "compete", "petition", "repetition"], source: "IMG_0184", explanation: "appetite: 食欲。appetizer(前菜)も同語源。", relatedInfo: "" },
+{ id: 3, type: "fill", category: "語根パターン", question: "The rain continued in a _____ manner all day long.", hint: "「絶え間ない、永遠の」", fullSentence: "The rain continued in a perpetual manner all day long.", answer: "perpetual", source: "IMG_0184", explanation: "perpetual: 永遠の、絶え間ない。", relatedInfo: "" },
+{ id: 4, type: "choice", category: "語根パターン", question: "「課す、押し付ける」を意味する単語はどれ？", hint: "pose「置く」語根", fullSentence: "The government decided to impose a new tax on imports.", answer: "impose", choices: ["impose", "expose", "deposit", "disposal"], source: "IMG_0184", explanation: "impose: 課す、押し付ける。exposeは「さらす」。", relatedInfo: "" },
+{ id: 5, type: "fill", category: "語根パターン", question: "You should have plenty of cash at your _____ in emergencies.", hint: "「自由に使えること、処分」", fullSentence: "You should have plenty of cash at your disposal in emergencies.", answer: "disposal", source: "IMG_0184", explanation: "have ~ at one's disposal: ~を自由に使える。", relatedInfo: "" },
+{ id: 6, type: "choice", category: "語根パターン", question: "「堂々とした」を意味する単語はどれ？", hint: "poseの現在分詞形から派生", fullSentence: "The imposing castle stood on the hill.", answer: "imposing", choices: ["imposing", "exposing", "opposing", "composing"], source: "IMG_0184", explanation: "imposing: 堂々とした、印象的な。", relatedInfo: "" },
+{ id: 7, type: "fill", category: "語根パターン", question: "Rich people are often described as _____.", hint: "「裕福な」（fluent「流暢な」と同語源）", fullSentence: "Rich people are often described as affluent.", answer: "affluent", source: "IMG_0184", explanation: "affluent: 裕福な。fluent(流暢な)と同じflu「流れる」語根。", relatedInfo: "" },
+{ id: 8, type: "choice", category: "語根パターン", question: "「つかの間の、ほんの一瞬の」を意味する単語はどれ？", hint: "flu「流れる」語根", fullSentence: "He gave a fleeting glance at the photo.", answer: "fleeting", choices: ["fleeting", "fluent", "affluent", "superfluous"], source: "IMG_0184", explanation: "fleeting: つかの間の。", relatedInfo: "" },
+{ id: 9, type: "fill", category: "語根パターン", question: "Too much information can be _____ and confusing.", hint: "「過度な、不必要な」", fullSentence: "Too much information can be superfluous and confusing.", answer: "superfluous", source: "IMG_0184", explanation: "superfluous: 過度な、不必要な。", relatedInfo: "" },
+{ id: 10, type: "fill", category: "語根パターン", question: "Stock prices have _____ wildly this month.", hint: "「変動する」", fullSentence: "Stock prices have fluctuated wildly this month.", answer: "fluctuated", source: "IMG_0184", explanation: "fluctuate: 変動する。", relatedInfo: "" },
+{ id: 11, type: "choice", category: "語根パターン", question: "「流入」を意味する単語はどれ？", hint: "flu語根の名詞", fullSentence: "The city has seen a large influx of tourists.", answer: "influx", choices: ["influx", "influence", "fluency", "flush"], source: "IMG_0184", explanation: "influx: 流入。", relatedInfo: "" },
+{ id: 12, type: "fill", category: "語根パターン", question: "Please read the _____ before starting chapter one.", hint: "「序文」", fullSentence: "Please read the preface before starting chapter one.", answer: "preface", source: "IMG_0184", explanation: "preface: 序文。", relatedInfo: "" },
+{ id: 13, type: "choice", category: "語根パターン", question: "「白状する、告白する」を意味する単語はどれ？", hint: "fable(寓話)と語感が似るが意味は別", fullSentence: "He finally confessed to the crime.", answer: "confess", choices: ["confess", "fable", "infant", "fate"], source: "IMG_0184", explanation: "confess: 告白する、白状する。", relatedInfo: "" },
+{ id: 14, type: "fill", category: "語根パターン", question: "It was a _____ decision that changed his whole life.", hint: "「致命的な」", fullSentence: "It was a fatal decision that changed his whole life.", answer: "fatal", source: "IMG_0184", explanation: "fatal: 致命的な。fate(運命、宿命)と同語源。", relatedInfo: "" },
+{ id: 15, type: "choice", category: "語根パターン", question: "「魅力的な」を意味する単語はどれ？", hint: "興味を強く引きつける", fullSentence: "I find ancient history absolutely fascinating.", answer: "fascinating", choices: ["fascinating", "fatal", "faculty", "artificial"], source: "IMG_0184", explanation: "fascinating: 魅力的な。", relatedInfo: "" },
+{ id: 16, type: "fill", category: "語根パターン", question: "It was a great _____ for the young athlete to win the gold medal.", hint: "「勝利、凱旋」", fullSentence: "It was a great triumph for the young athlete to win the gold medal.", answer: "triumph", source: "IMG_0184", explanation: "triumph: 勝利、凱旋。", relatedInfo: "" },
+{ id: 17, type: "choice", category: "語根パターン", question: "「大騒ぎする」という意味の表現はどれ？", hint: "make a ___", fullSentence: "Don't make a fuss over such a small mistake.", answer: "fuss", choices: ["fuss", "prophet", "fable", "triumph"], source: "IMG_0184", explanation: "make a fuss: 大げさに騒ぐ。fuss: 大騒ぎ。", relatedInfo: "" },
+
+// ===== カテゴリ: 語根パターン (valid/voc/mit/scribe) =====
+{ id: 18, type: "fill", category: "語根パターン", question: "This ticket is no longer _____; it expired last month.", hint: "「妥当な、正当な」", fullSentence: "This ticket is no longer valid; it expired last month.", answer: "valid", source: "IMG_0185", explanation: "valid: 妥当な、正当な。validity(正当性)も覚える。", relatedInfo: "" },
+{ id: 19, type: "choice", category: "語根パターン", question: "「両価的な、相反する感情の」を意味する単語はどれ？", hint: "ambi「両方」+valent", fullSentence: "I feel ambivalent about moving to a new city.", answer: "ambivalent", choices: ["ambivalent", "ambiguous", "ambient", "ambition"], source: "IMG_0185", explanation: "ambivalent: 相反する感情を持つ。ambiguous(あいまいな)と混同注意。", relatedInfo: "" },
+{ id: 20, type: "fill", category: "語根パターン", question: "His answer was so _____ that nobody understood what he meant.", hint: "「あいまいな」", fullSentence: "His answer was so ambiguous that nobody understood what he meant.", answer: "ambiguous", source: "IMG_0185", explanation: "ambiguous: あいまいな。", relatedInfo: "" },
+{ id: 21, type: "choice", category: "語根パターン", question: "「周囲の」を意味する単語はどれ？", hint: "ambi「周り」語根", fullSentence: "I love the ambient music in this cafe.", answer: "ambient", choices: ["ambient", "ambition", "ambiguous", "ambivalent"], source: "IMG_0185", explanation: "ambient: 周囲の。ambition(野心)と混同しない。", relatedInfo: "" },
+{ id: 22, type: "fill", category: "語根パターン", question: "The country appointed a new _____ to the United Nations.", hint: "「大使」", fullSentence: "The country appointed a new ambassador to the United Nations.", answer: "ambassador", source: "IMG_0185", explanation: "ambassador: 大使。", relatedInfo: "" },
+{ id: 23, type: "fill", category: "語根パターン", question: "She has always been a strong _____ for children's rights.", hint: "「主張する、擁護する」", fullSentence: "She has always been a strong advocate for children's rights.", answer: "advocate", source: "IMG_0185", explanation: "advocate: 主張する、擁護者。voc「声」語根。", relatedInfo: "" },
+{ id: 24, type: "choice", category: "語根パターン", question: "「呼び起こす」を意味する単語はどれ？", hint: "voc「声」語根", fullSentence: "The old photo evoked many happy memories.", answer: "evoke", choices: ["evoke", "revoke", "invoke", "provoke"], source: "IMG_0185", explanation: "evoke: 呼び起こす。revoke(取り消す)と混同注意。", relatedInfo: "" },
+{ id: 25, type: "fill", category: "語根パターン", question: "The government decided to _____ the old law.", hint: "「取り消す」", fullSentence: "The government decided to revoke the old law.", answer: "revoke", source: "IMG_0185", explanation: "revoke: 取り消す。", relatedInfo: "" },
+{ id: 26, type: "choice", category: "語根パターン", question: "「保証する」を意味する単語はどれ？", hint: "voucher(引換券)と同語源", fullSentence: "I can vouch for his honesty.", answer: "vouch", choices: ["vouch", "voucher", "vowel", "vocation"], source: "IMG_0185", explanation: "vouch: 保証する。voucher: 引換券。", relatedInfo: "" },
+{ id: 27, type: "fill", category: "語根パターン", question: "Teaching became her true _____ later in life.", hint: "「天職」", fullSentence: "Teaching became her true vocation later in life.", answer: "vocation", source: "IMG_0185", explanation: "vocation: 天職。voc「声、呼ぶ」語根。", relatedInfo: "" },
+{ id: 28, type: "fill", category: "語根パターン", question: "The company had to _____ hundreds of workers due to the recession.", hint: "「解雇する」", fullSentence: "The company had to dismiss hundreds of workers due to the recession.", answer: "dismiss", source: "IMG_0185", explanation: "dismiss: 解雇する、しりぞける。mit「送る」語根。", relatedInfo: "" },
+{ id: 29, type: "choice", category: "語根パターン", question: "「伝える、送る」を意味する単語はどれ？", hint: "mit「送る」語根", fullSentence: "Radio waves transmit information through the air.", answer: "transmit", choices: ["transmit", "dismiss", "omit", "commit"], source: "IMG_0185", explanation: "transmit: 送る、伝える。", relatedInfo: "" },
+{ id: 30, type: "fill", category: "語根パターン", question: "You can _____ this step if you already have experience.", hint: "「省く」", fullSentence: "You can omit this step if you already have experience.", answer: "omit", source: "IMG_0185", explanation: "omit: 省く。", relatedInfo: "" },
+{ id: 31, type: "choice", category: "語根パターン", question: "「Aに専念する」の表現はどれ？", hint: "commit oneself ___ A", fullSentence: "He committed himself to finishing the marathon.", answer: "to", choices: ["to", "for", "with", "on"], source: "IMG_0185", explanation: "commit oneself to A: Aに専念する。", relatedInfo: "" },
+{ id: 32, type: "fill", category: "語根パターン", question: "The doctor will _____ the correct medicine for your condition.", hint: "「処方する」", fullSentence: "The doctor will prescribe the correct medicine for your condition.", answer: "prescribe", source: "IMG_0185", explanation: "prescribe: 処方する。scribe「書く」語根。", relatedInfo: "" },
+{ id: 33, type: "choice", category: "語根パターン", question: "「AをBのせいにする」の表現はどれ？", hint: "ascribe A ___ B", fullSentence: "He ascribed his success to hard work.", answer: "to", choices: ["to", "for", "at", "by"], source: "IMG_0185", explanation: "ascribe A to B: AをBのせいにする、帰する。", relatedInfo: "" },
+{ id: 34, type: "fill", category: "語根パターン", question: "I plan to _____ to this magazine for a whole year.", hint: "「定期購読する」", fullSentence: "I plan to subscribe to this magazine for a whole year.", answer: "subscribe", source: "IMG_0185", explanation: "subscribe (to): 定期購読する、同意する。", relatedInfo: "" },
+{ id: 35, type: "fill", category: "語根パターン", question: "The old man tends to _____ things down when he takes notes.", hint: "「走り書きする」", fullSentence: "The old man tends to scribble things down when he takes notes.", answer: "scribble", source: "IMG_0185", explanation: "scribble: 走り書きする。", relatedInfo: "" },
+{ id: 36, type: "choice", category: "語根パターン", question: "「普及する、優勢である」を意味する単語はどれ？", hint: "vail「価値がある」語根", fullSentence: "This custom still prevails in rural areas.", answer: "prevail", choices: ["prevail", "avail", "evaluate", "value"], source: "IMG_0185", explanation: "prevail: 普及する、優勢である。", relatedInfo: "" },
+{ id: 37, type: "fill", category: "語根パターン", question: "You should _____ yourself of this rare opportunity.", hint: "「~を利用する」（avail oneself of）", fullSentence: "You should avail yourself of this rare opportunity.", answer: "avail", source: "IMG_0185", explanation: "avail oneself of: ~を利用する。", relatedInfo: "" },
+{ id: 38, type: "fill", category: "語根パターン", question: "Teachers must _____ each student's progress carefully.", hint: "「評価する」", fullSentence: "Teachers must evaluate each student's progress carefully.", answer: "evaluate", source: "IMG_0185", explanation: "evaluate: 評価する。valid, valueと同語源。", relatedInfo: "" },
+
+// ===== カテゴリ: 語根パターン (tact/prehend/duct) =====
+{ id: 39, type: "fill", category: "語根パターン", question: "The vase remained _____ even after the earthquake.", hint: "「無傷の」", fullSentence: "The vase remained intact even after the earthquake.", answer: "intact", source: "IMG_0186", explanation: "intact: 無傷の。tact「触れる」語根。", relatedInfo: "" },
+{ id: 40, type: "choice", category: "語根パターン", question: "「汚染する」を意味する単語はどれ？", hint: "tact「触れる」語根から派生", fullSentence: "Factories should not contaminate rivers with waste.", answer: "contaminate", choices: ["contaminate", "contagious", "intact", "tangible"], source: "IMG_0186", explanation: "contaminate: 汚染する。contagious(伝染性の)と区別。", relatedInfo: "" },
+{ id: 41, type: "fill", category: "語根パターン", question: "The flu is highly _____ in winter.", hint: "「伝染性の」", fullSentence: "The flu is highly contagious in winter.", answer: "contagious", source: "IMG_0186", explanation: "contagious: 伝染性の。", relatedInfo: "" },
+{ id: 42, type: "choice", category: "語根パターン", question: "「明確な、はっきりとした」を意味する単語はどれ？", hint: "tact語根の形容詞", fullSentence: "There were no tangible benefits from the project.", answer: "tangible", choices: ["tangible", "tactics", "contagious", "intact"], source: "IMG_0186", explanation: "tangible: 明確な、手で触れられるほど確かな。", relatedInfo: "" },
+{ id: 43, type: "fill", category: "語根パターン", question: "The team changed their _____ in the second half.", hint: "「戦略、戦術」", fullSentence: "The team changed their tactics in the second half.", answer: "tactics", source: "IMG_0186", explanation: "tactics: 戦略、戦術。", relatedInfo: "" },
+{ id: 44, type: "fill", category: "語根パターン", question: "Honesty and _____ are essential in a good leader.", hint: "「高潔さ、誠実さ」", fullSentence: "Honesty and integrity are essential in a good leader.", answer: "integrity", source: "IMG_0186", explanation: "integrity: 高潔さ、誠実さ。", relatedInfo: "" },
+{ id: 45, type: "choice", category: "語根パターン", question: "「AをBから切り離す」の表現はどれ？", hint: "detach A ___ B", fullSentence: "Please detach this form from the rest of the booklet.", answer: "from", choices: ["from", "of", "to", "with"], source: "IMG_0186", explanation: "detach A from B: AをBから切り離す。attach A to B(AをBに付ける)と対で覚える。", relatedInfo: "" },
+{ id: 46, type: "fill", category: "語根パターン", question: "This small company has a lot of _____ spirit.", hint: "「進取の気性、企業」", fullSentence: "This small company has a lot of enterprise spirit.", answer: "enterprise", source: "IMG_0186", explanation: "enterprise: 企業、進取の気性。prehend/prise「つかむ」語根。", relatedInfo: "" },
+{ id: 47, type: "choice", category: "語根パターン", question: "「理解する」を意味する単語はどれ？", hint: "prehend「つかむ」語根", fullSentence: "I can't comprehend why he did such a thing.", answer: "comprehend", choices: ["comprehend", "comprise", "apprehension", "comprehensive"], source: "IMG_0186", explanation: "comprehend: 理解する。", relatedInfo: "" },
+{ id: 48, type: "fill", category: "語根パターン", question: "This textbook offers a _____ overview of world history.", hint: "「包括的な」", fullSentence: "This textbook offers a comprehensive overview of world history.", answer: "comprehensive", source: "IMG_0186", explanation: "comprehensive: 包括的な。", relatedInfo: "" },
+{ id: 49, type: "choice", category: "語根パターン", question: "「~から構成される」を意味する単語はどれ？", hint: "prehend「つかむ」語根の別形", fullSentence: "The committee comprises ten members.", answer: "comprises", choices: ["comprises", "comprehends", "apprehends", "prehends"], source: "IMG_0186", explanation: "comprise: ~から構成される。", relatedInfo: "" },
+{ id: 50, type: "fill", category: "語根パターン", question: "The lion chased its _____ across the plain.", hint: "「獲物」", fullSentence: "The lion chased its prey across the plain.", answer: "prey", source: "IMG_0186", explanation: "prey: 獲物。", relatedInfo: "" },
+
+// ===== カテゴリ: 語根パターン (serve/rad/cid/chron) =====
+{ id: 51, type: "fill", category: "語根パターン", question: "He is famous for being extremely _____; he never changes his mind.", hint: "「頑固な」", fullSentence: "He is famous for being extremely stubborn; he never changes his mind.", answer: "stubborn", source: "IMG_0187", explanation: "stubborn: 頑固な。", relatedInfo: "" },
+{ id: 52, type: "choice", category: "語根パターン", question: "「保存する」を意味する単語はどれ？serveの仲間", hint: "serve「保つ」語根", fullSentence: "We need to conserve energy to protect the environment.", answer: "conserve", choices: ["conserve", "reserve", "observe", "deserve"], source: "IMG_0187", explanation: "conserve: 保存する。preserve(保存する)、reserve(予約する、蓄える)と区別。", relatedInfo: "" },
+{ id: 53, type: "fill", category: "語根パターン", question: "You should _____ some food for the winter.", hint: "「保存する」", fullSentence: "You should preserve some food for the winter.", answer: "preserve", source: "IMG_0187", explanation: "preserve: 保存する。preservative(s): 保存料。", relatedInfo: "" },
+{ id: 54, type: "choice", category: "語根パターン", question: "「値する」を意味する単語はどれ？", hint: "serve語根の派生語", fullSentence: "She deserves the award for her hard work.", answer: "deserve", choices: ["deserve", "reserve", "conserve", "observe"], source: "IMG_0187", explanation: "deserve: 値する。", relatedInfo: "" },
+{ id: 55, type: "fill", category: "語根パターン", question: "Scientists carefully _____ the behavior of the animals.", hint: "「観察する」", fullSentence: "Scientists carefully observe the behavior of the animals.", answer: "observe", source: "IMG_0187", explanation: "observe: 観察する。observation: 観察。", relatedInfo: "" },
+{ id: 56, type: "fill", category: "語根パターン", question: "The village looked completely _____ after the war.", hint: "「荒廃した」", fullSentence: "The village looked completely desolate after the war.", answer: "desolate", source: "IMG_0187", explanation: "desolate: 荒廃した。", relatedInfo: "" },
+{ id: 57, type: "choice", category: "語根パターン", question: "「放射線」を意味する単語はどれ？", hint: "ray(光線)、radium(ラジウム)と同語源", fullSentence: "Too much radiation can be dangerous to health.", answer: "radiation", choices: ["radiation", "radium", "radical", "ray"], source: "IMG_0187", explanation: "radiation: 放射線。radical: 急進的な、根本的な。", relatedInfo: "" },
+{ id: 58, type: "fill", category: "語根パターン", question: "The government proposed a _____ change to the tax system.", hint: "「急進的な、根本的な」", fullSentence: "The government proposed a radical change to the tax system.", answer: "radical", source: "IMG_0187", explanation: "radical: 急進的な、根本的な。", relatedInfo: "" },
+{ id: 59, type: "choice", category: "語根パターン", question: "「一致する、同時に起こる」を意味する単語はどれ？", hint: "cid「起こる」語根", fullSentence: "It's odd that our birthdays coincide.", answer: "coincide", choices: ["coincide", "incident", "coincidence", "decide"], source: "IMG_0187", explanation: "coincide: 一致する、同時に起こる。coincidence: 偶然の一致。", relatedInfo: "" },
+{ id: 60, type: "fill", category: "語根パターン", question: "A strange _____ happened on my way home yesterday.", hint: "「出来事」", fullSentence: "A strange incident happened on my way home yesterday.", answer: "incident", source: "IMG_0187", explanation: "incident: 出来事。", relatedInfo: "" },
+{ id: 61, type: "fill", category: "語根パターン", question: "She refused to _____ to unfair rules.", hint: "「逆らう」", fullSentence: "She refused to defy unfair rules.", answer: "defy", source: "IMG_0187", explanation: "defy: 逆らう。", relatedInfo: "" },
+{ id: 62, type: "fill", category: "語根パターン", question: "The soldiers were _____ for their political beliefs.", hint: "「迫害された」", fullSentence: "The soldiers were persecuted for their political beliefs.", answer: "persecuted", source: "IMG_0187", explanation: "persecute: 迫害する。", relatedInfo: "" },
+{ id: 63, type: "choice", category: "語根パターン", question: "「時代錯誤」を意味する単語はどれ？", hint: "chron「時」語根", fullSentence: "Using a typewriter today seems like an anachronism.", answer: "anachronism", choices: ["anachronism", "chronic", "chronicle", "crony"], source: "IMG_0187", explanation: "anachronism: 時代錯誤。chronic: 慢性の。chronicle: 年代記。", relatedInfo: "" },
+{ id: 64, type: "fill", category: "語根パターン", question: "He suffers from a _____ illness that never fully goes away.", hint: "「慢性の」", fullSentence: "He suffers from a chronic illness that never fully goes away.", answer: "chronic", source: "IMG_0187", explanation: "chronic: 慢性の。", relatedInfo: "" },
+
+// ===== カテゴリ: 語根パターン (dom/here) =====
+{ id: 65, type: "fill", category: "語根パターン", question: "The king wanted to expand his _____.", hint: "「領域」", fullSentence: "The king wanted to expand his domain.", answer: "domain", source: "IMG_0188", explanation: "domain: 領域。dom「支配する」語根。", relatedInfo: "" },
+{ id: 66, type: "choice", category: "語根パターン", question: "「支配する」を意味する単語はどれ？", hint: "dom語根", fullSentence: "One company dominates the smartphone market.", answer: "dominate", choices: ["dominate", "domain", "dominant", "kingdom"], source: "IMG_0188", explanation: "dominate: 支配する。dominant: 優性の。", relatedInfo: "" },
+{ id: 67, type: "fill", category: "語根パターン", question: "Please be _____ about your opinion; don't be shy.", hint: "「謙虚な」の反対を考えてみる…実際はhumbleは「謙虚な」", fullSentence: "Please be humble about your opinion; don't be shy.", answer: "humble", source: "IMG_0188", explanation: "humble: 謙虚な。", relatedInfo: "" },
+{ id: 68, type: "choice", category: "語根パターン", question: "「辱める、恥をかかせる」を意味する単語はどれ？", hint: "hum「土」語根から", fullSentence: "He was humiliated in front of the whole class.", answer: "humiliate", choices: ["humiliate", "humble", "humid", "humanity"], source: "IMG_0188", explanation: "humiliate: 辱める。humid: 湿っている。", relatedInfo: "" },
+{ id: 69, type: "fill", category: "語根パターン", question: "Singapore has a hot and _____ climate all year round.", hint: "「湿っている」", fullSentence: "Singapore has a hot and humid climate all year round.", answer: "humid", source: "IMG_0188", explanation: "humid: 湿っている。", relatedInfo: "" },
+{ id: 70, type: "fill", category: "語根パターン", question: "As an only child, he will _____ the entire family fortune.", hint: "「相続する」", fullSentence: "As an only child, he will inherit the entire family fortune.", answer: "inherit", source: "IMG_0188", explanation: "inherit: 相続する。heir(相続人)、heredity(遺伝)、heritage(遺産)と同語源。", relatedInfo: "" },
+{ id: 71, type: "choice", category: "語根パターン", question: "「固有の、本来備わっている」を意味する単語はどれ？", hint: "here「くっつく」語根", fullSentence: "Risk is inherent in any business venture.", answer: "inherent", choices: ["inherent", "inherit", "heritage", "heredity"], source: "IMG_0188", explanation: "inherent: 固有の、本来備わっている。", relatedInfo: "" },
+{ id: 72, type: "fill", category: "語根パターン", question: "Cultural sites are an important part of our national _____.", hint: "「遺産」", fullSentence: "Cultural sites are an important part of our national heritage.", answer: "heritage", source: "IMG_0188", explanation: "heritage: 遺産。", relatedInfo: "" },
+{ id: 73, type: "choice", category: "語根パターン", question: "「くっつく、固執する」を意味する単語はどれ？（to を伴う）", hint: "here語根", fullSentence: "We must adhere to the rules of the competition.", answer: "adhere", choices: ["adhere", "cohere", "inherit", "inherent"], source: "IMG_0188", explanation: "adhere to: くっつく、固執する。adherent: 信奉者。", relatedInfo: "" },
+{ id: 74, type: "fill", category: "語根パターン", question: "His argument was logical and _____.", hint: "「筋の通った」", fullSentence: "His argument was logical and coherent.", answer: "coherent", source: "IMG_0188", explanation: "coherent: 筋の通った。", relatedInfo: "" },
+{ id: 75, type: "fill", category: "語根パターン", question: "Bacteria are too small to be _____ to the naked eye.", hint: "「見えない」の反対→visibleの反対を考える、実際は空欄はinvisible", fullSentence: "Bacteria are too small to be visible to the naked eye, so they are basically invisible.", answer: "invisible", source: "IMG_0188", explanation: "invisible: 見えない。", relatedInfo: "" },
+{ id: 76, type: "choice", category: "語根パターン", question: "「即興でやる」を意味する単語はどれ？", hint: "vise「見る」語根から派生した意外な単語", fullSentence: "The band had to improvise when the singer got sick.", answer: "improvise", choices: ["improvise", "revise", "supervise", "device"], source: "IMG_0188", explanation: "improvise: 即興でやる。revise: 改訂する。supervisor: 監督者。", relatedInfo: "" },
+{ id: 77, type: "fill", category: "語根パターン", question: "This new _____ can measure your heart rate accurately.", hint: "「装置」", fullSentence: "This new device can measure your heart rate accurately.", answer: "device", source: "IMG_0188", explanation: "device: 装置(名詞)。devise: 工夫する(動詞)。", relatedInfo: "" },
+{ id: 78, type: "choice", category: "語根パターン", question: "「予言する」（動詞）を意味する単語はどれ？", hint: "vise「見る」語根", fullSentence: "It is impossible to prophesy the future with certainty.", answer: "prophesy", choices: ["prophesy", "prophecy", "advise", "advice"], source: "IMG_0188", explanation: "prophesy(動詞): 予言する。prophecy(名詞): 予言。", relatedInfo: "" },
+{ id: 79, type: "fill", category: "語根パターン", question: "The UN's _____ helped stop the conflict.", hint: "「介入」", fullSentence: "The UN's intervention helped stop the conflict.", answer: "intervention", source: "IMG_0188", explanation: "intervention: 介入。", relatedInfo: "" },
+{ id: 80, type: "choice", category: "語根パターン", question: "「型にはまった」を意味する単語はどれ？", hint: "convention(慣習、集会)の形容詞形", fullSentence: "He always follows conventional methods.", answer: "conventional", choices: ["conventional", "convention", "intervention", "souvenir"], source: "IMG_0188", explanation: "conventional: 型にはまった。convention: 慣習、集会。", relatedInfo: "" },
+{ id: 81, type: "fill", category: "語根パターン", question: "I bought a small _____ to remember my trip to Kyoto.", hint: "「お土産」", fullSentence: "I bought a small souvenir to remember my trip to Kyoto.", answer: "souvenir", source: "IMG_0188", explanation: "souvenir: お土産。", relatedInfo: "" },
+
+// ===== カテゴリ: 語根パターン (vent/merge/ceed) =====
+{ id: 82, type: "fill", category: "語根パターン", question: "We _____ arrived at the summit after five hours of climbing.", hint: "「最終的に」", fullSentence: "We eventually arrived at the summit after five hours of climbing.", answer: "eventually", source: "IMG_0189", explanation: "eventually: 最終的に。", relatedInfo: "" },
+{ id: 83, type: "choice", category: "語根パターン", question: "「回避する」を意味する単語はどれ？", hint: "vent「来る」語根", fullSentence: "They tried to circumvent the new regulations.", answer: "circumvent", choices: ["circumvent", "ventilator", "venue", "avenue"], source: "IMG_0189", explanation: "circumvent: 回避する。ventilator: 換気装置。venue: 会場。", relatedInfo: "" },
+{ id: 84, type: "fill", category: "語根パターン", question: "The concert was held at a large outdoor _____.", hint: "「会場」", fullSentence: "The concert was held at a large outdoor venue.", answer: "venue", source: "IMG_0189", explanation: "venue: 会場。", relatedInfo: "" },
+{ id: 85, type: "choice", category: "語根パターン", question: "「合併する」を意味する単語はどれ？", hint: "merge語根", fullSentence: "The two companies decided to merge next year.", answer: "merge", choices: ["merge", "emerge", "submerge", "immerse"], source: "IMG_0189", explanation: "merge: 合併する。emerge: 出現する。submerge: 水没させる。immerse: 没頭する。", relatedInfo: "" },
+{ id: 86, type: "fill", category: "語根パターン", question: "A new problem has _____ that we didn't expect.", hint: "「出現する」", fullSentence: "A new problem has emerged that we didn't expect.", answer: "emerged", source: "IMG_0189", explanation: "emerge: 出現する。", relatedInfo: "" },
+{ id: 87, type: "fill", category: "語根パターン", question: "She likes to _____ herself in a good book on weekends.", hint: "「没頭させる」", fullSentence: "She likes to immerse herself in a good book on weekends.", answer: "immerse", source: "IMG_0189", explanation: "immerse: 浸す、没頭させる。immersion: 没頭。", relatedInfo: "" },
+{ id: 88, type: "choice", category: "語根パターン", question: "「成功する、継承する」を意味する単語はどれ？", hint: "ceed「行く」語根", fullSentence: "His son will succeed him as company president.", answer: "succeed", choices: ["succeed", "successor", "successive", "process"], source: "IMG_0189", explanation: "succeed: 成功する、継承する。successor: 後継者。successive: 連続する。", relatedInfo: "" },
+{ id: 89, type: "fill", category: "語根パターン", question: "It rained for three _____ days last week.", hint: "「連続する」", fullSentence: "It rained for three successive days last week.", answer: "successive", source: "IMG_0189", explanation: "successive: 連続する。", relatedInfo: "" },
+{ id: 90, type: "fill", category: "語根パターン", question: "The economy slipped into a _____ last year.", hint: "「不況、後退」", fullSentence: "The economy slipped into a recession last year.", answer: "recession", source: "IMG_0189", explanation: "recession: 不況、後退。", relatedInfo: "" },
+{ id: 91, type: "choice", category: "語根パターン", question: "「譲歩」を意味する単語はどれ？", hint: "ceed/cess語根", fullSentence: "Both sides made a small concession to reach a deal.", answer: "concession", choices: ["concession", "recession", "process", "successor"], source: "IMG_0189", explanation: "concession: 譲歩。", relatedInfo: "" },
+{ id: 92, type: "fill", category: "語根パターン", question: "This technology has grown at an _____ speed.", hint: "「前例のない」", fullSentence: "This technology has grown at an unprecedented speed.", answer: "unprecedented", source: "IMG_0189", explanation: "unprecedented: 前例のない。", relatedInfo: "" },
+
+// ===== カテゴリ: 語根パターン (cede/sume/spect) =====
+{ id: 93, type: "fill", category: "語根パターン", question: "The glacier began to _____ due to global warming.", hint: "「後退する」", fullSentence: "The glacier began to recede due to global warming.", answer: "recede", source: "IMG_0190", explanation: "recede: 後退する。precede(先行する)、exceed(超える)、concede(譲歩する)と同語根。", relatedInfo: "" },
+{ id: 94, type: "choice", category: "語根パターン", question: "「先行する」を意味する単語はどれ？", hint: "cede/ceed「行く」語根", fullSentence: "A moment of silence preceded the speech.", answer: "preceded", choices: ["preceded", "receded", "exceeded", "conceded"], source: "IMG_0190", explanation: "precede: 先行する。", relatedInfo: "" },
+{ id: 95, type: "fill", category: "語根パターン", question: "The temperature will _____ 35 degrees tomorrow.", hint: "「超える」", fullSentence: "The temperature will exceed 35 degrees tomorrow.", answer: "exceed", source: "IMG_0190", explanation: "exceed: 超える。", relatedInfo: "" },
+{ id: 96, type: "choice", category: "語根パターン", question: "「消費する」を意味する単語はどれ？", hint: "sume語根", fullSentence: "This old refrigerator consumes a lot of electricity.", answer: "consumes", choices: ["consumes", "resumes", "assumes", "presumes"], source: "IMG_0190", explanation: "consume: 消費する。resume: 再開する。assume: 想定する。presume: 推定する。", relatedInfo: "" },
+{ id: 97, type: "fill", category: "語根パターン", question: "The meeting will _____ after a short break.", hint: "「再開する」", fullSentence: "The meeting will resume after a short break.", answer: "resume", source: "IMG_0190", explanation: "resume: 再開する。resumption: 再開。", relatedInfo: "" },
+{ id: 98, type: "fill", category: "語根パターン", question: "Let's not _____ anything without checking the facts first.", hint: "「想定する」", fullSentence: "Let's not assume anything without checking the facts first.", answer: "assume", source: "IMG_0190", explanation: "assume: 想定する。assumption: 仮定。", relatedInfo: "" },
+{ id: 99, type: "choice", category: "語根パターン", question: "「おそらく」を意味する単語はどれ？", hint: "presume「推定する」の副詞形", fullSentence: "Presumably, the flight will be delayed because of the storm.", answer: "Presumably", choices: ["Presumably", "Consequently", "Consistently", "Considerably"], source: "IMG_0190", explanation: "presumably: おそらく。presumptuous: 厚かましい。", relatedInfo: "" },
+{ id: 100, type: "fill", category: "語根パターン", question: "Doctors often _____ a long recovery for this type of injury.", hint: "「予測する」", fullSentence: "Doctors often expect a long recovery for this type of injury.", answer: "expect", source: "IMG_0190", explanation: "expect: 期待する。spect「見る」語根。", relatedInfo: "" },
+{ id: 101, type: "choice", category: "語根パターン", question: "「疑う」を意味する単語はどれ？", hint: "spect語根", fullSentence: "Police suspect that he was involved in the robbery.", answer: "suspect", choices: ["suspect", "expect", "prospect", "despise"], source: "IMG_0190", explanation: "suspect: 疑う。prospect: 見込み。despise: 軽蔑する。", relatedInfo: "" },
+{ id: 102, type: "fill", category: "語根パターン", question: "There is little _____ of rain this weekend.", hint: "「見込み」", fullSentence: "There is little prospect of rain this weekend.", answer: "prospect", source: "IMG_0190", explanation: "prospect: 見込み。", relatedInfo: "" },
+{ id: 103, type: "fill", category: "語根パターン", question: "He seems to _____ people who don't share his opinions.", hint: "「軽蔑する」", fullSentence: "He seems to despise people who don't share his opinions.", answer: "despise", source: "IMG_0190", explanation: "despise: 軽蔑する。", relatedInfo: "" },
+{ id: 104, type: "fill", category: "語根パターン", question: "The museum has a rare _____ of a dinosaur bone.", hint: "「標本」", fullSentence: "The museum has a rare specimen of a dinosaur bone.", answer: "specimen", source: "IMG_0190", explanation: "specimen: 標本。", relatedInfo: "" },
+{ id: 105, type: "choice", category: "語根パターン", question: "「目立つ」を意味する単語はどれ？", hint: "spect語根", fullSentence: "His bright red jacket was very conspicuous in the crowd.", answer: "conspicuous", choices: ["conspicuous", "inspector", "specimen", "skeptical"], source: "IMG_0190", explanation: "conspicuous: 目立つ。inspector: 検査官。skeptical: 懐疑的な。", relatedInfo: "" },
+{ id: 106, type: "fill", category: "語根パターン", question: "I remain _____ about his promises; he never keeps them.", hint: "「懐疑的な」", fullSentence: "I remain skeptical about his promises; he never keeps them.", answer: "skeptical", source: "IMG_0190", explanation: "skeptical: 懐疑的な。", relatedInfo: "" },
+{ id: 107, type: "choice", category: "語根パターン", question: "「あざける」を意味する単語はどれ？", hint: "動詞", fullSentence: "It's cruel to ridicule someone for their mistakes.", answer: "ridicule", choices: ["ridicule", "ripple", "vehicle", "article"], source: "IMG_0190", explanation: "ridicule: あざける。", relatedInfo: "" },
+{ id: 108, type: "fill", category: "語根パターン", question: "Small _____ spread across the surface of the pond.", hint: "「さざ波」", fullSentence: "Small ripples spread across the surface of the pond.", answer: "ripples", source: "IMG_0190", explanation: "ripple: さざ波。", relatedInfo: "" },
+
+// ===== カテゴリ: 語根パターン (regent/pend) =====
+{ id: 109, type: "fill", category: "語根パターン", question: "He behaves in such an _____ way that nobody likes him.", hint: "「傲慢な」", fullSentence: "He behaves in such an arrogant way that nobody likes him.", answer: "arrogant", source: "IMG_0191", explanation: "arrogant: 傲慢な。", relatedInfo: "" },
+{ id: 110, type: "choice", category: "語根パターン", question: "「尋問する」を意味する単語はどれ？", hint: "動詞", fullSentence: "The police decided to interrogate the suspect.", answer: "interrogate", choices: ["interrogate", "arrogant", "regime", "regent"], source: "IMG_0191", explanation: "interrogate: 尋問する。regime: 政権。", relatedInfo: "" },
+{ id: 111, type: "fill", category: "語根パターン", question: "Homeowners must pay off their _____ every month.", hint: "「住宅ローン」", fullSentence: "Homeowners must pay off their mortgage every month.", answer: "mortgage", source: "IMG_0191", explanation: "mortgage: 住宅ローン。mortal(死すべき)、murder(殺人)と同じmor「死」語根。", relatedInfo: "" },
+{ id: 112, type: "choice", category: "語根パターン", question: "「強化する」を意味する単語はどれ？", hint: "enforce(実施する)の仲間", fullSentence: "We need to reinforce the bridge before winter.", answer: "reinforce", choices: ["reinforce", "enforce", "sanction", "sacrifice"], source: "IMG_0191", explanation: "reinforce: 強化する。enforce: 実施する、強制する。", relatedInfo: "" },
+{ id: 113, type: "fill", category: "語根パターン", question: "The police _____ the new traffic law strictly.", hint: "「実施する、強制する」", fullSentence: "The police enforce the new traffic law strictly.", answer: "enforce", source: "IMG_0191", explanation: "enforce: 実施する、強制する。", relatedInfo: "" },
+{ id: 114, type: "fill", category: "語根パターン", question: "Scientists carefully _____ the data before publishing.", hint: "「精査する」", fullSentence: "Scientists carefully scrutinize the data before publishing.", answer: "scrutinize", source: "IMG_0191", explanation: "scrutinize: 精査する。", relatedInfo: "" },
+{ id: 115, type: "fill", category: "語根パターン", question: "Everyone should _____ her courage in facing such a difficult situation.", hint: "「賞賛する」", fullSentence: "Everyone should admire her courage in facing such a difficult situation.", answer: "admire", source: "IMG_0191", explanation: "admire: 賞賛する。admirable: 称賛に値する。", relatedInfo: "" },
+{ id: 116, type: "choice", category: "語根パターン", question: "「蜃気楼」を意味する単語はどれ？", hint: "比喩的に「幻想」の意味でも使う", fullSentence: "The oasis turned out to be just a mirage.", answer: "mirage", choices: ["mirage", "sanction", "sacrifice", "sophisticated"], source: "IMG_0191", explanation: "mirage: 蜃気楼。", relatedInfo: "" },
+{ id: 117, type: "fill", category: "語根パターン", question: "The UN imposed economic _____ on the country.", hint: "「制裁」", fullSentence: "The UN imposed economic sanctions on the country.", answer: "sanctions", source: "IMG_0191", explanation: "sanction: 制裁、認可（文脈で意味が反対になる）。", relatedInfo: "" },
+{ id: 118, type: "fill", category: "語根パターン", question: "Soldiers must sometimes make a great _____ for their country.", hint: "「犠牲」", fullSentence: "Soldiers must sometimes make a great sacrifice for their country.", answer: "sacrifice", source: "IMG_0191", explanation: "sacrifice: 犠牲。", relatedInfo: "" },
+{ id: 119, type: "fill", category: "語根パターン", question: "She has very _____ taste in art and music.", hint: "「洗練された」", fullSentence: "She has very sophisticated taste in art and music.", answer: "sophisticated", source: "IMG_0191", explanation: "sophisticated: 洗練された。sophomoreと関連語源。", relatedInfo: "" },
+{ id: 120, type: "fill", category: "語根パターン", question: "The company's expenses were much higher than its _____.", hint: "「支出」（expense/expenditureの対」", fullSentence: "The company's expenses were much higher than its revenue, causing serious expenditure problems.", answer: "expenditure", source: "IMG_0191", explanation: "expenditure: 支出。expense: 費用。", relatedInfo: "" },
+{ id: 121, type: "choice", category: "語根パターン", question: "「一時停止する」を意味する単語はどれ？", hint: "pend「ぶら下がる」語根", fullSentence: "The referee decided to suspend the match due to rain.", answer: "suspend", choices: ["suspend", "pension", "impend", "dispense"], source: "IMG_0191", explanation: "suspend: 一時停止する。pension: 年金。", relatedInfo: "" },
+{ id: 122, type: "fill", category: "語根パターン", question: "He retired early and now lives on his _____.", hint: "「年金」", fullSentence: "He retired early and now lives on his pension.", answer: "pension", source: "IMG_0191", explanation: "pension: 年金。", relatedInfo: "" },
+{ id: 123, type: "fill", category: "語根パターン", question: "A storm seemed to be _____; dark clouds filled the sky.", hint: "「差し迫った」", fullSentence: "A storm seemed to be impending; dark clouds filled the sky.", answer: "impending", source: "IMG_0191", explanation: "impend: 差し迫る。impending: 差し迫った。", relatedInfo: "" },
+{ id: 124, type: "choice", category: "語根パターン", question: "「~なしで済ます」の表現はどれ？", hint: "dispense ___", fullSentence: "We can dispense with formalities for today.", answer: "with", choices: ["with", "for", "of", "on"], source: "IMG_0191", explanation: "dispense with: ~なしで済ます。", relatedInfo: "" },
+{ id: 125, type: "fill", category: "語根パターン", question: "She sat quietly, _____ the strange letter she had received.", hint: "「熟考する」", fullSentence: "She sat quietly, pondering the strange letter she had received.", answer: "pondering", source: "IMG_0191", explanation: "ponder: 熟考する。", relatedInfo: "" },
+{ id: 126, type: "fill", category: "語根パターン", question: "The king decided to _____ over the whole kingdom peacefully.", hint: "「統治する」", fullSentence: "The king decided to reign over the whole kingdom peacefully.", answer: "reign", source: "IMG_0191", explanation: "reign: 統治する。royal: 王の。", relatedInfo: "" },
+{ id: 127, type: "fill", category: "語根パターン", question: "The teacher tried to _____ the growing problem of bullying.", hint: "「対処する」", fullSentence: "The teacher tried to address the growing problem of bullying.", answer: "address", source: "IMG_0191", explanation: "address: 演説、対処する。", relatedInfo: "" },
+{ id: 128, type: "fill", category: "語根パターン", question: "Please _____ the mistake in the report before submitting it.", hint: "「正す」", fullSentence: "Please rectify the mistake in the report before submitting it.", answer: "rectify", source: "IMG_0191", explanation: "rectify: 正す。correction: 訂正。", relatedInfo: "" },
+
+// ===== カテゴリ: 語根パターン (duct/tribute/hostile-mutual) =====
+{ id: 129, type: "fill", category: "語根パターン", question: "Let me _____ you to my new colleague, Mr. Smith.", hint: "「紹介する」", fullSentence: "Let me introduce you to my new colleague, Mr. Smith.", answer: "introduce", source: "IMG_0192", explanation: "introduce: 紹介する。duct/duce「導く」語根。", relatedInfo: "" },
+{ id: 130, type: "choice", category: "語根パターン", question: "「AをBに減らす」の表現はどれ？", hint: "reduce A ___ B", fullSentence: "We need to reduce our expenses to half.", answer: "to", choices: ["to", "into", "at", "for"], source: "IMG_0192", explanation: "reduce A to B: AをBに減らす。", relatedInfo: "" },
+{ id: 131, type: "fill", category: "語根パターン", question: "How should I _____ myself at a formal dinner party?", hint: "「振る舞う」", fullSentence: "How should I conduct myself at a formal dinner party?", answer: "conduct", source: "IMG_0192", explanation: "conduct oneself: 振る舞う。", relatedInfo: "" },
+{ id: 132, type: "fill", category: "語根パターン", question: "We can logically _____ that the suspect was at the scene.", hint: "「推論する」", fullSentence: "We can logically deduce that the suspect was at the scene.", answer: "deduce", source: "IMG_0192", explanation: "deduce: 推論する。deduction: 演繹、控除。", relatedInfo: "" },
+{ id: 133, type: "choice", category: "語根パターン", question: "「誘拐」を意味する単語はどれ？", hint: "duct/duce語根の名詞", fullSentence: "The child's abduction shocked the whole town.", answer: "abduction", choices: ["abduction", "deduction", "introduction", "reduction"], source: "IMG_0192", explanation: "abduction: 誘拐。abduce/abduct: 誘拐する。", relatedInfo: "" },
+{ id: 134, type: "fill", category: "語根パターン", question: "Every year we pay _____ to the veterans who fought in the war.", hint: "「捧げ物、賛辞」", fullSentence: "Every year we pay tribute to the veterans who fought in the war.", answer: "tribute", source: "IMG_0192", explanation: "tribute: 捧げ物、賛辞。", relatedInfo: "" },
+{ id: 135, type: "choice", category: "語根パターン", question: "「AをBに貢献する」の表現はどれ？", hint: "contribute A ___ B", fullSentence: "His research contributed greatly to medical science.", answer: "to", choices: ["to", "for", "with", "at"], source: "IMG_0192", explanation: "contribute A to B: AをBに貢献する。", relatedInfo: "" },
+{ id: 136, type: "fill", category: "語根パターン", question: "Volunteers helped _____ food to the flood victims.", hint: "「分配する」", fullSentence: "Volunteers helped distribute food to the flood victims.", answer: "distribute", source: "IMG_0192", explanation: "distribute: 分配する。distribution: 分配。", relatedInfo: "" },
+{ id: 137, type: "fill", category: "語根パターン", question: "People often _____ their bad luck to fate.", hint: "「AをBのせいにする」（attribute A to B）", fullSentence: "People often attribute their bad luck to fate.", answer: "attribute", source: "IMG_0192", explanation: "attribute A to B: AをBのせいにする。", relatedInfo: "" },
+{ id: 138, type: "fill", category: "語根パターン", question: "This small stream is a _____ of the Amazon River.", hint: "「支流」", fullSentence: "This small stream is a tributary of the Amazon River.", answer: "tributary", source: "IMG_0192", explanation: "tributary: 支流。", relatedInfo: "" },
+{ id: 139, type: "choice", category: "語根パターン", question: "「敵意のある」を意味する単語はどれ？", hint: "hostility(敵意)の形容詞形", fullSentence: "The villagers gave the strangers a hostile welcome.", answer: "hostile", choices: ["hostile", "eligible", "irrelevant", "mutual"], source: "IMG_0192", explanation: "hostile: 敵意のある。hostility: 敵意。", relatedInfo: "" },
+{ id: 140, type: "fill", category: "語根パターン", question: "The teacher decided to _____ the student's rude comment.", hint: "「無視する」", fullSentence: "The teacher decided to neglect the student's rude comment.", answer: "neglect", source: "IMG_0192", explanation: "neglect: 無視する。elect: 選出する。", relatedInfo: "" },
+{ id: 141, type: "fill", category: "語根パターン", question: "Only students over 18 are _____ to vote.", hint: "「資格のある」", fullSentence: "Only students over 18 are eligible to vote.", answer: "eligible", source: "IMG_0192", explanation: "eligible: 資格のある。", relatedInfo: "" },
+{ id: 142, type: "fill", category: "語根パターン", question: "That comment is completely _____ to our discussion.", hint: "「無関係な」", fullSentence: "That comment is completely irrelevant to our discussion.", answer: "irrelevant", source: "IMG_0192", explanation: "irrelevant: 無関係な。", relatedInfo: "" },
+{ id: 143, type: "fill", category: "語根パターン", question: "He tried to _____ her into signing the contract.", hint: "「だます」", fullSentence: "He tried to deceive her into signing the contract.", answer: "deceive", source: "IMG_0192", explanation: "deceive: だます。perceive(知覚する)と混同注意。", relatedInfo: "" },
+{ id: 144, type: "choice", category: "語根パターン", question: "「相互の」を意味する単語はどれ？", hint: "形容詞", fullSentence: "They have a mutual respect for each other.", answer: "mutual", choices: ["mutual", "mutation", "commute", "bribery"], source: "IMG_0192", explanation: "mutual: 相互の。mutation: 突然変異。commute: 通勤する。", relatedInfo: "" },
+{ id: 145, type: "fill", category: "語根パターン", question: "The official was arrested for accepting a _____.", hint: "「賄賂」", fullSentence: "The official was arrested for accepting a bribe.", answer: "bribe", source: "IMG_0192", explanation: "bribe: 賄賂。bribery: 贈収賄。", relatedInfo: "" },
+{ id: 146, type: "fill", category: "語根パターン", question: "The manager must report directly to his _____ .", hint: "「部下」（実際はsubordinateは部下の意味もある）", fullSentence: "The manager must give clear instructions to his subordinate.", answer: "subordinate", source: "IMG_0192", explanation: "subordinate: 部下、従属する。", relatedInfo: "" },
+{ id: 147, type: "fill", category: "語根パターン", question: "The oil spill was a _____ disaster for the local wildlife.", hint: "「壊滅的な」", fullSentence: "The oil spill was a catastrophic disaster for the local wildlife.", answer: "catastrophic", source: "IMG_0192", explanation: "catastrophic: 壊滅的な。", relatedInfo: "" },
+
+// ===== カテゴリ: 語根パターン (tract/press/ped) =====
+{ id: 148, type: "fill", category: "語根パターン", question: "Bright colors _____ more customers to the store.", hint: "「引きつける」", fullSentence: "Bright colors attract more customers to the store.", answer: "attract", source: "IMG_0193", explanation: "attract: 引きつける。tract「引く」語根。", relatedInfo: "" },
+{ id: 149, type: "choice", category: "語根パターン", question: "「気をそらす」を意味する単語はどれ？", hint: "tract語根", fullSentence: "Loud noise can distract students during exams.", answer: "distract", choices: ["distract", "attract", "extract", "contract"], source: "IMG_0193", explanation: "distract: 気をそらす。extract: 抽出する。", relatedInfo: "" },
+{ id: 150, type: "fill", category: "語根パターン", question: "You need to _____ the tax amount from the total price.", hint: "「BからAを引く」（subtract A from B）", fullSentence: "You need to subtract the tax amount from the total price.", answer: "subtract", source: "IMG_0193", explanation: "subtract A from B: BからAを引く。", relatedInfo: "" },
+{ id: 151, type: "fill", category: "語根パターン", question: "The metal will _____ slightly when it cools down.", hint: "「収縮する」", fullSentence: "The metal will contract slightly when it cools down.", answer: "contract", source: "IMG_0193", explanation: "contract: 契約、収縮する。contraction: 収縮。", relatedInfo: "" },
+{ id: 152, type: "choice", category: "語根パターン", question: "「表現する」を意味する単語はどれ？", hint: "press「押す」語根", fullSentence: "It's important to express your feelings honestly.", answer: "express", choices: ["express", "depress", "impress", "suppress"], source: "IMG_0193", explanation: "express: 表現する。depress: 落胆させる。impress: 印象付ける。suppress: 抑圧する。", relatedInfo: "" },
+{ id: 153, type: "fill", category: "語根パターン", question: "The government tried to _____ the protests by force.", hint: "「抑圧する」", fullSentence: "The government tried to oppress the protests by force.", answer: "oppress", source: "IMG_0193", explanation: "oppress: 抑圧する。", relatedInfo: "" },
+{ id: 154, type: "fill", category: "語根パターン", question: "Low prices during a recession can worsen an economic _____.", hint: "「不況」", fullSentence: "Low prices during a recession can worsen an economic depression.", answer: "depression", source: "IMG_0193", explanation: "depression: 不況、うつ。", relatedInfo: "" },
+{ id: 155, type: "fill", category: "語根パターン", question: "High blood _____ can lead to serious health problems.", hint: "「圧力」", fullSentence: "High blood pressure can lead to serious health problems.", answer: "pressure", source: "IMG_0193", explanation: "pressure: 圧力。", relatedInfo: "" },
+{ id: 156, type: "fill", category: "語根パターン", question: "The nation's education system needs a great _____ (機関、制度).", hint: "「機関、制度」", fullSentence: "The nation's education system needs a great institution to support it.", answer: "institution", source: "IMG_0193", explanation: "institution: 機関、制度。constitution: 憲法、構成。", relatedInfo: "" },
+{ id: 157, type: "choice", category: "語根パターン", question: "「迷信」を意味する単語はどれ？", hint: "-stitionの仲間", fullSentence: "Breaking a mirror is considered a bad superstition.", answer: "superstition", choices: ["superstition", "institution", "constitution", "destination"], source: "IMG_0193", explanation: "superstition: 迷信。", relatedInfo: "" },
+{ id: 158, type: "fill", category: "語根パターン", question: "Kyoto is one of the most popular travel _____ in Japan.", hint: "「目的地」", fullSentence: "Kyoto is one of the most popular travel destinations in Japan.", answer: "destinations", source: "IMG_0193", explanation: "destination: 目的地。", relatedInfo: "" },
+{ id: 159, type: "choice", category: "語根パターン", question: "「妨げる」を意味する単語はどれ？", hint: "ped「足」語根", fullSentence: "Heavy traffic impeded our progress to the airport.", answer: "impeded", choices: ["impeded", "expedited", "pedestrian", "pedigree"], source: "IMG_0193", explanation: "impede: 妨げる。", relatedInfo: "" },
+{ id: 160, type: "fill", category: "語根パターン", question: "The army launched an _____ into the desert region.", hint: "「遠征」", fullSentence: "The army launched an expedition into the desert region.", answer: "expedition", source: "IMG_0193", explanation: "expedition: 遠征。", relatedInfo: "" },
+{ id: 161, type: "fill", category: "語根パターン", question: "The area is popular with joggers and _____.", hint: "「歩行者」", fullSentence: "The area is popular with joggers and pedestrians.", answer: "pedestrians", source: "IMG_0193", explanation: "pedestrian: 歩行者。", relatedInfo: "" },
+{ id: 162, type: "fill", category: "語根パターン", question: "He always looks on the dark side of things; he is very _____.", hint: "「悲観的な」", fullSentence: "He always looks on the dark side of things; he is very pessimistic.", answer: "pessimistic", source: "IMG_0193", explanation: "pessimistic: 悲観的な。", relatedInfo: "" },
+{ id: 163, type: "fill", category: "語根パターン", question: "After the rain, there was a big _____ in the middle of the road.", hint: "「水たまり」", fullSentence: "After the rain, there was a big puddle in the middle of the road.", answer: "puddle", source: "IMG_0193", explanation: "puddle: 水たまり。", relatedInfo: "" },
+
+// ===== カテゴリ: 語根パターン (rupt/pel/term) =====
+{ id: 164, type: "fill", category: "語根パターン", question: "Please don't _____ me while I'm speaking.", hint: "「中断する」", fullSentence: "Please don't interrupt me while I'm speaking.", answer: "interrupt", source: "IMG_0194", explanation: "interrupt: 中断する。rupt「壊す」語根。", relatedInfo: "" },
+{ id: 165, type: "choice", category: "語根パターン", question: "「突然の」を意味する単語はどれ？", hint: "rupt語根", fullSentence: "His abrupt departure surprised everyone.", answer: "abrupt", choices: ["abrupt", "corrupt", "erupt", "bankrupt"], source: "IMG_0194", explanation: "abrupt: 突然の。corrupt: 堕落した。erupt: 噴火する。bankrupt: 破産した。", relatedInfo: "" },
+{ id: 166, type: "fill", category: "語根パターン", question: "The volcano could _____ again at any moment.", hint: "「噴火する」", fullSentence: "The volcano could erupt again at any moment.", answer: "erupt", source: "IMG_0194", explanation: "erupt: 噴火する。eruption: 噴火。", relatedInfo: "" },
+{ id: 167, type: "fill", category: "語根パターン", question: "Political _____ is a serious problem in many countries.", hint: "「腐敗」", fullSentence: "Political corruption is a serious problem in many countries.", answer: "corruption", source: "IMG_0194", explanation: "corruption: 腐敗。", relatedInfo: "" },
+{ id: 168, type: "fill", category: "語根パターン", question: "The government's poor policies could lead to social _____.", hint: "「混乱」", fullSentence: "The government's poor policies could lead to social disruption.", answer: "disruption", source: "IMG_0194", explanation: "disruption: 混乱。", relatedInfo: "" },
+{ id: 169, type: "fill", category: "語根パターン", question: "The country needs to improve its transportation _____.", hint: "「インフラ」", fullSentence: "The country needs to improve its transportation infrastructure.", answer: "infrastructure", source: "IMG_0194", explanation: "infrastructure: インフラ。", relatedInfo: "" },
+{ id: 170, type: "fill", category: "語根パターン", question: "The company needs a new marketing _____ to survive.", hint: "「戦略」", fullSentence: "The company needs a new marketing strategy to survive.", answer: "strategy", source: "IMG_0194", explanation: "strategy: 戦略。", relatedInfo: "" },
+{ id: 171, type: "fill", category: "語根パターン", question: "She always _____ to do her best in everything.", hint: "「努力する」", fullSentence: "She always strives to do her best in everything.", answer: "strives", source: "IMG_0194", explanation: "strive: 努力する。", relatedInfo: "" },
+{ id: 172, type: "choice", category: "語根パターン", question: "「強制する」を意味する単語はどれ？", hint: "pel「押す」語根", fullSentence: "The law compels drivers to wear seatbelts.", answer: "compels", choices: ["compels", "dispels", "expels", "repels"], source: "IMG_0194", explanation: "compel: 強制する。dispel: 追い払う。expel: 追放する。repel: 退ける。", relatedInfo: "" },
+{ id: 173, type: "fill", category: "語根パターン", question: "The school decided to _____ the student for cheating.", hint: "「追放する」", fullSentence: "The school decided to expel the student for cheating.", answer: "expel", source: "IMG_0194", explanation: "expel: 追放する。", relatedInfo: "" },
+{ id: 174, type: "fill", category: "語根パターン", question: "In many countries, military service is _____ for young men.", hint: "「義務的な」", fullSentence: "In many countries, military service is compulsory for young men.", answer: "compulsory", source: "IMG_0194", explanation: "compulsory: 義務的な。", relatedInfo: "" },
+{ id: 175, type: "fill", category: "語根パターン", question: "He bought the car on _____ , without thinking it through.", hint: "「衝動」", fullSentence: "He bought the car on impulse, without thinking it through.", answer: "impulse", source: "IMG_0194", explanation: "impulse: 衝動。", relatedInfo: "" },
+{ id: 176, type: "fill", category: "語根パターン", question: "The government will _____ the exact cause of the accident.", hint: "「決定する」", fullSentence: "The government will determine the exact cause of the accident.", answer: "determine", source: "IMG_0194", explanation: "determine: 決定する。term「境界」語根。", relatedInfo: "" },
+{ id: 177, type: "fill", category: "語根パターン", question: "Scientists are trying to _____ this dangerous virus completely.", hint: "「根絶する」", fullSentence: "Scientists are trying to exterminate this dangerous virus completely.", answer: "exterminate", source: "IMG_0194", explanation: "exterminate: 根絶する。", relatedInfo: "" },
+{ id: 178, type: "choice", category: "語根パターン", question: "「~を受け入れる」の表現はどれ？", hint: "come to terms ___", fullSentence: "It took years for her to come to terms with the loss.", answer: "with", choices: ["with", "to", "for", "on"], source: "IMG_0194", explanation: "come to terms with: ~を受け入れる。", relatedInfo: "" },
+
+// ===== カテゴリ: 語根パターン (sent/vert/sta) =====
+{ id: 179, type: "fill", category: "語根パターン", question: "Public _____ began to shift against the war.", hint: "「感情、意見」", fullSentence: "Public sentiment began to shift against the war.", answer: "sentiment", source: "IMG_0195", explanation: "sentiment: 感情、意見。sent「感じる」語根。", relatedInfo: "" },
+{ id: 180, type: "choice", category: "語根パターン", question: "「同意する」を意味する単語はどれ？", hint: "sent語根", fullSentence: "Both parents must consent before the surgery.", answer: "consent", choices: ["consent", "resent", "assent", "scent"], source: "IMG_0195", explanation: "consent: 同意する。assentも同意する。resent: 憤慨する。scent: 匂い。", relatedInfo: "" },
+{ id: 181, type: "fill", category: "語根パターン", question: "She still _____ the way he treated her years ago.", hint: "「憤慨する」", fullSentence: "She still resents the way he treated her years ago.", answer: "resents", source: "IMG_0195", explanation: "resent: 憤慨する。", relatedInfo: "" },
+{ id: 182, type: "fill", category: "語根パターン", question: "There was a general _____ among the committee members.", hint: "「合意」", fullSentence: "There was a general consensus among the committee members.", answer: "consensus", source: "IMG_0195", explanation: "consensus: 合意。", relatedInfo: "" },
+{ id: 183, type: "fill", category: "語根パターン", question: "The newspaper published a _____ story to boost sales.", hint: "「扇情的な」", fullSentence: "The newspaper published a sensational story to boost sales.", answer: "sensational", source: "IMG_0195", explanation: "sensational: 扇情的な。", relatedInfo: "" },
+{ id: 184, type: "fill", category: "語根パターン", question: "He is very _____ to criticism, so be careful what you say.", hint: "「敏感な」", fullSentence: "He is very sensitive to criticism, so be careful what you say.", answer: "sensitive", source: "IMG_0195", explanation: "sensitive: 敏感な。", relatedInfo: "" },
+{ id: 185, type: "choice", category: "語根パターン", question: "「拒否する」を意味する単語はどれ？", hint: "fuse「注ぐ」語根", fullSentence: "She refused to answer any more questions.", answer: "refused", choices: ["refused", "confused", "diffused", "transfused"], source: "IMG_0195", explanation: "refuse: 拒否する。confuse: 混乱させる。diffuse: 拡散させる。transfuse: 輸血する。", relatedInfo: "" },
+{ id: 186, type: "fill", category: "語根パターン", question: "I was completely _____ by his confusing instructions.", hint: "「混乱させる」", fullSentence: "I was completely confused by his confusing instructions.", answer: "confused", source: "IMG_0195", explanation: "confuse: 混乱させる。", relatedInfo: "" },
+{ id: 187, type: "fill", category: "語根パターン", question: "The scientist tried to _____ the theory with new evidence.", hint: "「論駁する」", fullSentence: "The scientist tried to refute the theory with new evidence.", answer: "refute", source: "IMG_0195", explanation: "refute: 論駁する。refund: 返金する。", relatedInfo: "" },
+{ id: 188, type: "choice", category: "語根パターン", question: "「変換する」を意味する単語はどれ？", hint: "vert「変える」語根", fullSentence: "We plan to convert this old barn into a house.", answer: "convert", choices: ["convert", "divert", "avert", "revert"], source: "IMG_0195", explanation: "convert: 変換する。divert: それる、転用する。avert: 回避する。", relatedInfo: "" },
+{ id: 189, type: "fill", category: "語根パターン", question: "The city has a _____ population from many different countries.", hint: "「多様な」", fullSentence: "The city has a diverse population from many different countries.", answer: "diverse", source: "IMG_0195", explanation: "diverse: 多様な。diversity: 多様性。", relatedInfo: "" },
+{ id: 190, type: "fill", category: "語根パターン", question: "Quick action _____ a major disaster.", hint: "「回避する」", fullSentence: "Quick action averted a major disaster.", answer: "averted", source: "IMG_0195", explanation: "avert: 回避する。", relatedInfo: "" },
+{ id: 191, type: "choice", category: "語根パターン", question: "「物議を醸す」を意味する単語はどれ？", hint: "vert語根の形容詞", fullSentence: "The new policy has become highly controversial.", answer: "controversial", choices: ["controversial", "vertical", "adversity", "diverse"], source: "IMG_0195", explanation: "controversial: 物議を醸す。vertical: 垂直の。adversity: 逆境。", relatedInfo: "" },
+{ id: 192, type: "fill", category: "語根パターン", question: "He remained calm even in the face of great _____.", hint: "「逆境」", fullSentence: "He remained calm even in the face of great adversity.", answer: "adversity", source: "IMG_0195", explanation: "adversity: 逆境。", relatedInfo: "" },
+{ id: 193, type: "fill", category: "語根パターン", question: "The new employee's social _____ made her stand out at the party.", hint: "「地位」", fullSentence: "The new employee's social status made her stand out at the party.", answer: "status", source: "IMG_0195", explanation: "status: 地位。", relatedInfo: "" },
+{ id: 194, type: "choice", category: "語根パターン", question: "「かなりの」を意味する単語はどれ？", hint: "substance(物質)の形容詞形", fullSentence: "There has been a substantial increase in sales this year.", answer: "substantial", choices: ["substantial", "static", "stable", "stabilize"], source: "IMG_0195", explanation: "substantial: かなりの。substance: 物質。", relatedInfo: "" },
+{ id: 195, type: "fill", category: "語根パターン", question: "The doctor gave her medicine to _____ her heartbeat.", hint: "「安定させる」", fullSentence: "The doctor gave her medicine to stabilize her heartbeat.", answer: "stabilize", source: "IMG_0195", explanation: "stabilize: 安定させる。stable: 安定した。", relatedInfo: "" },
+{ id: 196, type: "fill", category: "語根パターン", question: "The two countries agreed to _____ diplomatic relations.", hint: "「設立する」", fullSentence: "The two countries agreed to establish diplomatic relations.", answer: "establish", source: "IMG_0195", explanation: "establish: 設立する。", relatedInfo: "" },
+{ id: 197, type: "fill", category: "語根パターン", question: "A fallen tree became a major _____ on the road.", hint: "「障害」", fullSentence: "A fallen tree became a major obstacle on the road.", answer: "obstacle", source: "IMG_0195", explanation: "obstacle: 障害。", relatedInfo: "" },
+
+// ===== カテゴリ: 語根パターン (sti/misc動詞) =====
+{ id: 198, type: "fill", category: "語根パターン", question: "It is _____ that everyone follows these safety rules.", hint: "「絶対必要な」", fullSentence: "It is imperative that everyone follows these safety rules.", answer: "imperative", source: "IMG_0196", explanation: "imperative: 絶対必要な、命令的な。", relatedInfo: "" },
+{ id: 199, type: "fill", category: "語根パターン", question: "Only three _____ applied for the position this year.", hint: "「候補者」", fullSentence: "Only three candidates applied for the position this year.", answer: "candidates", source: "IMG_0196", explanation: "candidate: 候補者。candid: 率直な。", relatedInfo: "" },
+{ id: 200, type: "fill", category: "語根パターン", question: "This custom seems to _____ from an ancient tradition.", hint: "「由来する」（from を伴う）", fullSentence: "This custom seems to derive from an ancient tradition.", answer: "derive", source: "IMG_0196", explanation: "derive (from): 由来する。", relatedInfo: "" },
+{ id: 201, type: "choice", category: "語根パターン", question: "「攻撃的な」を意味する単語はどれ？", hint: "形容詞", fullSentence: "The dog became aggressive when strangers approached.", answer: "aggressive", choices: ["aggressive", "innocent", "candid", "imperative"], source: "IMG_0196", explanation: "aggressive: 攻撃的な。", relatedInfo: "" },
+{ id: 202, type: "fill", category: "語根パターン", question: "The flowers in the vase began to _____ after a week.", hint: "「しおれる」", fullSentence: "The flowers in the vase began to wither after a week.", answer: "wither", source: "IMG_0196", explanation: "wither: しおれる。", relatedInfo: "" },
+{ id: 203, type: "fill", category: "語根パターン", question: "The jury found him _____ of all charges.", hint: "「無罪の」", fullSentence: "The jury found him innocent of all charges.", answer: "innocent", source: "IMG_0196", explanation: "innocent: 無罪の、無邪気な。", relatedInfo: "" },
+{ id: 204, type: "fill", category: "語根パターン", question: "His rude comment tried to _____ me in front of my friends.", hint: "「恥をかかせる」", fullSentence: "His rude comment tried to embarrass me in front of my friends.", answer: "embarrass", source: "IMG_0196", explanation: "embarrass: 恥をかかせる。", relatedInfo: "" },
+{ id: 205, type: "fill", category: "語根パターン", question: "The disease quickly became a global _____.", hint: "「パンデミック」", fullSentence: "The disease quickly became a global pandemic.", answer: "pandemic", source: "IMG_0196", explanation: "pandemic: パンデミック。panacea: 万能薬。", relatedInfo: "" },
+{ id: 206, type: "fill", category: "語根パターン", question: "We took a long _____ to avoid the traffic jam.", hint: "「回り道」", fullSentence: "We took a long detour to avoid the traffic jam.", answer: "detour", source: "IMG_0196", explanation: "detour: 回り道。", relatedInfo: "" },
+{ id: 207, type: "choice", category: "語根パターン", question: "「発見する」を意味する単語はどれ？", hint: "動詞", fullSentence: "Sensors can detect even the smallest amount of smoke.", answer: "detect", choices: ["detect", "obscure", "obesity", "chamber"], source: "IMG_0196", explanation: "detect: 発見する。obscure: 曖昧にする。", relatedInfo: "" },
+{ id: 208, type: "fill", category: "語根パターン", question: "Poor diet and lack of exercise can lead to _____.", hint: "「肥満」", fullSentence: "Poor diet and lack of exercise can lead to obesity.", answer: "obesity", source: "IMG_0196", explanation: "obesity: 肥満。", relatedInfo: "" },
+{ id: 209, type: "fill", category: "語根パターン", question: "The president spoke to reporters in a small _____.", hint: "「部屋、議院」", fullSentence: "The president spoke to reporters in a small chamber.", answer: "chamber", source: "IMG_0196", explanation: "chamber: 部屋、議院。", relatedInfo: "" },
+{ id: 210, type: "fill", category: "語根パターン", question: "He tends to _____ to his own opinions, even when he's wrong.", hint: "「~にこだわる」（stick to）", fullSentence: "He tends to stick to his own opinions, even when he's wrong.", answer: "stick", source: "IMG_0196", explanation: "stick to: ~にこだわる、固執する。", relatedInfo: "" },
+{ id: 211, type: "fill", category: "語根パターン", question: "Coffee helps to _____ me in the morning.", hint: "「刺激する」", fullSentence: "Coffee helps to stimulate me in the morning.", answer: "stimulate", source: "IMG_0196", explanation: "stimulate: 刺激する。", relatedInfo: "" },
+{ id: 212, type: "choice", category: "語根パターン", question: "「区別する」を意味する単語はどれ？（between A and B）", hint: "動詞", fullSentence: "It's hard to distinguish between the twins.", answer: "distinguish", choices: ["distinguish", "distinct", "instinct", "extinct"], source: "IMG_0196", explanation: "distinguish: 区別する。distinct: 明確な。instinct: 本能。extinct: 絶滅した。", relatedInfo: "" },
+{ id: 213, type: "fill", category: "語根パターン", question: "Animals often rely on _____ to survive in the wild.", hint: "「本能」", fullSentence: "Animals often rely on instinct to survive in the wild.", answer: "instinct", source: "IMG_0196", explanation: "instinct: 本能。", relatedInfo: "" },
+{ id: 214, type: "fill", category: "語根パターン", question: "This species of bird became _____ fifty years ago.", hint: "「絶滅した」", fullSentence: "This species of bird became extinct fifty years ago.", answer: "extinct", source: "IMG_0196", explanation: "extinct: 絶滅した。extinguisher: 消火器。", relatedInfo: "" },
+{ id: 215, type: "fill", category: "語根パターン", question: "The waves were so large they threatened to _____ the small boat.", hint: "「圧倒する」", fullSentence: "The waves were so large they threatened to overwhelm the small boat.", answer: "overwhelm", source: "IMG_0196", explanation: "overwhelm: 圧倒する。", relatedInfo: "" },
+{ id: 216, type: "fill", category: "語根パターン", question: "My _____ works at a hospital as a nurse.", hint: "「配偶者」", fullSentence: "My spouse works at a hospital as a nurse.", answer: "spouse", source: "IMG_0196", explanation: "spouse: 配偶者。", relatedInfo: "" },
+{ id: 217, type: "fill", category: "語根パターン", question: "She _____ arrives late for every meeting.", hint: "「常に、変わりなく」", fullSentence: "She invariably arrives late for every meeting.", answer: "invariably", source: "IMG_0196", explanation: "invariably: 常に、変わりなく。", relatedInfo: "" },
+
+// ===== カテゴリ: 動作を表す動詞 =====
+{ id: 218, type: "fill", category: "動作を表す動詞", question: "Please don't _____ me while I'm trying to focus.", hint: "「邪魔する」", fullSentence: "Please don't disturb me while I'm trying to focus.", answer: "disturb", source: "IMG_0197", explanation: "disturb: 邪魔する。turmoil: 混乱。", relatedInfo: "" },
+{ id: 219, type: "fill", category: "動作を表す動詞", question: "The sudden noise made everyone _____ with surprise.", hint: "「仰天させる」", fullSentence: "The sudden noise made everyone stunned with surprise.", answer: "stun", source: "IMG_0197", explanation: "stun: 仰天させる。", relatedInfo: "" },
+{ id: 220, type: "choice", category: "動作を表す動詞", question: "「驚かせる」を意味する単語はどれ？", hint: "stunと似た意味", fullSentence: "The magic trick astonished the whole audience.", answer: "astonished", choices: ["astonished", "declared", "curbed", "protested"], source: "IMG_0197", explanation: "astonish: 驚かせる。astound: 仰天させる（さらに強い）。", relatedInfo: "" },
+{ id: 221, type: "fill", category: "動作を表す動詞", question: "The government officially _____ a state of emergency.", hint: "「宣言する」", fullSentence: "The government officially declared a state of emergency.", answer: "declared", source: "IMG_0197", explanation: "declare: 宣言する。Declaration: 宣言。", relatedInfo: "" },
+{ id: 222, type: "fill", category: "動作を表す動詞", question: "These shoes are very _____; they will last for years.", hint: "「耐久性のある」", fullSentence: "These shoes are very durable; they will last for years.", answer: "durable", source: "IMG_0197", explanation: "durable: 耐久性のある。endurance: 忍耐力。", relatedInfo: "" },
+{ id: 223, type: "fill", category: "動作を表す動詞", question: "The government tried to _____ inflation with new policies.", hint: "「抑制する」", fullSentence: "The government tried to curb inflation with new policies.", answer: "curb", source: "IMG_0197", explanation: "curb: 抑制する。", relatedInfo: "" },
+{ id: 224, type: "choice", category: "動作を表す動詞", question: "「抗議する」を意味する単語はどれ？", hint: "動詞", fullSentence: "Students gathered to protest against the new policy.", answer: "protest", choices: ["protest", "contest", "testimony", "certificate"], source: "IMG_0197", explanation: "protest: 抗議する。contest: 競う、コンテスト。", relatedInfo: "" },
+{ id: 225, type: "fill", category: "動作を表す動詞", question: "The witness gave important _____ during the trial.", hint: "「証言」", fullSentence: "The witness gave important testimony during the trial.", answer: "testimony", source: "IMG_0197", explanation: "testimony: 証言。testify: 証言する。", relatedInfo: "" },
+{ id: 226, type: "fill", category: "動作を表す動詞", question: "You need a _____ to prove you finished the training.", hint: "「証明書」", fullSentence: "You need a certificate to prove you finished the training.", answer: "certificate", source: "IMG_0197", explanation: "certificate: 証明書。", relatedInfo: "" },
+{ id: 227, type: "fill", category: "動作を表す動詞", question: "He was diagnosed with a rare form of _____.", hint: "「白血病」", fullSentence: "He was diagnosed with a rare form of leukemia.", answer: "leukemia", source: "IMG_0197", explanation: "leukemia: 白血病。", relatedInfo: "" },
+{ id: 228, type: "fill", category: "動作を表す動詞", question: "Sales began to _____ sharply after the scandal.", hint: "「衰える」", fullSentence: "Sales began to decline sharply after the scandal.", answer: "decline", source: "IMG_0197", explanation: "decline: 衰える、断る。", relatedInfo: "" },
+{ id: 229, type: "fill", category: "動作を表す動詞", question: "The lawyer explained the situation to her _____ carefully.", hint: "「依頼人」", fullSentence: "The lawyer explained the situation to her client carefully.", answer: "client", source: "IMG_0197", explanation: "client: 依頼人。", relatedInfo: "" },
+{ id: 230, type: "fill", category: "動作を表す動詞", question: "The village held a huge _____ to celebrate the harvest.", hint: "「ごちそう、祝宴」", fullSentence: "The village held a huge feast to celebrate the harvest.", answer: "feast", source: "IMG_0197", explanation: "feast: ごちそう、祝宴。", relatedInfo: "" },
+{ id: 231, type: "fill", category: "動作を表す動詞", question: "She greeted the new project with great _____.", hint: "「熱意」", fullSentence: "She greeted the new project with great enthusiasm.", answer: "enthusiasm", source: "IMG_0197", explanation: "enthusiasm: 熱意。", relatedInfo: "" },
+{ id: 232, type: "fill", category: "動作を表す動詞", question: "A sudden injury can _____ an athlete's leg temporarily.", hint: "「麻痺させる」", fullSentence: "A sudden injury can paralyze an athlete's leg temporarily.", answer: "paralyze", source: "IMG_0197", explanation: "paralyze: 麻痺させる。", relatedInfo: "" },
+
+// ===== カテゴリ: 接頭辞・接尾辞パターン (-logy/-nomy) =====
+{ id: 233, type: "choice", category: "接頭辞・接尾辞パターン", question: "「心理学」を意味する単語はどれ？", hint: "logy「学問」接尾辞", fullSentence: "She is majoring in psychology at university.", answer: "psychology", choices: ["psychology", "biology", "sociology", "theology"], source: "IMG_0198", explanation: "psychology: 心理学。-logy: 学問を表す接尾辞。", relatedInfo: "" },
+{ id: 234, type: "fill", category: "接頭辞・接尾辞パターン", question: "The professor specializes in _____, the study of ancient ruins.", hint: "「考古学」", fullSentence: "The professor specializes in archaeology, the study of ancient ruins.", answer: "archaeology", source: "IMG_0198", explanation: "archaeology: 考古学。", relatedInfo: "" },
+{ id: 235, type: "choice", category: "接頭辞・接尾辞パターン", question: "「人類学」を意味する単語はどれ？", hint: "anthro「人間」+logy", fullSentence: "He studied anthropology to understand different cultures.", answer: "anthropology", choices: ["anthropology", "archaeology", "meteorology", "geology"], source: "IMG_0198", explanation: "anthropology: 人類学。meteorology: 気象学。geology: 地質学。", relatedInfo: "" },
+{ id: 236, type: "fill", category: "接頭辞・接尾辞パターン", question: "The weather forecast is based on data collected in _____.", hint: "「気象学」", fullSentence: "The weather forecast is based on data collected in meteorology.", answer: "meteorology", source: "IMG_0198", explanation: "meteorology: 気象学。", relatedInfo: "" },
+{ id: 237, type: "fill", category: "接頭辞・接尾辞パターン", question: "_____ is the study of the human body's internal functions.", hint: "「生理学」", fullSentence: "Physiology is the study of the human body's internal functions.", answer: "Physiology", source: "IMG_0198", explanation: "physiology: 生理学。", relatedInfo: "" },
+{ id: 238, type: "fill", category: "接頭辞・接尾辞パターン", question: "You can see a beautiful _____ of stars from that hill.", hint: "「星座」", fullSentence: "You can see a beautiful constellation of stars from that hill.", answer: "constellation", source: "IMG_0198", explanation: "constellation: 星座。", relatedInfo: "" },
+{ id: 239, type: "choice", category: "接頭辞・接尾辞パターン", question: "「幾何学」を意味する単語はどれ？", hint: "geo「土」+metry「測る」", fullSentence: "We are learning geometry in math class this semester.", answer: "geometry", choices: ["geometry", "geography", "geology", "biology"], source: "IMG_0198", explanation: "geometry: 幾何学。geography: 地理学。", relatedInfo: "" },
+{ id: 240, type: "fill", category: "接頭辞・接尾辞パターン", question: "In _____ class, we learned about mountains and rivers.", hint: "「地理学」", fullSentence: "In geography class, we learned about mountains and rivers.", answer: "geography", source: "IMG_0198", explanation: "geography: 地理学、地形。", relatedInfo: "" },
+{ id: 241, type: "fill", category: "接頭辞・接尾辞パターン", question: "The old palace was designed by a famous _____.", hint: "「建築家」", fullSentence: "The old palace was designed by a famous architect.", answer: "architect", source: "IMG_0198", explanation: "architect: 建築家。archaic: 古代の。", relatedInfo: "" },
+{ id: 242, type: "fill", category: "接頭辞・接尾辞パターン", question: "This word is an _____ term rarely used today.", hint: "「古代の」", fullSentence: "This word is an archaic term rarely used today.", answer: "archaic", source: "IMG_0198", explanation: "archaic: 古代の。", relatedInfo: "" },
+{ id: 243, type: "choice", category: "接頭辞・接尾辞パターン", question: "「天文学」を意味する単語はどれ？", hint: "astro「星」+nomy「法則」", fullSentence: "He has loved astronomy ever since he was a child.", answer: "astronomy", choices: ["astronomy", "economy", "astrology", "biology"], source: "IMG_0198", explanation: "astronomy: 天文学。economy: 経済。astrology: 占星術。", relatedInfo: "" },
+
+// ===== カテゴリ: 語根パターン (ply/gen/sult/tain/ject) =====
+{ id: 244, type: "fill", category: "語根パターン", question: "This rule doesn't _____ to part-time employees.", hint: "「適用する」", fullSentence: "This rule doesn't apply to part-time employees.", answer: "apply", source: "IMG_0199", explanation: "apply: 適用する、応募する。", relatedInfo: "" },
+{ id: 245, type: "choice", category: "語根パターン", question: "「ほのめかす」を意味する単語はどれ？", hint: "ply/plic語根", fullSentence: "Her silence seemed to imply agreement.", answer: "imply", choices: ["imply", "apply", "comply", "deploy"], source: "IMG_0199", explanation: "imply: ほのめかす。comply (with): 従う。deploy: 配備する。", relatedInfo: "" },
+{ id: 246, type: "fill", category: "語根パターン", question: "All companies must _____ with the new safety regulations.", hint: "「従う」（withを伴う）", fullSentence: "All companies must comply with the new safety regulations.", answer: "comply", source: "IMG_0199", explanation: "comply with: 従う。", relatedInfo: "" },
+{ id: 247, type: "fill", category: "語根パターン", question: "The company plans to _____ new technology to cut costs.", hint: "「利用する、開拓する」", fullSentence: "The company plans to exploit new technology to cut costs.", answer: "exploit", source: "IMG_0199", explanation: "exploit: 利用する、開拓する。", relatedInfo: "" },
+{ id: 248, type: "fill", category: "語根パターン", question: "There was an _____ agreement between the two friends.", hint: "「暗黙の」", fullSentence: "There was an implicit agreement between the two friends.", answer: "implicit", source: "IMG_0199", explanation: "implicit: 暗黙の。", relatedInfo: "" },
+{ id: 249, type: "fill", category: "語根パターン", question: "The instructions were too _____ for beginners to follow.", hint: "「複雑な」", fullSentence: "The instructions were too complicated for beginners to follow.", answer: "complicated", source: "IMG_0199", explanation: "complicated: 複雑な。duplication: 複製。", relatedInfo: "" },
+{ id: 250, type: "fill", category: "語根パターン", question: "Skilled _____ is essential for handling international negotiations.", hint: "「外交」", fullSentence: "Skilled diplomacy is essential for handling international negotiations.", answer: "diplomacy", source: "IMG_0199", explanation: "diplomacy: 外交。a diploma: 卒業証書。", relatedInfo: "" },
+{ id: 251, type: "fill", category: "語根パターン", question: "After losing his job, he found himself in a difficult _____.", hint: "「苦境」", fullSentence: "After losing his job, he found himself in a difficult plight.", answer: "plight", source: "IMG_0199", explanation: "a plight: 苦境。", relatedInfo: "" },
+{ id: 252, type: "choice", category: "語根パターン", question: "「本物の」を意味する単語はどれ？", hint: "gen「生まれ」語根", fullSentence: "This is a genuine leather bag, not a fake.", answer: "genuine", choices: ["genuine", "genial", "ingenious", "pregnant"], source: "IMG_0199", explanation: "genuine: 本物の。genial: 愛想の良い。ingenious: 独創的な、巧妙な。", relatedInfo: "" },
+{ id: 253, type: "fill", category: "語根パターン", question: "He came up with an _____ solution to the problem.", hint: "「独創的な、巧妙な」", fullSentence: "He came up with an ingenious solution to the problem.", answer: "ingenious", source: "IMG_0199", explanation: "ingenious: 独創的な、巧妙な。", relatedInfo: "" },
+{ id: 254, type: "fill", category: "語根パターン", question: "Bears living in this area are considered _____ species.", hint: "「先住の、固有の」", fullSentence: "Bears living in this area are considered indigenous species.", answer: "indigenous", source: "IMG_0199", explanation: "indigenous: 先住の、固有の。", relatedInfo: "" },
+{ id: 255, type: "choice", category: "語根パターン", question: "「侮辱する」を意味する単語はどれ？", hint: "sult語根", fullSentence: "He didn't mean to insult you with that comment.", answer: "insult", choices: ["insult", "result", "assault", "exult"], source: "IMG_0199", explanation: "insult: 侮辱する。assault: 襲撃する。exult: 歓喜する。", relatedInfo: "" },
+{ id: 256, type: "fill", category: "語根パターン", question: "Young people tend to be more _____ than older people physically.", hint: "「回復力のある」", fullSentence: "Young people tend to be more resilient than older people physically.", answer: "resilient", source: "IMG_0199", explanation: "resilient: 回復力のある。", relatedInfo: "" },
+{ id: 257, type: "fill", category: "語根パターン", question: "The activist sought political _____ in another country.", hint: "「亡命、避難所」", fullSentence: "The activist sought political asylum in another country.", answer: "asylum", source: "IMG_0199", explanation: "asylum: 亡命、避難所。", relatedInfo: "" },
+{ id: 258, type: "choice", category: "語根パターン", question: "「維持する」を意味する単語はどれ？", hint: "tain「保つ」語根", fullSentence: "It's important to maintain a healthy diet.", answer: "maintain", choices: ["maintain", "obtain", "retain", "detain"], source: "IMG_0199", explanation: "maintain: 維持する。obtain: 獲得する。retain: 保持する。detain: 拘留する。", relatedInfo: "" },
+{ id: 259, type: "fill", category: "語根パターン", question: "It's not easy to _____ a scholarship at this university.", hint: "「獲得する」", fullSentence: "It's not easy to obtain a scholarship at this university.", answer: "obtain", source: "IMG_0199", explanation: "obtain: 獲得する。", relatedInfo: "" },
+{ id: 260, type: "fill", category: "語根パターン", question: "Regular exercise helps _____ good health.", hint: "「支える、持続させる」", fullSentence: "Regular exercise helps sustain good health.", answer: "sustain", source: "IMG_0199", explanation: "sustain: 支える、持続させる。", relatedInfo: "" },
+{ id: 261, type: "fill", category: "語根パターン", question: "This box can _____ up to twenty kilograms.", hint: "「含む」", fullSentence: "This box can contain up to twenty kilograms.", answer: "contain", source: "IMG_0199", explanation: "contain: 含む。container: 容器。", relatedInfo: "" },
+{ id: 262, type: "fill", category: "語根パターン", question: "The police decided to _____ the suspect for questioning.", hint: "「拘留する」", fullSentence: "The police decided to detain the suspect for questioning.", answer: "detain", source: "IMG_0199", explanation: "detain: 拘留する。", relatedInfo: "" },
+{ id: 263, type: "fill", category: "語根パターン", question: "He decided to _____ from alcohol during the training period.", hint: "「棄権する、控える」", fullSentence: "He decided to abstain from alcohol during the training period.", answer: "abstain", source: "IMG_0199", explanation: "abstain (from): 棄権する、控える。", relatedInfo: "" },
+{ id: 264, type: "choice", category: "語根パターン", question: "「反対する」を意味する単語はどれ？", hint: "ject「投げる」語根", fullSentence: "Many residents object to the new construction plan.", answer: "object", choices: ["object", "project", "reject", "inject"], source: "IMG_0199", explanation: "object (to): 反対する。project: 計画、投影する。reject: 拒絶する。inject: 注入する。", relatedInfo: "" },
+{ id: 265, type: "fill", category: "語根パターン", question: "The committee decided to _____ his proposal.", hint: "「拒絶する」", fullSentence: "The committee decided to reject his proposal.", answer: "reject", source: "IMG_0199", explanation: "reject: 拒絶する。", relatedInfo: "" },
+{ id: 266, type: "fill", category: "語根パターン", question: "Water vapor was _____ into the greenhouse to keep it humid.", hint: "「注入する」", fullSentence: "Water vapor was injected into the greenhouse to keep it humid.", answer: "injected", source: "IMG_0199", explanation: "inject: 注入する。", relatedInfo: "" },
+
+// ===== カテゴリ: 語根パターン (clude/sist/dict/fer) =====
+{ id: 267, type: "fill", category: "語根パターン", question: "The price does not _____ tax or delivery fees.", hint: "「含める」", fullSentence: "The price does not include tax or delivery fees.", answer: "include", source: "IMG_0200", explanation: "include: 含める。exclude: 除外する。", relatedInfo: "" },
+{ id: 268, type: "choice", category: "語根パターン", question: "「結論づける」を意味する単語はどれ？", hint: "clude語根", fullSentence: "The judge concluded that the defendant was innocent.", answer: "concluded", choices: ["concluded", "disclosed", "enclosed", "secluded"], source: "IMG_0200", explanation: "conclude: 結論づける。disclose: 暴露する。enclose: 同封する。seclude: 隔離する。", relatedInfo: "" },
+{ id: 269, type: "fill", category: "語根パターン", question: "Reporters tried to _____ the secret documents to the public.", hint: "「暴露する」", fullSentence: "Reporters tried to disclose the secret documents to the public.", answer: "disclose", source: "IMG_0200", explanation: "disclose: 暴露する。", relatedInfo: "" },
+{ id: 270, type: "fill", category: "語根パターン", question: "This club is _____ for members only.", hint: "「排他的な」", fullSentence: "This club is exclusive for members only.", answer: "exclusive", source: "IMG_0200", explanation: "exclusive: 排他的な。exclusively: もっぱら。", relatedInfo: "" },
+{ id: 271, type: "fill", category: "語根パターン", question: "Loud music can _____ your ability to concentrate.", hint: "「影響する」", fullSentence: "Loud music can affect your ability to concentrate.", answer: "affect", source: "IMG_0200", explanation: "affect: 影響する。effective: 効果的な。", relatedInfo: "" },
+{ id: 272, type: "fill", category: "語根パターン", question: "The university offers a special _____ for gifted students.", hint: "「才能、学部」", fullSentence: "The university offers a special faculty for gifted students.", answer: "faculty", source: "IMG_0200", explanation: "faculty: 才能、学部。facility: 施設、才能。", relatedInfo: "" },
+{ id: 273, type: "fill", category: "語根パターン", question: "Winning the championship was a remarkable _____ for the team.", hint: "「偉業」", fullSentence: "Winning the championship was a remarkable feat for the team.", answer: "feat", source: "IMG_0200", explanation: "feat: 偉業。", relatedInfo: "" },
+{ id: 274, type: "choice", category: "語根パターン", question: "「存在する」を意味する単語はどれ？", hint: "sist「立つ」語根", fullSentence: "Does life exist on other planets?", answer: "exist", choices: ["exist", "resist", "insist", "persist"], source: "IMG_0200", explanation: "exist: 存在する。resist: 抵抗する。insist: 主張する。persist: 持続する。", relatedInfo: "" },
+{ id: 275, type: "fill", category: "語根パターン", question: "She continued to _____ that she was innocent.", hint: "「主張する」（onを伴う）", fullSentence: "She continued to insist that she was innocent.", answer: "insist", source: "IMG_0200", explanation: "insist (on): 主張する。", relatedInfo: "" },
+{ id: 276, type: "fill", category: "語根パターン", question: "His actions are _____ with what he said before.", hint: "「一致する」（withを伴う）", fullSentence: "His actions are consistent with what he said before.", answer: "consistent", source: "IMG_0200", explanation: "consistent (with): 一致する。inconsistent: 矛盾した。", relatedInfo: "" },
+{ id: 277, type: "fill", category: "語根パターン", question: "This material is highly _____ to heat and fire.", hint: "「抵抗力のある」", fullSentence: "This material is highly resistant to heat and fire.", answer: "resistant", source: "IMG_0200", explanation: "resistant: 抵抗力のある。", relatedInfo: "" },
+{ id: 278, type: "fill", category: "語根パターン", question: "He has a _____ cough that just won't go away.", hint: "「しつこい、持続的な」", fullSentence: "He has a persistent cough that just won't go away.", answer: "persistent", source: "IMG_0200", explanation: "persistent: しつこい、持続的な。", relatedInfo: "" },
+{ id: 279, type: "choice", category: "語根パターン", question: "「予測する」を意味する単語はどれ？", hint: "dict「言う」語根", fullSentence: "No one can predict exactly when the earthquake will happen.", answer: "predict", choices: ["predict", "contradict", "verdict", "dedicate"], source: "IMG_0200", explanation: "predict: 予測する。contradict: 矛盾する。verdict: 評決。dedicate: 捧げる。", relatedInfo: "" },
+{ id: 280, type: "fill", category: "語根パターン", question: "The witness's statement seemed to _____ the earlier report.", hint: "「矛盾する」", fullSentence: "The witness's statement seemed to contradict the earlier report.", answer: "contradict", source: "IMG_0200", explanation: "contradict: 矛盾する。contradictory: 矛盾した。", relatedInfo: "" },
+{ id: 281, type: "fill", category: "語根パターン", question: "She decided to _____ her life to helping the poor.", hint: "「捧げる」", fullSentence: "She decided to dedicate her life to helping the poor.", answer: "dedicate", source: "IMG_0200", explanation: "dedicate: 捧げる。", relatedInfo: "" },
+{ id: 282, type: "fill", category: "語根パターン", question: "The arrow on the map _____ the direction of the exit.", hint: "「示す」", fullSentence: "The arrow on the map indicates the direction of the exit.", answer: "indicates", source: "IMG_0200", explanation: "indicate: 示す。", relatedInfo: "" },
+{ id: 283, type: "fill", category: "語根パターン", question: "Doctors are worried about the rise in drug _____ among teenagers.", hint: "「中毒」", fullSentence: "Doctors are worried about the rise in drug addiction among teenagers.", answer: "addiction", source: "IMG_0200", explanation: "addiction: 中毒。addict: 中毒者。", relatedInfo: "" },
+{ id: 284, type: "fill", category: "語根パターン", question: "New technology will _____ economic growth in this region.", hint: "「促進する」", fullSentence: "New technology will facilitate economic growth in this region.", answer: "facilitate", source: "IMG_0200", explanation: "facilitate: 促進する。", relatedInfo: "" },
+{ id: 285, type: "fill", category: "語根パターン", question: "The country suffers from a serious _____ of clean water.", hint: "「不足」", fullSentence: "The country suffers from a serious deficiency of clean water.", answer: "deficiency", source: "IMG_0200", explanation: "deficiency: 不足。", relatedInfo: "" },
+{ id: 286, type: "choice", category: "語根パターン", question: "「AをBより好む」の表現はどれ？", hint: "prefer A ___ B", fullSentence: "I prefer tea to coffee in the morning.", answer: "to", choices: ["to", "than", "over", "from"], source: "IMG_0200", explanation: "prefer A to B: AをBより好む。", relatedInfo: "" },
+{ id: 287, type: "fill", category: "語根パターン", question: "Millions of people _____ from hunger every year.", hint: "「苦しむ」", fullSentence: "Millions of people suffer from hunger every year.", answer: "suffer", source: "IMG_0200", explanation: "suffer (from): 苦しむ。", relatedInfo: "" },
+{ id: 288, type: "fill", category: "語根パターン", question: "We need to _____ the money from this account to that one.", hint: "「移す」", fullSentence: "We need to transfer the money from this account to that one.", answer: "transfer", source: "IMG_0200", explanation: "transfer (from A to B): 移す。", relatedInfo: "" },
+{ id: 289, type: "fill", category: "語根パターン", question: "From her silence, I could _____ that she was upset.", hint: "「推測する」", fullSentence: "From her silence, I could infer that she was upset.", answer: "infer", source: "IMG_0200", explanation: "infer: 推測する。", relatedInfo: "" },
+{ id: 290, type: "fill", category: "語根パターン", question: "Please _____ to page 10 for more information.", hint: "「言及する、参照する」（toを伴う）", fullSentence: "Please refer to page 10 for more information.", answer: "refer", source: "IMG_0200", explanation: "refer to: 言及する、参照する。", relatedInfo: "" },
+
+// ===== カテゴリ: 語根パターン (norm/mode/gno) =====
+{ id: 291, type: "fill", category: "語根パターン", question: "Working from home has become the _____ for many companies now.", hint: "「基準」", fullSentence: "Working from home has become the norm for many companies now.", answer: "norm", source: "IMG_0201", explanation: "a norm: 基準。", relatedInfo: "" },
+{ id: 292, type: "fill", category: "語根パターン", question: "It's rude to _____ someone who is speaking to you.", hint: "「無視する」", fullSentence: "It's rude to ignore someone who is speaking to you.", answer: "ignore", source: "IMG_0201", explanation: "ignore: 無視する。ignoble: 卑劣な。", relatedInfo: "" },
+{ id: 293, type: "fill", category: "語根パターン", question: "Please _____ that you have received this email.", hint: "「認める」", fullSentence: "Please acknowledge that you have received this email.", answer: "acknowledge", source: "IMG_0201", explanation: "acknowledge: 認める。", relatedInfo: "" },
+{ id: 294, type: "fill", category: "語根パターン", question: "I have only a vague _____ of what happened that night.", hint: "「概念」", fullSentence: "I have only a vague notion of what happened that night.", answer: "notion", source: "IMG_0201", explanation: "notion: 概念。", relatedInfo: "" },
+{ id: 295, type: "fill", category: "語根パターン", question: "She is well _____ with the local culture and customs.", hint: "「精通している」（withを伴う）", fullSentence: "She is well acquainted with the local culture and customs.", answer: "acquainted", source: "IMG_0201", explanation: "acquainted (with): 精通している。", relatedInfo: "" },
+{ id: 296, type: "fill", category: "語根パターン", question: "The doctor's _____ confirmed that it was just a mild infection.", hint: "「診断」", fullSentence: "The doctor's diagnosis confirmed that it was just a mild infection.", answer: "diagnosis", source: "IMG_0201", explanation: "diagnosis: 診断。", relatedInfo: "" },
+{ id: 297, type: "choice", category: "語根パターン", question: "「主要な、校長」を意味する単語はどれ？", hint: "prince(王子)と語根が近い", fullSentence: "The principal called a meeting for all teachers.", answer: "principal", choices: ["principal", "principle", "priority", "prior"], source: "IMG_0201", explanation: "principal: 校長、主要な。principle: 原則。", relatedInfo: "" },
+{ id: 298, type: "fill", category: "語根パターン", question: "Honesty is one of the most important _____ in life.", hint: "「原則」", fullSentence: "Honesty is one of the most important principles in life.", answer: "principles", source: "IMG_0201", explanation: "principle: 原則。", relatedInfo: "" },
+{ id: 299, type: "fill", category: "語根パターン", question: "Safety should be given _____ over speed.", hint: "「優先事項」", fullSentence: "Safety should be given priority over speed.", answer: "priority", source: "IMG_0201", explanation: "priority: 優先事項。prior to: ~より前に。", relatedInfo: "" },
+{ id: 300, type: "fill", category: "語根パターン", question: "Doctors decided the _____ of the tumor was necessary.", hint: "「除去」", fullSentence: "Doctors decided the elimination of the tumor was necessary.", answer: "elimination", source: "IMG_0201", explanation: "elimination: 除去。", relatedInfo: "" },
+{ id: 301, type: "fill", category: "語根パターン", question: "Corruption is a _____ problem throughout the government.", hint: "「広範囲に及ぶ」", fullSentence: "Corruption is a pervasive problem throughout the government.", answer: "pervasive", source: "IMG_0201", explanation: "pervasive: 広範囲に及ぶ。", relatedInfo: "" },
+{ id: 302, type: "fill", category: "語根パターン", question: "The businessman was arrested for tax _____.", hint: "「脱税」", fullSentence: "The businessman was arrested for tax evasion.", answer: "evasion", source: "IMG_0201", explanation: "evasion: 回避。tax evasion: 脱税。", relatedInfo: "" },
+{ id: 303, type: "fill", category: "語根パターン", question: "A large annual _____ is held in this city every spring.", hint: "「会議」", fullSentence: "A large annual conference is held in this city every spring.", answer: "conference", source: "IMG_0201", explanation: "conference: 会議。", relatedInfo: "" },
+{ id: 304, type: "fill", category: "語根パターン", question: "This soil is very _____, perfect for growing vegetables.", hint: "「肥沃な」", fullSentence: "This soil is very fertile, perfect for growing vegetables.", answer: "fertile", source: "IMG_0201", explanation: "fertile: 肥沃な、繁殖力のある。", relatedInfo: "" },
+{ id: 305, type: "fill", category: "語根パターン", question: "Please make _____ to this article in your essay.", hint: "「言及、参照」", fullSentence: "Please make reference to this article in your essay.", answer: "reference", source: "IMG_0201", explanation: "reference: 言及、参照。referendum: 国民投票。", relatedInfo: "" },
+{ id: 306, type: "fill", category: "語根パターン", question: "Doctors say meat and vegetables are a good _____ for a healthy diet.", hint: "「型、様式」", fullSentence: "Doctors say meat and vegetables are a good model for a healthy diet.", answer: "model", source: "IMG_0201", explanation: "a model: 模範、型。a mode: 様式。", relatedInfo: "" },
+{ id: 307, type: "fill", category: "語根パターン", question: "Doctors recommended a natural _____ for his back pain.", hint: "「治療、改善策」", fullSentence: "Doctors recommended a natural remedy for his back pain.", answer: "remedy", source: "IMG_0201", explanation: "remedy: 治療、改善策。", relatedInfo: "" },
+{ id: 308, type: "fill", category: "語根パターン", question: "She practices _____ every morning to calm her mind.", hint: "「瞑想」", fullSentence: "She practices meditation every morning to calm her mind.", answer: "meditation", source: "IMG_0201", explanation: "meditation: 瞑想。", relatedInfo: "" },
+{ id: 309, type: "fill", category: "語根パターン", question: "Drink alcohol in _____ amounts, not too much.", hint: "「適度な」", fullSentence: "Drink alcohol in moderate amounts, not too much.", answer: "moderate", source: "IMG_0201", explanation: "moderate: 穏健な、適度な。", relatedInfo: "" },
+{ id: 310, type: "fill", category: "語根パターン", question: "You may need to _____ your plan slightly to fit the budget.", hint: "「修正する」", fullSentence: "You may need to modify your plan slightly to fit the budget.", answer: "modify", source: "IMG_0201", explanation: "modify: 修正する。", relatedInfo: "" },
+{ id: 311, type: "fill", category: "語根パターン", question: "This hotel can _____ up to five hundred guests.", hint: "「収容する」", fullSentence: "This hotel can accommodate up to five hundred guests.", answer: "accommodate", source: "IMG_0201", explanation: "accommodate: 収容する、対応する。", relatedInfo: "" },
+{ id: 312, type: "fill", category: "語根パターン", question: "Please dress _____ for the job interview.", hint: "「控えめな」", fullSentence: "Please dress modestly for the job interview, choosing modest clothing.", answer: "modest", source: "IMG_0201", explanation: "modest: 控えめな。", relatedInfo: "" },
+{ id: 313, type: "choice", category: "語根パターン", question: "「悪名高い」を意味する単語はどれ？", hint: "gno/no「知る」語根", fullSentence: "The area is notorious for its high crime rate.", answer: "notorious", choices: ["notorious", "recognize", "noble", "ignore"], source: "IMG_0201", explanation: "notorious: 悪名高い。recognize: 認識する。noble: 高貴な。", relatedInfo: "" },
+{ id: 314, type: "fill", category: "語根パターン", question: "It's important to _____ your own mistakes.", hint: "「認識する」", fullSentence: "It's important to recognize your own mistakes.", answer: "recognize", source: "IMG_0201", explanation: "recognize: 認識する。", relatedInfo: "" },
+
+// ===== カテゴリ: 性格・様子を表す形容詞 =====
+{ id: 315, type: "fill", category: "性格・様子を表す形容詞", question: "He _____ chose to stay silent during the meeting.", hint: "「故意に」", fullSentence: "He deliberately chose to stay silent during the meeting.", answer: "deliberately", source: "IMG_0202", explanation: "deliberately: 故意に。", relatedInfo: "" },
+{ id: 316, type: "fill", category: "性格・様子を表す形容詞", question: "She gave an _____ explanation of the whole process.", hint: "「念入りな、詳しい」", fullSentence: "She gave an elaborate explanation of the whole process.", answer: "elaborate", source: "IMG_0202", explanation: "elaborate: 念入りな、詳しく述べる。", relatedInfo: "" },
+{ id: 317, type: "fill", category: "性格・様子を表す形容詞", question: "All employees must _____ to the company's dress code.", hint: "「従う」", fullSentence: "All employees must conform to the company's dress code.", answer: "conform", source: "IMG_0202", explanation: "conform: 従う。", relatedInfo: "" },
+{ id: 318, type: "fill", category: "性格・様子を表す形容詞", question: "This garden will _____ if you water it every day.", hint: "「繁栄する」", fullSentence: "This garden will flourish if you water it every day.", answer: "flourish", source: "IMG_0202", explanation: "flourish: 繁栄する。flour: 小麦粉。florist: 花屋。", relatedInfo: "" },
+{ id: 319, type: "fill", category: "性格・様子を表す形容詞", question: "Small businesses can _____ even in a difficult economy.", hint: "「繁栄する」", fullSentence: "Small businesses can prosper even in a difficult economy.", answer: "prosper", source: "IMG_0202", explanation: "prosper: 繁栄する。desperate: 絶望的な、必死の。", relatedInfo: "" },
+{ id: 320, type: "fill", category: "性格・様子を表す形容詞", question: "This is a _____ moment for the future of our company.", hint: "「極めて重要な」", fullSentence: "This is a crucial moment for the future of our company.", answer: "crucial", source: "IMG_0202", explanation: "crucial: 極めて重要な。", relatedInfo: "" },
+{ id: 321, type: "fill", category: "性格・様子を表す形容詞", question: "This technology represents a major _____ in medicine.", hint: "「革新」", fullSentence: "This technology represents a major innovation in medicine.", answer: "innovation", source: "IMG_0202", explanation: "innovation: 革新。novel: 新奇な。", relatedInfo: "" },
+{ id: 322, type: "fill", category: "性格・様子を表す形容詞", question: "He felt _____ speaking in front of so many people.", hint: "「ぎこちない」", fullSentence: "He felt awkward speaking in front of so many people.", answer: "awkward", source: "IMG_0202", explanation: "awkward: ぎこちない。", relatedInfo: "" },
+{ id: 323, type: "fill", category: "性格・様子を表す形容詞", question: "You should buy travel _____ before going abroad.", hint: "「保険」", fullSentence: "You should buy travel insurance before going abroad.", answer: "insurance", source: "IMG_0202", explanation: "insurance: 保険。", relatedInfo: "" },
+{ id: 324, type: "fill", category: "性格・様子を表す形容詞", question: "The government will _____ new policies next year.", hint: "「実行する」", fullSentence: "The government will implement new policies next year.", answer: "implement", source: "IMG_0202", explanation: "implement: 実行する、道具。", relatedInfo: "" },
+{ id: 325, type: "fill", category: "性格・様子を表す形容詞", question: "There is _____ of food and water for everyone here.", hint: "「たくさん」", fullSentence: "There is plenty of food and water for everyone here.", answer: "plenty", source: "IMG_0202", explanation: "plenty: たくさん。", relatedInfo: "" },
+{ id: 326, type: "fill", category: "性格・様子を表す形容詞", question: "Vitamin tablets are a good _____ to a balanced diet.", hint: "「補足」", fullSentence: "Vitamin tablets are a good supplement to a balanced diet.", answer: "supplement", source: "IMG_0202", explanation: "supplement: 補足。", relatedInfo: "" },
+{ id: 327, type: "fill", category: "性格・様子を表す形容詞", question: "The plane began to _____ high above the clouds.", hint: "「舞い上がる」", fullSentence: "The plane began to soar high above the clouds.", answer: "soar", source: "IMG_0202", explanation: "soar: 舞い上がる、急上昇する。startling: 驚くべき。", relatedInfo: "" },
+{ id: 328, type: "fill", category: "性格・様子を表す形容詞", question: "Many politicians publicly _____ the terrorist attack.", hint: "「非難する」", fullSentence: "Many politicians publicly condemn the terrorist attack.", answer: "condemn", source: "IMG_0202", explanation: "condemn: 非難する。damn: のろう。", relatedInfo: "" },
+{ id: 329, type: "fill", category: "性格・様子を表す形容詞", question: "The meeting was _____ due to unexpected circumstances.", hint: "「延長する」", fullSentence: "The meeting was prolonged due to unexpected circumstances.", answer: "prolonged", source: "IMG_0202", explanation: "prolong: 延長する。", relatedInfo: "" },
+{ id: 330, type: "fill", category: "性格・様子を表す形容詞", question: "The novel vividly _____ life in the 19th century.", hint: "「描写する」", fullSentence: "The novel vividly depicts life in the 19th century.", answer: "depicts", source: "IMG_0202", explanation: "depict: 描写する。", relatedInfo: "" },
+{ id: 331, type: "fill", category: "性格・様子を表す形容詞", question: "His _____ to become a doctor started when he was a child.", hint: "「熱望」", fullSentence: "His aspiration to become a doctor started when he was a child.", answer: "aspiration", source: "IMG_0202", explanation: "aspiration: 熱望。expire: 期限が切れる。perspire: 汗をかく。", relatedInfo: "" },
+{ id: 332, type: "fill", category: "性格・様子を表す形容詞", question: "This coupon will _____ at the end of this month.", hint: "「期限が切れる」", fullSentence: "This coupon will expire at the end of this month.", answer: "expire", source: "IMG_0202", explanation: "expire: 期限が切れる。", relatedInfo: "" },
+{ id: 333, type: "fill", category: "性格・様子を表す形容詞", question: "There has been a _____ increase in traffic accidents this year.", hint: "「重要な」", fullSentence: "There has been a significant increase in traffic accidents this year.", answer: "significant", source: "IMG_0202", explanation: "significant: 重要な。", relatedInfo: "" },
+{ id: 334, type: "choice", category: "性格・様子を表す形容詞", question: "「合理的な」を意味する単語はどれ？", hint: "emotional(感情的な)の対義語に近い", fullSentence: "We need to make a rational decision, not an emotional one.", answer: "rational", choices: ["rational", "emotional", "patriotic", "lavish"], source: "IMG_0202", explanation: "rational: 合理的な。emotional: 感情的な。", relatedInfo: "" },
+{ id: 335, type: "fill", category: "性格・様子を表す形容詞", question: "He always shows _____ pride when the national anthem plays.", hint: "「愛国的な」", fullSentence: "He always shows patriotic pride when the national anthem plays.", answer: "patriotic", source: "IMG_0202", explanation: "patriotic: 愛国的な。expatriate: 国外居住者。", relatedInfo: "" },
+{ id: 336, type: "fill", category: "性格・様子を表す形容詞", question: "The millionaire threw a _____ party for his birthday.", hint: "「気前の良い、豪華な」", fullSentence: "The millionaire threw a lavish party for his birthday.", answer: "lavish", source: "IMG_0202", explanation: "lavish: 気前の良い、豪華な。lavatory: トイレ。", relatedInfo: "" },
+{ id: 337, type: "fill", category: "性格・様子を表す形容詞", question: "The stadium was _____; it could hold 80,000 people.", hint: "「巨大な」", fullSentence: "The stadium was enormous; it could hold 80,000 people.", answer: "enormous", source: "IMG_0202", explanation: "enormous: 巨大な。", relatedInfo: "" },
+
+// ===== カテゴリ: 語根パターン (cide/quest) =====
+{ id: 338, type: "fill", category: "語根パターン", question: "Farmers use _____ to protect crops from insects.", hint: "「殺虫剤」", fullSentence: "Farmers use pesticide to protect crops from insects.", answer: "pesticide", source: "IMG_0203", explanation: "pesticide: 殺虫剤。cide「切る、殺す」語根。", relatedInfo: "" },
+{ id: 339, type: "choice", category: "語根パターン", question: "「大量虐殺」を意味する単語はどれ？", hint: "cide語根", fullSentence: "The genocide shocked the entire world.", answer: "genocide", choices: ["genocide", "pesticide", "homicide", "suicide"], source: "IMG_0203", explanation: "genocide: 大量虐殺。homicide: 殺人。suicide: 自殺。", relatedInfo: "" },
+{ id: 340, type: "fill", category: "語根パターン", question: "Please give me a _____ answer, not a vague one.", hint: "「正確な」", fullSentence: "Please give me a precise answer, not a vague one.", answer: "precise", source: "IMG_0203", explanation: "precise: 正確な。concise: 簡潔な。", relatedInfo: "" },
+{ id: 341, type: "fill", category: "語根パターン", question: "Please keep your summary _____ and to the point.", hint: "「簡潔な」", fullSentence: "Please keep your summary concise and to the point.", answer: "concise", source: "IMG_0203", explanation: "concise: 簡潔な。", relatedInfo: "" },
+{ id: 342, type: "fill", category: "語根パターン", question: "He was too _____ to speak up in front of the crowd.", hint: "「臆病な」", fullSentence: "He was too much of a coward to speak up in front of the crowd.", answer: "coward", source: "IMG_0203", explanation: "coward: 臆病者。", relatedInfo: "" },
+{ id: 343, type: "fill", category: "語根パターン", question: "Climate change poses a serious _____ to our planet.", hint: "「脅威」", fullSentence: "Climate change poses a serious menace to our planet.", answer: "menace", source: "IMG_0203", explanation: "menace: 脅威。", relatedInfo: "" },
+{ id: 344, type: "fill", category: "語根パターン", question: "The dollar is the world's most widely used _____.", hint: "「通貨」", fullSentence: "The dollar is the world's most widely used currency.", answer: "currency", source: "IMG_0203", explanation: "currency: 通貨。current: 現在の。", relatedInfo: "" },
+{ id: 345, type: "fill", category: "語根パターン", question: "This illness tends to _____ every winter.", hint: "「再発する」", fullSentence: "This illness tends to recur every winter.", answer: "recur", source: "IMG_0203", explanation: "recur: 再発する。", relatedInfo: "" },
+{ id: 346, type: "choice", category: "語根パターン", question: "「差し迫った」を意味する単語はどれ？", hint: "eminent(著名な)と混同注意", fullSentence: "War seemed imminent as tensions rose.", answer: "imminent", choices: ["imminent", "eminent", "absence", "abolition"], source: "IMG_0203", explanation: "imminent: 差し迫った。eminent: 著名な。", relatedInfo: "" },
+{ id: 347, type: "fill", category: "語根パターン", question: "Many countries have called for the _____ of the death penalty.", hint: "「廃止」", fullSentence: "Many countries have called for the abolition of the death penalty.", answer: "abolition", source: "IMG_0203", explanation: "abolition: 廃止。abolish: 廃止する。", relatedInfo: "" },
+{ id: 348, type: "fill", category: "語根パターン", question: "He chose to _____ from voting on the controversial issue.", hint: "「棄権する」", fullSentence: "He chose to abstain from voting on the controversial issue.", answer: "abstain", source: "IMG_0203", explanation: "abstain (from): 棄権する。abstention: 棄権。", relatedInfo: "" },
+{ id: 349, type: "fill", category: "語根パターン", question: "The company was accused of _____ its power over employees.", hint: "「乱用する」", fullSentence: "The company was accused of abusing its power over employees.", answer: "abusing", source: "IMG_0203", explanation: "abuse: 乱用する。", relatedInfo: "" },
+{ id: 350, type: "fill", category: "語根パターン", question: "The painting was very _____; it didn't look like anything real.", hint: "「抽象的な」", fullSentence: "The painting was very abstract; it didn't look like anything real.", answer: "abstract", source: "IMG_0203", explanation: "abstract: 抽象的な。", relatedInfo: "" },
+{ id: 351, type: "fill", category: "語根パターン", question: "I _____ refuse to accept such unfair treatment.", hint: "「絶対的に」", fullSentence: "I absolutely refuse to accept such unfair treatment.", answer: "absolutely", source: "IMG_0203", explanation: "absolutely: 絶対的に。", relatedInfo: "" },
+{ id: 352, type: "fill", category: "語根パターン", question: "The whole town gathered to _____ the loss of their beloved teacher.", hint: "「嘆き悲しむ」", fullSentence: "The whole town gathered to mourn the loss of their beloved teacher.", answer: "mourn", source: "IMG_0203", explanation: "mourn: 嘆き悲しむ。", relatedInfo: "" },
+{ id: 353, type: "fill", category: "語根パターン", question: "The results clearly _____ that the new drug is effective.", hint: "「示す」", fullSentence: "The results clearly demonstrate that the new drug is effective.", answer: "demonstrate", source: "IMG_0203", explanation: "demonstrate: 示す、デモをする。", relatedInfo: "" },
+{ id: 354, type: "fill", category: "語根パターン", question: "I didn't _____ his name during the conversation.", hint: "「言及する」", fullSentence: "I didn't mention his name during the conversation.", answer: "mention", source: "IMG_0203", explanation: "mention: 言及する。", relatedInfo: "" },
+{ id: 355, type: "fill", category: "語根パターン", question: "Nurses _____ patients' vital signs throughout the night.", hint: "「監視する」", fullSentence: "Nurses monitor patients' vital signs throughout the night.", answer: "monitor", source: "IMG_0203", explanation: "monitor: 監視する。", relatedInfo: "" },
+{ id: 356, type: "fill", category: "語根パターン", question: "The teacher gently _____ the student for being late.", hint: "「忠告する」", fullSentence: "The teacher gently admonished the student for being late.", answer: "admonished", source: "IMG_0203", explanation: "admonish: 忠告する。", relatedInfo: "" },
+{ id: 357, type: "fill", category: "語根パターン", question: "The prisoners were granted _____ after the war ended.", hint: "「恩赦」", fullSentence: "The prisoners were granted amnesty after the war ended.", answer: "amnesty", source: "IMG_0203", explanation: "amnesty: 恩赦。", relatedInfo: "" },
+{ id: 358, type: "choice", category: "語根パターン", question: "「必要とする、要求する」を意味する単語はどれ？", hint: "quest/quire「求める」語根", fullSentence: "This job requires strong communication skills.", answer: "requires", choices: ["requires", "requests", "inquires", "acquires"], source: "IMG_0203", explanation: "require: 要求する。request: 依頼する。inquire: 尋ねる。acquire: 獲得する。", relatedInfo: "" },
+{ id: 359, type: "fill", category: "語根パターン", question: "A university degree is a _____ for this job.", hint: "「必須の」", fullSentence: "A university degree is a requisite for this job.", answer: "requisite", source: "IMG_0203", explanation: "requisite: 必須の。", relatedInfo: "" },
+{ id: 360, type: "fill", category: "語根パターン", question: "She managed to _____ a large fortune during her career.", hint: "「獲得する」", fullSentence: "She managed to acquire a large fortune during her career.", answer: "acquire", source: "IMG_0203", explanation: "acquire: 獲得する。", relatedInfo: "" },
+{ id: 361, type: "fill", category: "語根パターン", question: "Napoleon tried to _____ most of Europe.", hint: "「征服する」", fullSentence: "Napoleon tried to conquer most of Europe.", answer: "conquer", source: "IMG_0203", explanation: "conquer: 征服する。", relatedInfo: "" },
+{ id: 362, type: "fill", category: "語根パターン", question: "The chef prepared an _____ dessert for the guests.", hint: "「絶妙な」", fullSentence: "The chef prepared an exquisite dessert for the guests.", answer: "exquisite", source: "IMG_0203", explanation: "exquisite: 絶妙な。", relatedInfo: "" },
+
+// ===== カテゴリ: 語根パターン (summon/dementia) =====
+{ id: 363, type: "fill", category: "語根パターン", question: "The king decided to _____ all his advisors for an urgent meeting.", hint: "「呼び出す」", fullSentence: "The king decided to summon all his advisors for an urgent meeting.", answer: "summon", source: "IMG_0204", explanation: "summon: 呼び出す。", relatedInfo: "" },
+{ id: 364, type: "fill", category: "語根パターン", question: "Her grandmother was diagnosed with early-stage _____.", hint: "「認知症」", fullSentence: "Her grandmother was diagnosed with early-stage dementia.", answer: "dementia", source: "IMG_0204", explanation: "dementia: 認知症。", relatedInfo: "" },
+{ id: 365, type: "fill", category: "語根パターン", question: "He gave a _____ speech, full of strong emotion.", hint: "「激しい」", fullSentence: "He gave a vehement speech, full of strong emotion.", answer: "vehement", source: "IMG_0204", explanation: "vehement: 激しい。", relatedInfo: "" },
+
+// ===== カテゴリ: 接頭辞・接尾辞パターン (fore-/anti-/mal-/non-) =====
+{ id: 366, type: "fill", category: "接頭辞・接尾辞パターン", question: "You wear a ring on your _____.", hint: "「人差し指」", fullSentence: "You wear a ring on your forefinger.", answer: "forefinger", source: "IMG_0205", explanation: "forefinger: 人差し指。fore-「前」接頭辞。", relatedInfo: "" },
+{ id: 367, type: "choice", category: "接頭辞・接尾辞パターン", question: "「予知する」を意味する単語はどれ？", hint: "fore-「前」接頭辞", fullSentence: "No one could foresee the sudden economic crisis.", answer: "foresee", choices: ["foresee", "forecast", "forefather", "forehead"], source: "IMG_0205", explanation: "foresee: 予知する。forecast: 予報する。forefather: 先祖。", relatedInfo: "" },
+{ id: 368, type: "fill", category: "接頭辞・接尾辞パターン", question: "The weather reporter will _____ heavy rain for tomorrow.", hint: "「予報する」", fullSentence: "The weather reporter will forecast heavy rain for tomorrow.", answer: "forecast", source: "IMG_0205", explanation: "forecast: 予報する。", relatedInfo: "" },
+{ id: 369, type: "fill", category: "接頭辞・接尾辞パターン", question: "This tradition was passed down from our _____.", hint: "「先祖」", fullSentence: "This tradition was passed down from our forefathers.", answer: "forefathers", source: "IMG_0205", explanation: "forefather: 先祖。", relatedInfo: "" },
+{ id: 370, type: "fill", category: "接頭辞・接尾辞パターン", question: "The old woman was known for her _____ nature; she gave to everyone in need.", hint: "「慈悲深い」", fullSentence: "The old woman was known for her benevolent nature; she gave to everyone in need.", answer: "benevolent", source: "IMG_0205", explanation: "benevolent: 慈悲深い。", relatedInfo: "" },
+{ id: 371, type: "fill", category: "接頭辞・接尾辞パターン", question: "Penguins live near the _____ region, not the Arctic.", hint: "「南極の」", fullSentence: "Penguins live near the Antarctic region, not the Arctic.", answer: "Antarctic", source: "IMG_0205", explanation: "Antarctic: 南極の。Arctic: 北極の。anti-「反対」接頭辞。", relatedInfo: "" },
+{ id: 372, type: "fill", category: "接頭辞・接尾辞パターン", question: "Doctors prescribed _____ to fight the bacterial infection.", hint: "「抗生物質」", fullSentence: "Doctors prescribed antibiotics to fight the bacterial infection.", answer: "antibiotics", source: "IMG_0205", explanation: "antibiotics: 抗生物質。", relatedInfo: "" },
+{ id: 373, type: "fill", category: "接頭辞・接尾辞パターン", question: "The two brothers have always shown _____ toward each other.", hint: "「反感」", fullSentence: "The two brothers have always shown antipathy toward each other.", answer: "antipathy", source: "IMG_0205", explanation: "antipathy: 反感。", relatedInfo: "" },
+{ id: 374, type: "fill", category: "接頭辞・接尾辞パターン", question: "Many children in poor countries suffer from severe _____.", hint: "「栄養失調」", fullSentence: "Many children in poor countries suffer from severe malnutrition.", answer: "malnutrition", source: "IMG_0205", explanation: "malnutrition: 栄養失調。mal-「悪い」接頭辞。", relatedInfo: "" },
+{ id: 375, type: "choice", category: "接頭辞・接尾辞パターン", question: "「悪意」を意味する単語はどれ？", hint: "mal-「悪い」接頭辞", fullSentence: "He acted out of pure malice toward his rival.", answer: "malice", choices: ["malice", "malignant", "mistreat", "misnomer"], source: "IMG_0205", explanation: "malice: 悪意。malignant: 悪性の。mistreat: 虐待する。misnomer: 誤称。", relatedInfo: "" },
+{ id: 376, type: "fill", category: "接頭辞・接尾辞パターン", question: "The tumor turned out to be _____, not benign.", hint: "「悪性の」", fullSentence: "The tumor turned out to be malignant, not benign.", answer: "malignant", source: "IMG_0205", explanation: "malignant: 悪性の。", relatedInfo: "" },
+{ id: 377, type: "fill", category: "接頭辞・接尾辞パターン", question: "Calling it a 'cold' when it's actually the flu is a _____.", hint: "「誤称」", fullSentence: "Calling it a 'cold' when it's actually the flu is a misnomer.", answer: "misnomer", source: "IMG_0205", explanation: "misnomer: 誤称。", relatedInfo: "" },
+{ id: 378, type: "fill", category: "接頭辞・接尾辞パターン", question: "It is a crime to _____ animals in this country.", hint: "「虐待する」", fullSentence: "It is a crime to mistreat animals in this country.", answer: "mistreat", source: "IMG_0205", explanation: "mistreat: 虐待する。", relatedInfo: "" },
+{ id: 379, type: "fill", category: "接頭辞・接尾辞パターン", question: "This charity is a _____ organization funded by donations.", hint: "「非営利の」", fullSentence: "This charity is a non-profit organization funded by donations.", answer: "non-profit", source: "IMG_0205", explanation: "non-profit: 非営利の。non-「非」接頭辞。", relatedInfo: "" },
+{ id: 380, type: "fill", category: "接頭辞・接尾辞パターン", question: "Archaeologists began the _____ of the ancient temple.", hint: "「発掘」", fullSentence: "Archaeologists began the excavation of the ancient temple.", answer: "excavation", source: "IMG_0205", explanation: "excavation: 発掘。", relatedInfo: "" },
+{ id: 381, type: "fill", category: "接頭辞・接尾辞パターン", question: "This company holds a complete _____ on the local market.", hint: "「独占」", fullSentence: "This company holds a complete monopoly on the local market.", answer: "monopoly", source: "IMG_0205", explanation: "monopoly: 独占。", relatedInfo: "" },
+{ id: 382, type: "fill", category: "接頭辞・接尾辞パターン", question: "Water will _____ quickly on a hot summer day.", hint: "「蒸発する」", fullSentence: "Water will evaporate quickly on a hot summer day.", answer: "evaporate", source: "IMG_0205", explanation: "evaporate: 蒸発する。", relatedInfo: "" },
+{ id: 383, type: "fill", category: "接頭辞・接尾辞パターン", question: "He is too _____ to admit that he was wrong.", hint: "「頑固な」", fullSentence: "He is too obstinate to admit that he was wrong.", answer: "obstinate", source: "IMG_0205", explanation: "obstinate: 頑固な。", relatedInfo: "" },
+{ id: 384, type: "fill", category: "接頭辞・接尾辞パターン", question: "A good night's sleep is a _____ for a successful exam day.", hint: "「前提条件」", fullSentence: "A good night's sleep is a prerequisite for a successful exam day.", answer: "prerequisite", source: "IMG_0205", explanation: "prerequisite: 前提条件。", relatedInfo: "" },
+{ id: 385, type: "fill", category: "接頭辞・接尾辞パターン", question: "As the _____ of the award, she gave a heartfelt speech.", hint: "「受取人」", fullSentence: "As the recipient of the award, she gave a heartfelt speech.", answer: "recipient", source: "IMG_0205", explanation: "recipient: 受取人。", relatedInfo: "" },
+{ id: 386, type: "fill", category: "接頭辞・接尾辞パターン", question: "The glass door is completely _____; you can see right through it.", hint: "「透明な」", fullSentence: "The glass door is completely transparent; you can see right through it.", answer: "transparent", source: "IMG_0205", explanation: "transparent: 透明な。", relatedInfo: "" },
+{ id: 387, type: "fill", category: "接頭辞・接尾辞パターン", question: "A sweet smell began to _____ throughout the whole house.", hint: "「広がる、行き渡る」", fullSentence: "A sweet smell began to pervade throughout the whole house.", answer: "pervade", source: "IMG_0205", explanation: "pervade: 広がる、行き渡る。", relatedInfo: "" },
+{ id: 388, type: "fill", category: "接頭辞・接尾辞パターン", question: "The old _____ was found in a library in Rome.", hint: "「原稿」", fullSentence: "The old manuscript was found in a library in Rome.", answer: "manuscript", source: "IMG_0205", explanation: "manuscript: 原稿。", relatedInfo: "" },
+{ id: 389, type: "fill", category: "接頭辞・接尾辞パターン", question: "The two countries signed a _____ trade agreement.", hint: "「二国間の」", fullSentence: "The two countries signed a bilateral trade agreement.", answer: "bilateral", source: "IMG_0205", explanation: "bilateral: 二国間の。", relatedInfo: "" },
+{ id: 390, type: "fill", category: "接頭辞・接尾辞パターン", question: "Please click here to _____ your last action.", hint: "「元に戻す」", fullSentence: "Please click here to undo your last action.", answer: "undo", source: "IMG_0205", explanation: "undo: 元に戻す。", relatedInfo: "" },
+{ id: 391, type: "fill", category: "接頭辞・接尾辞パターン", question: "The company donated its _____ food to the local shelter.", hint: "「余剰」", fullSentence: "The company donated its surplus food to the local shelter.", answer: "surplus", source: "IMG_0205", explanation: "surplus: 余剰。", relatedInfo: "" },
+{ id: 392, type: "fill", category: "接頭辞・接尾辞パターン", question: "The manager will _____ the construction of the new building.", hint: "「監督する」", fullSentence: "The manager will supervise the construction of the new building.", answer: "supervise", source: "IMG_0205", explanation: "supervise: 監督する。", relatedInfo: "" },
+{ id: 393, type: "fill", category: "接頭辞・接尾辞パターン", question: "This decision will affect the wellbeing of future _____.", hint: "「後世」", fullSentence: "This decision will affect the wellbeing of future posterity.", answer: "posterity", source: "IMG_0205", explanation: "posterity: 後世。", relatedInfo: "" },
+{ id: 394, type: "fill", category: "接頭辞・接尾辞パターン", question: "Any company that _____ the agreement will face a fine.", hint: "「違反する」", fullSentence: "Any company that contravenes the agreement will face a fine.", answer: "contravenes", source: "IMG_0205", explanation: "contravene: 違反する。", relatedInfo: "" },
+{ id: 395, type: "fill", category: "接頭辞・接尾辞パターン", question: "She had a small scar on her _____ from a childhood accident.", hint: "「額」", fullSentence: "She had a small scar on her forehead from a childhood accident.", answer: "forehead", source: "IMG_0205", explanation: "forehead: 額。", relatedInfo: "" },
+
+// ===== カテゴリ: 社会・時事・学術語彙 (non-/mono-/para-/proto-) =====
+{ id: 396, type: "fill", category: "社会・時事・学術語彙", question: "Facial expressions are a form of _____ communication.", hint: "「非言語の」", fullSentence: "Facial expressions are a form of nonverbal communication.", answer: "nonverbal", source: "IMG_0206", explanation: "nonverbal: 非言語の。", relatedInfo: "" },
+{ id: 397, type: "fill", category: "社会・時事・学術語彙", question: "His argument was pure _____ and made no sense at all.", hint: "「ナンセンス」", fullSentence: "His argument was pure nonsense and made no sense at all.", answer: "nonsense", source: "IMG_0206", explanation: "nonsense: ナンセンス。", relatedInfo: "" },
+{ id: 398, type: "fill", category: "社会・時事・学術語彙", question: "Can you _____ that sentence in simpler words?", hint: "「言い換える」", fullSentence: "Can you paraphrase that sentence in simpler words?", answer: "paraphrase", source: "IMG_0206", explanation: "paraphrase: 言い換える。para-「並んで、傍らに」接頭辞。", relatedInfo: "" },
+{ id: 399, type: "fill", category: "社会・時事・学術語彙", question: "It's a strange _____ that the more you know, the less certain you feel.", hint: "「逆説」", fullSentence: "It's a strange paradox that the more you know, the less certain you feel.", answer: "paradox", source: "IMG_0206", explanation: "paradox: 逆説。", relatedInfo: "" },
+{ id: 400, type: "fill", category: "社会・時事・学術語彙", question: "His constant suspicion of others seemed close to _____.", hint: "「偏執症」", fullSentence: "His constant suspicion of others seemed close to paranoia.", answer: "paranoia", source: "IMG_0206", explanation: "paranoia: 偏執症。", relatedInfo: "" },
+{ id: 401, type: "fill", category: "社会・時事・学術語彙", question: "The engineers built a _____ before mass-producing the car.", hint: "「原型」", fullSentence: "The engineers built a prototype before mass-producing the car.", answer: "prototype", source: "IMG_0206", explanation: "prototype: 原型。proto-「最初の」接頭辞。", relatedInfo: "" },
+{ id: 402, type: "fill", category: "社会・時事・学術語彙", question: "Students live in a university _____ near the campus.", hint: "「寮」", fullSentence: "Students live in a university dormitory near the campus.", answer: "dormitory", source: "IMG_0206", explanation: "dormitory: 寮。", relatedInfo: "" },
+{ id: 403, type: "fill", category: "社会・時事・学術語彙", question: "You can see the stars clearly from the _____ on the hill.", hint: "「天文台」", fullSentence: "You can see the stars clearly from the observatory on the hill.", answer: "observatory", source: "IMG_0206", explanation: "observatory: 天文台。", relatedInfo: "" },
+{ id: 404, type: "fill", category: "社会・時事・学術語彙", question: "Racial _____ was once legal in parts of the United States.", hint: "「人種隔離」", fullSentence: "Racial segregation was once legal in parts of the United States.", answer: "segregation", source: "IMG_0206", explanation: "segregation: 人種隔離。", relatedInfo: "" },
+{ id: 405, type: "fill", category: "社会・時事・学術語彙", question: "Please make sure to _____ the door before leaving.", hint: "「確保する」", fullSentence: "Please make sure to secure the door before leaving.", answer: "secure", source: "IMG_0206", explanation: "secure: 確保する。", relatedInfo: "" },
+{ id: 406, type: "fill", category: "社会・時事・学術語彙", question: "Scientists were able to _____ a new material in the lab.", hint: "「合成する」", fullSentence: "Scientists were able to synthesize a new material in the lab.", answer: "synthesize", source: "IMG_0206", explanation: "synthesize: 合成する。", relatedInfo: "" },
+{ id: 407, type: "fill", category: "社会・時事・学術語彙", question: "A high fever is a common _____ of the flu.", hint: "「症状」", fullSentence: "A high fever is a common symptom of the flu.", answer: "symptom", source: "IMG_0206", explanation: "symptom: 症状。syndrome: 症候群。", relatedInfo: "" },
+{ id: 408, type: "fill", category: "社会・時事・学術語彙", question: "Don't waste your time on such a _____ matter.", hint: "「些細な」", fullSentence: "Don't waste your time on such a trivial matter.", answer: "trivial", source: "IMG_0206", explanation: "trivial: 些細な。", relatedInfo: "" },
+{ id: 409, type: "fill", category: "社会・時事・学術語彙", question: "In the movie, the tribe was portrayed as _____ and violent.", hint: "「野蛮な」", fullSentence: "In the movie, the tribe was portrayed as barbarian and violent.", answer: "barbarian", source: "IMG_0206", explanation: "barbarian: 野蛮人。", relatedInfo: "" },
+{ id: 410, type: "fill", category: "社会・時事・学術語彙", question: "The company hired a new _____ to fill the open position.", hint: "「従業員」", fullSentence: "The company hired a new employee to fill the open position.", answer: "employee", source: "IMG_0206", explanation: "employee: 従業員。examinee: 受験者。", relatedInfo: "" },
+{ id: 411, type: "fill", category: "社会・時事・学術語彙", question: "She handed out a _____ advertising the new store.", hint: "「チラシ」", fullSentence: "She handed out a leaflet advertising the new store.", answer: "leaflet", source: "IMG_0206", explanation: "leaflet: チラシ。", relatedInfo: "" },
+{ id: 412, type: "fill", category: "社会・時事・学術語彙", question: "He was awarded a full _____ to study at Harvard.", hint: "「奨学金」", fullSentence: "He was awarded a full scholarship to study at Harvard.", answer: "scholarship", source: "IMG_0206", explanation: "scholarship: 奨学金。", relatedInfo: "" },
+{ id: 413, type: "fill", category: "社会・時事・学術語彙", question: "Strong _____ is essential for any successful team.", hint: "「指導力」", fullSentence: "Strong leadership is essential for any successful team.", answer: "leadership", source: "IMG_0206", explanation: "leadership: 指導力。", relatedInfo: "" },
+{ id: 414, type: "fill", category: "社会・時事・学術語彙", question: "New filters are used to _____ the drinking water.", hint: "「浄化する」", fullSentence: "New filters are used to purify the drinking water.", answer: "purify", source: "IMG_0206", explanation: "purify: 浄化する。unify: 統一する。simplify: 簡易化する。", relatedInfo: "" },
+{ id: 415, type: "fill", category: "社会・時事・学術語彙", question: "The new leader tried to _____ the divided country.", hint: "「統一する」", fullSentence: "The new leader tried to unify the divided country.", answer: "unify", source: "IMG_0206", explanation: "unify: 統一する。", relatedInfo: "" },
+{ id: 416, type: "fill", category: "社会・時事・学術語彙", question: "This app is designed to _____ your daily schedule.", hint: "「簡易化する」", fullSentence: "This app is designed to simplify your daily schedule.", answer: "simplify", source: "IMG_0206", explanation: "simplify: 簡易化する。", relatedInfo: "" },
+{ id: 417, type: "fill", category: "社会・時事・学術語彙", question: "Fixing the printer every week has become quite _____.", hint: "「面倒な」", fullSentence: "Fixing the printer every week has become quite troublesome.", answer: "troublesome", source: "IMG_0206", explanation: "troublesome: 面倒な。", relatedInfo: "" },
+{ id: 418, type: "fill", category: "社会・時事・学術語彙", question: "A _____ breakfast helps you stay energized all morning.", hint: "「健康的な」", fullSentence: "A wholesome breakfast helps you stay energized all morning.", answer: "wholesome", source: "IMG_0206", explanation: "wholesome: 健康的な。", relatedInfo: "" },
+{ id: 419, type: "fill", category: "社会・時事・学術語彙", question: "He always speaks to his elders in a _____ manner.", hint: "「丁寧な」", fullSentence: "He always speaks to his elders in a respectful manner.", answer: "respectful", source: "IMG_0206", explanation: "respectful: 丁寧な。", relatedInfo: "" },
+{ id: 420, type: "fill", category: "社会・時事・学術語彙", question: "It seems _____ to buy so much food that will go bad.", hint: "「無駄の多い」", fullSentence: "It seems wasteful to buy so much food that will go bad.", answer: "wasteful", source: "IMG_0206", explanation: "wasteful: 無駄の多い。", relatedInfo: "" },
+
+// ===== カテゴリ: 医学・身体関連語 (itis/動作動詞) =====
+{ id: 421, type: "fill", category: "医学・身体関連語", question: "Playing too much tennis can cause _____ in the elbow.", hint: "「関節炎」", fullSentence: "Playing too much tennis can cause arthritis in the elbow.", answer: "arthritis", source: "IMG_0207", explanation: "arthritis: 関節炎。-itis: 炎症を表す接尾辞。", relatedInfo: "" },
+{ id: 422, type: "choice", category: "医学・身体関連語", question: "「気管支炎」を意味する単語はどれ？", hint: "-itis接尾辞", fullSentence: "He was diagnosed with bronchitis after coughing for weeks.", answer: "bronchitis", choices: ["bronchitis", "arthritis", "gastritis", "dementia"], source: "IMG_0207", explanation: "bronchitis: 気管支炎。gastritis: 胃炎。", relatedInfo: "" },
+{ id: 423, type: "fill", category: "医学・身体関連語", question: "Eating spicy food often gives him _____.", hint: "「胃炎」", fullSentence: "Eating spicy food often gives him gastritis.", answer: "gastritis", source: "IMG_0207", explanation: "gastritis: 胃炎。", relatedInfo: "" },
+{ id: 424, type: "fill", category: "医学・身体関連語", question: "The diamonds began to _____ under the bright lights.", hint: "「キラキラ光る」", fullSentence: "The diamonds began to glitter under the bright lights.", answer: "glitter", source: "IMG_0207", explanation: "glitter: キラキラ光る。", relatedInfo: "" },
+{ id: 425, type: "fill", category: "医学・身体関連語", question: "The candle began to _____ as the wind blew through the window.", hint: "「チカチカする」", fullSentence: "The candle began to flicker as the wind blew through the window.", answer: "flicker", source: "IMG_0207", explanation: "flicker: チカチカする。", relatedInfo: "" },
+{ id: 426, type: "fill", category: "医学・身体関連語", question: "He tends to _____ his boss to get a promotion.", hint: "「お世辞を言う」", fullSentence: "He tends to flatter his boss to get a promotion.", answer: "flatter", source: "IMG_0207", explanation: "flatter: お世辞を言う。", relatedInfo: "" },
+{ id: 427, type: "fill", category: "医学・身体関連語", question: "The old man began to _____ something under his breath.", hint: "「ブツブツ言う」", fullSentence: "The old man began to mutter something under his breath.", answer: "mutter", source: "IMG_0207", explanation: "mutter: ブツブツ言う。", relatedInfo: "" },
+{ id: 428, type: "fill", category: "医学・身体関連語", question: "The arrow pointed _____, toward the center of the building.", hint: "「内側へ」", fullSentence: "The arrow pointed inward, toward the center of the building.", answer: "inward", source: "IMG_0207", explanation: "inward: 内側へ。", relatedInfo: "" },
+{ id: 429, type: "fill", category: "医学・身体関連語", question: "After the long trip, they finally headed _____.", hint: "「家へ」", fullSentence: "After the long trip, they finally headed homeward.", answer: "homeward", source: "IMG_0207", explanation: "homeward(s): 家へ。", relatedInfo: "" },
+];
+const STORAGE_KEY = 'wt_all_fillchoice_seen_shundai_tango';
+const BOOKMARK_KEY = 'wt_all_fillchoice_bookmark_shundai_tango';
+const TRASH_KEY = 'wt_all_fillchoice_trash_shundai_tango';
+const AUDIO_FOLDER = 'audio_fillchoice';
+
+let currentMode = null;
+let currentCategory = null;
+let sessionQuestions = [];
+let currentIndex = 0;
+let score = 0;
+let answered = false;
+let selectedChoiceValue = null;
+
+const hasStorage = (function() {
+  try { const k = '__t'; localStorage.setItem(k, '1'); localStorage.removeItem(k); return true; }
+  catch (e) { return false; }
+})();
+
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function getBookmarks() {
+  if (!hasStorage) return [];
+  return JSON.parse(localStorage.getItem(BOOKMARK_KEY) || '[]');
+}
+function toggleBookmark(id) {
+  if (!hasStorage) return false;
+  let list = getBookmarks();
+  list = list.includes(id) ? list.filter(x => x !== id) : [...list, id];
+  localStorage.setItem(BOOKMARK_KEY, JSON.stringify(list));
+  return list.includes(id);
+}
+function getTrash() {
+  if (!hasStorage) return [];
+  return JSON.parse(localStorage.getItem(TRASH_KEY) || '[]');
+}
+function moveToTrash(id) {
+  if (!hasStorage) return;
+  const list = getTrash();
+  if (!list.includes(id)) { list.push(id); localStorage.setItem(TRASH_KEY, JSON.stringify(list)); }
+}
+function restoreFromTrash(id) {
+  if (!hasStorage) return;
+  const list = getTrash().filter(x => x !== id);
+  localStorage.setItem(TRASH_KEY, JSON.stringify(list));
+}
+function activeQuestions() {
+  const trashed = new Set(getTrash());
+  return FILLCHOICE_QUESTIONS.filter(q => !trashed.has(q.id));
+}
+function getSeen() {
+  if (!hasStorage) return [];
+  return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+}
+function saveSeenQuestions(questions) {
+  if (!hasStorage) return;
+  const prev = getSeen();
+  const merged = Array.from(new Set([...prev, ...questions.map(q => q.id)]));
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(merged));
+}
+
+function getRandomSessionQuestions() {
+  const all = activeQuestions();
+  const seenSet = new Set(getSeen());
+  const seenQuestions = all.filter(q => seenSet.has(q.id));
+  const unseenQuestions = all.filter(q => !seenSet.has(q.id));
+  if (seenQuestions.length > 0) {
+    const total = Math.min(20, all.length);
+    const fromSeen = Math.round(total * 0.3);
+    const fromUnseen = total - fromSeen;
+    const pickedSeen = shuffle(seenQuestions).slice(0, fromSeen);
+    const pickedUnseen = shuffle(unseenQuestions).slice(0, fromUnseen);
+    if (pickedUnseen.length < fromUnseen) {
+      const extra = shuffle(seenQuestions.filter(q => !pickedSeen.includes(q))).slice(0, fromUnseen - pickedUnseen.length);
+      return shuffle([...pickedSeen, ...pickedUnseen, ...extra]);
+    }
+    return shuffle([...pickedSeen, ...pickedUnseen]);
+  }
+  return shuffle(all).slice(0, 20);
+}
+function getAllSessionQuestions() { return shuffle(activeQuestions()); }
+function getCategorySessionQuestions(categoryName) { return shuffle(activeQuestions().filter(q => q.category === categoryName)); }
+function getBookmarkSessionQuestions() {
+  const bookmarks = new Set(getBookmarks());
+  return shuffle(activeQuestions().filter(q => bookmarks.has(q.id)));
+}
+
+function startTest(mode, categoryName) {
+  currentMode = mode;
+  currentCategory = categoryName || null;
+  if (mode === 'random') sessionQuestions = getRandomSessionQuestions();
+  else if (mode === 'all') sessionQuestions = getAllSessionQuestions();
+  else if (mode === 'category') sessionQuestions = getCategorySessionQuestions(categoryName);
+  else if (mode === 'bookmark') sessionQuestions = getBookmarkSessionQuestions();
+  sessionQuestions = sessionQuestions.map(q => q.type === 'choice' ? Object.assign({}, q, { shuffledChoices: shuffle(q.choices) }) : q);
+  currentIndex = 0;
+  score = 0;
+  renderQuestionScreen();
+}
+
+function playAudio(btn, src) {
+  const isSameBtn = (window.__currentBtn === btn);
+  if (window.__currentAudio) { window.__currentAudio.pause(); window.__currentAudio.currentTime = 0; }
+  if (window.__currentBtn) { window.__currentBtn.textContent = '🔊 英文を聞く'; window.__currentBtn.classList.remove('playing'); window.__currentBtn = null; }
+  if (isSameBtn) { window.__currentAudio = null; return; }
+  const audio = new Audio(src);
+  window.__currentAudio = audio; window.__currentBtn = btn;
+  btn.textContent = '■ 停止'; btn.classList.add('playing');
+  audio.onended = audio.onerror = () => {
+    btn.textContent = '🔊 英文を聞く'; btn.classList.remove('playing');
+    if (window.__currentBtn === btn) { window.__currentBtn = null; window.__currentAudio = null; }
+  };
+  audio.play().catch(() => {});
+}
+function openImageModal(src) {
+  document.getElementById('imgModalImg').src = src;
+  document.getElementById('imgModal').classList.remove('hidden');
+}
+function closeImageModal() {
+  document.getElementById('imgModal').classList.add('hidden');
+  document.getElementById('imgModalImg').src = '';
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeImageModal(); });
+
+function esc(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+function renderFormatSelectNotNeeded() {}
+
+function renderModeSelect() {
+  const all = activeQuestions();
+  const categories = {};
+  all.forEach(q => { categories[q.category] = (categories[q.category] || 0) + 1; });
+  const bookmarkCount = hasStorage ? getBookmarks().filter(id => activeQuestions().some(q => q.id === id)).length : 0;
+  const trashCount = hasStorage ? getTrash().length : 0;
+
+  let categoryHtml = '';
+  Object.keys(categories).forEach(cat => {
+    const selected = currentCategory === cat ? 'selected' : '';
+    categoryHtml += `<button class="genre-btn ${selected}" onclick="selectCategory('${esc(cat).replace(/'/g,"\\'")}')">${esc(cat)} (${categories[cat]}問)</button>`;
+  });
+
+  const storageWarning = hasStorage ? '' : `<div class="sub" style="margin-top:8px;">⚠️ このブラウザでは保存機能が使えないため、常に「ランダム20問」のみ利用できます。</div>`;
+
+  document.getElementById('app').innerHTML = `
+    <div class="card">
+      <h1>駿台単語 穴埋め・選択肢テスト</h1>
+      <div class="sub">全 ${all.length} 問（穴埋め・選択肢形式）。英単語の暗記に特化した一問一答形式のテストです。</div>
+      <div class="mode-card" onclick="startTest('random')">
+        <div class="mtitle">🎲 ランダム20問（おまかせ）</div>
+        <div class="mdesc">前回の復習30%＋未出題70%で自動選出</div>
+      </div>
+      <div class="mode-card" onclick="startTest('all')">
+        <div class="mtitle">📚 全問題に挑戦</div>
+        <div class="mdesc">全${all.length}問をランダム順で出題</div>
+      </div>
+      <div class="mode-card ${!hasStorage ? 'hidden' : ''}" id="categoryCard">
+        <div class="mtitle">🗂 ジャンル別に挑戦</div>
+        <div class="mdesc">ジャンルを選んでそのジャンルの全問題に挑戦</div>
+        <div class="genre-list">${categoryHtml}</div>
+        <button class="btn btn-block" id="categoryStartBtn" onclick="startTest('category', currentCategory)" ${currentCategory ? '' : 'disabled'}>選んだジャンルで始める</button>
+      </div>
+      <div class="mode-card ${!hasStorage ? 'hidden' : ''}" onclick="${bookmarkCount > 0 ? "startTest('bookmark')" : ''}" style="${bookmarkCount > 0 ? '' : 'opacity:0.5;cursor:not-allowed;'}">
+        <div class="mtitle">🔖 復習リストから挑戦</div>
+        <div class="mdesc">ブックマークした問題（${bookmarkCount}問）に挑戦${bookmarkCount === 0 ? ' — まだブックマークがありません' : ''}</div>
+      </div>
+      ${storageWarning}
+      <div class="footer-links ${!hasStorage ? 'hidden' : ''}"><a onclick="renderTrashScreen()">🗑 ゴミ箱 (${trashCount}問)</a></div>
+    </div>
+  `;
+}
+
+function selectCategory(cat) {
+  currentCategory = cat;
+  renderModeSelect();
+}
+
+function renderQuestionScreen() {
+  answered = false;
+  selectedChoiceValue = null;
+  const q = sessionQuestions[currentIndex];
+  const total = sessionQuestions.length;
+  const pct = Math.round((currentIndex) / total * 100);
+  const isBookmarked = getBookmarks().includes(q.id);
+
+  let bodyHtml = '';
+  if (q.type === 'fill') {
+    const displayQ = esc(q.question).replace(/_____/, '<span class="blank">_____</span>');
+    bodyHtml = `
+      <div class="hint">💡 ${esc(q.hint)}</div>
+      <div class="qtext">${displayQ}</div>
+      <input type="text" id="fillInput" placeholder="英単語を入力" autocomplete="off" onkeydown="if(event.key==='Enter')submitAnswer()">
+      <button class="btn btn-block" onclick="submitAnswer()">回答する</button>
+    `;
+  } else if (q.type === 'choice') {
+    let choicesHtml = '';
+    q.shuffledChoices.forEach((c, i) => {
+      choicesHtml += `
+        <label class="choice-item" id="choiceItem${i}" onclick="selectChoice(${i}, this)">
+          <input type="radio" name="choiceRadio" value="${esc(c)}">
+          <span>${esc(c)}</span>
+        </label>`;
+    });
+    bodyHtml = `
+      <div class="hint">💡 ${esc(q.hint)}</div>
+      <div class="qtext">${esc(q.question)}</div>
+      <div class="choice-list">${choicesHtml}</div>
+      <button class="btn btn-block" id="choiceSubmitBtn" onclick="submitAnswer()" disabled>回答する</button>
+    `;
+  }
+
+  document.getElementById('app').innerHTML = `
+    <div class="card">
+      <div class="qmeta">
+        <span class="badge ${q.type === 'fill' ? 'badge-fill' : 'badge-choice'}">${q.type === 'fill' ? '穴埋め' : '選択肢'}</span>
+        <span class="badge badge-genre">${esc(q.category)}</span>
+        <span class="qnum" style="margin-left:auto;">Q ${currentIndex + 1} / ${total}</span>
+      </div>
+      <div class="progress-wrap"><div class="progress-bar" style="width:${pct}%"></div></div>
+      <div class="bookmark-row">
+        <label><input type="checkbox" id="bookmarkCheck" ${isBookmarked ? 'checked' : ''} onchange="toggleBookmark(${q.id})"> この問題を復習リストに入れる</label>
+        <span class="trash-link" onclick="reportTrash(${q.id})">🗑 この問題は表示しない</span>
+      </div>
+      ${bodyHtml}
+      <div id="feedbackArea"></div>
+      <div class="footer-links"><a onclick="renderModeSelect()">← スタート画面に戻る</a></div>
+    </div>
+  `;
+}
+
+function selectChoice(i, el) {
+  document.querySelectorAll('.choice-item').forEach(e => e.classList.remove('selected'));
+  el.classList.add('selected');
+  el.querySelector('input').checked = true;
+  selectedChoiceValue = el.querySelector('input').value;
+  document.getElementById('choiceSubmitBtn').disabled = false;
+}
+
+function submitAnswer() {
+  if (answered) return;
+  const q = sessionQuestions[currentIndex];
+  let isCorrect = false;
+  let userAnswerDisplay = '';
+
+  if (q.type === 'fill') {
+    const input = document.getElementById('fillInput');
+    const val = input.value.trim().toLowerCase();
+    if (!val) return;
+    isCorrect = val === q.answer.trim().toLowerCase();
+    userAnswerDisplay = input.value.trim();
+    input.disabled = true;
+  } else if (q.type === 'choice') {
+    if (!selectedChoiceValue) return;
+    isCorrect = selectedChoiceValue === q.answer;
+    userAnswerDisplay = selectedChoiceValue;
+    document.querySelectorAll('.choice-item input').forEach(r => r.disabled = true);
+    document.getElementById('choiceSubmitBtn').disabled = true;
+  }
+
+  answered = true;
+  if (isCorrect) score++;
+
+  const sourceList = q.source ? [q.source] : (q.sources || []);
+  const thumbsHtml = sourceList.map(s =>
+    `<img class="source-thumb" src="images/${s}.jpg" alt="${s}" loading="lazy" onclick="openImageModal('images/${s}.jpg')" onerror="this.style.display='none'">`
+  ).join('');
+
+  const feedbackHtml = `
+    <div class="feedback-box ${isCorrect ? 'feedback-correct' : 'feedback-wrong'}">
+      <div class="feedback-title ${isCorrect ? 'ok' : 'ng'}">${isCorrect ? '✅ 正解！' : '❌ 不正解'}</div>
+      ${!isCorrect ? `<div class="answer-line">あなたの回答: ${esc(userAnswerDisplay)}</div>` : ''}
+      <div class="answer-line">正解: <strong>${esc(q.answer)}</strong></div>
+      <button class="play-btn" onclick="playAudio(this, '${AUDIO_FOLDER}/${q.id}.mp3')">🔊 英文を聞く</button>
+      <div class="info-line" style="margin-top:8px;">${esc(q.fullSentence)}</div>
+      ${sourceList.length ? `<div class="info-line">📷 出典:</div><div class="source-thumbs">${thumbsHtml}</div>` : ''}
+      ${q.relatedInfo ? `<div class="info-line">💡 関連知識: ${esc(q.relatedInfo)}</div>` : ''}
+      ${q.explanation ? `<div class="info-line">📝 解説: ${esc(q.explanation)}</div>` : ''}
+      <div id="trashReportArea"><span class="trash-report-link" onclick="reportTrashFinal(${q.id})">🗑 この問題は表記ミスなどがあり変です</span></div>
+    </div>
+    <button class="btn btn-block" onclick="nextQuestion()">${currentIndex === sessionQuestions.length - 1 ? '結果を見る' : '次の問題 →'}</button>
+  `;
+  document.getElementById('feedbackArea').innerHTML = feedbackHtml;
+  document.getElementById('feedbackArea').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function reportTrash(id) {
+  if (!confirm('この問題をゴミ箱に移動しますか？（ゴミ箱からいつでも戻せます）')) return;
+  moveToTrash(id);
+  alert('🗑 ゴミ箱に移動しました。次の問題からセッションを続けてください。');
+}
+function reportTrashFinal(id) {
+  if (!confirm('この問題をゴミ箱に移動しますか？（ゴミ箱からいつでも戻せます）')) return;
+  moveToTrash(id);
+  const area = document.getElementById('trashReportArea');
+  if (area) area.innerHTML = '<span class="trash-report-link" style="text-decoration:none;">🗑 ゴミ箱に移動しました</span>';
+}
+
+function nextQuestion() {
+  if (currentIndex < sessionQuestions.length - 1) {
+    currentIndex++;
+    renderQuestionScreen();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  } else {
+    showResults();
+  }
+}
+
+function showResults() {
+  if (currentMode === 'random') saveSeenQuestions(sessionQuestions);
+  const total = sessionQuestions.length;
+  const pct = total ? Math.round((score / total) * 100) : 0;
+  let stars = '';
+  let msg = '';
+  if (pct >= 90) { stars = '★★★'; msg = 'Excellent! TOEFL満点レベルの実力です'; }
+  else if (pct >= 70) { stars = '★★'; msg = 'Good! あと少しで完璧です'; }
+  else if (pct >= 50) { stars = '★'; msg = 'Keep going! 復習して再挑戦しましょう'; }
+  else { stars = ''; msg = 'ノートを見直して再チャレンジ！'; }
+
+  document.getElementById('app').innerHTML = `
+    <div class="card center">
+      <h1>結果発表</h1>
+      <div class="result-score">${score} / ${total} 問正解</div>
+      <div class="sub">正解率 ${pct}%</div>
+      <div class="result-stars">${stars}</div>
+      <div class="result-msg">${msg}</div>
+      <button class="btn btn-block" onclick="startTest(currentMode, currentCategory)">もう一度同じモードで挑戦する</button>
+      <button class="btn btn-block btn-secondary" onclick="renderModeSelect()">🏠 モード選択に戻る</button>
+    </div>
+  `;
+}
+
+function renderTrashScreen() {
+  const trashIds = getTrash();
+  const trashedQuestions = FILLCHOICE_QUESTIONS.filter(q => trashIds.includes(q.id));
+  let itemsHtml = '';
+  if (trashedQuestions.length === 0) {
+    itemsHtml = '<div class="sub">ゴミ箱は空です</div>';
+  } else {
+    trashedQuestions.forEach(q => {
+      const text = q.question || q.hint || '';
+      const sourceList = q.source ? [q.source] : (q.sources || []);
+      itemsHtml += `
+        <div class="trash-item">
+          <span class="badge ${q.type === 'fill' ? 'badge-fill' : 'badge-choice'}">${q.type === 'fill' ? '穴埋め' : '選択肢'}</span>
+          <span class="badge badge-genre">${esc(q.category)}</span>
+          <div class="ttext">${esc(text)}</div>
+          ${sourceList.length ? `<div class="info-line">📷 出典: ${sourceList.map(esc).join(', ')}</div>` : ''}
+          <button class="btn btn-secondary" onclick="restoreFromTrash(${q.id}); renderTrashScreen();">↩️ 元に戻す</button>
+        </div>
+      `;
+    });
+  }
+  document.getElementById('app').innerHTML = `
+    <div class="card">
+      <div class="footer-links" style="text-align:left;margin-bottom:8px;"><a onclick="renderModeSelect()">← モード選択に戻る</a></div>
+      <h2>🗑 ゴミ箱</h2>
+      ${itemsHtml}
+    </div>
+  `;
+}
+
+renderModeSelect();
+</script>
+</body>
+</html>
