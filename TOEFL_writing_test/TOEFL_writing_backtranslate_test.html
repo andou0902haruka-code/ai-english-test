@@ -96,6 +96,9 @@
   .badge { display:inline-block; background:#eaf0ff; color:var(--accent-dark); border-radius:20px; padding:3px 11px; font-size:0.78rem; font-weight:600; }
   .badge.unit-sentence { background:#e8f7ec; color:#1f8a48; }
   .badge.unit-paragraph { background:#fff3e0; color:#b8620c; }
+  .badge.new-badge { background: var(--red); color:#fff; margin-left:6px; }
+  .unit-card .new-count { font-size:0.78rem; color: var(--red); font-weight:600; margin: -6px 0 8px; }
+  .cat-btn .new-flag { color: var(--red); margin-left:2px; }
   .header-row { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom: 6px; }
   .progress-bar-track { background:#e6e9f2; border-radius: 8px; height: 8px; overflow:hidden; margin: 10px 0 4px; }
   .progress-bar-fill { background: var(--accent); height:100%; transition: width .25s; }
@@ -180,6 +183,7 @@
         <h3>文単位</h3>
         <p>模範解答を1文ずつ日本語から英訳する。テンポよく反復練習できる</p>
         <div class="count" id="count-sentence"></div>
+        <div class="new-count hidden" id="new-count-sentence"></div>
         <button class="btn">この単位で挑戦</button>
       </div>
       <div class="unit-card" onclick="selectUnit('paragraph')">
@@ -187,6 +191,7 @@
         <h3>段落単位</h3>
         <p>3〜5文のまとまりを日本語から英訳する。文脈を踏まえた構成力を鍛える</p>
         <div class="count" id="count-paragraph"></div>
+        <div class="new-count hidden" id="new-count-paragraph"></div>
         <button class="btn">この単位で挑戦</button>
       </div>
     </div>
@@ -201,7 +206,7 @@
     <div class="mode-list">
       <div class="card mode-card">
         <div class="mode-info">
-          <h4>🎲 ランダム20問（おまかせ）</h4>
+          <h4>🎲 ランダム10問（おまかせ）</h4>
           <p>前回の復習30%＋未出題70%で自動選出</p>
         </div>
         <button class="btn" onclick="startMode('random')">このモードで始める</button>
@@ -223,12 +228,32 @@
       </div>
       <div class="card mode-card">
         <div class="mode-info">
-          <h4>🔖 復習リストから挑戦</h4>
+          <h4>🔖 復習リストから選んで挑戦</h4>
           <p id="bookmark-count-label"></p>
         </div>
-        <button class="btn" id="bookmark-start-btn" onclick="startMode('bookmark')">復習リストで始める</button>
+        <button class="btn" id="bookmark-start-btn" onclick="showBookmarkSelectScreen()">問題を選ぶ</button>
+      </div>
+      <div class="card mode-card">
+        <div class="mode-info">
+          <h4>🔀 復習リストからランダム10問</h4>
+          <p id="bookmark-random-count-label"></p>
+        </div>
+        <button class="btn" id="bookmark-random-start-btn" onclick="startMode('bookmarkRandom')">このモードで始める</button>
       </div>
     </div>
+  </div>
+
+  <!-- SCREEN: 復習リスト選択画面 -->
+  <div id="screen-bookmark-select" class="hidden">
+    <a class="back-link" onclick="showStartScreen()">← モード選択に戻る</a>
+    <h1 id="bookmark-select-title"></h1>
+    <div style="margin:10px 0;">
+      <button class="btn secondary" onclick="bookmarkSelectAll(true)">全選択</button>
+      <button class="btn secondary" onclick="bookmarkSelectAll(false)">全解除</button>
+    </div>
+    <p class="subtitle" id="bookmark-select-count"></p>
+    <div id="bookmark-select-list"></div>
+    <button class="btn block" id="bookmark-select-start-btn" disabled onclick="startBookmarkSelectedTest()" style="margin-top:12px;">選んだ問題で挑戦する</button>
   </div>
 
   <!-- SCREEN 2: 問題画面 -->
@@ -245,6 +270,7 @@
     <div class="card">
       <div class="q-meta">
         <span class="badge" id="q-category-badge"></span>
+        <span class="badge new-badge hidden" id="q-new-badge">🆕 NEW</span>
         <span class="topic-label" id="q-topic-label"></span>
       </div>
       <label class="bookmark-row">
@@ -824,8 +850,83 @@ const PQ_PART5 = [
 ];
 
 
-const SENTENCE_QUESTIONS = [].concat(SQ_PART1,SQ_PART2,SQ_PART3,SQ_PART4,SQ_PART5);
-const PARAGRAPH_QUESTIONS = [].concat(PQ_PART1,PQ_PART2,PQ_PART3,PQ_PART4,PQ_PART5);
+// SENTENCE_QUESTIONS part6 (ids 380-433) + PARAGRAPH_QUESTIONS part6 (ids 97-109)
+// writing-backtranslate-add 2026-07-14: パソコンを直したい / 子育てとデジタル技術 / テレビ広告の影響力
+const SQ_PART6 = [
+{id:380,unit:"sentence",category:"カスタマーサポート",topic:"パソコンを直したい",japanese:"IT部門様、",keyPhrases:["dear it department"],answer:"Dear IT Department,",fullSentence:"Dear IT Department,",source:"パソコンを直したい1",explanation:"Dear 〜,はビジネスメールの宛先を示す定型の書き出し。",relatedInfo:"Dear Sir or Madam, / To whom it may concern,",isNew:true},
+{id:381,unit:"sentence",category:"カスタマーサポート",topic:"パソコンを直したい",japanese:"このメールが良い状態で届いていることを願っています。",keyPhrases:["i hope this email finds you well"],answer:"I hope this email finds you well.",fullSentence:"I hope this email finds you well.",source:"パソコンを直したい1",explanation:"ビジネスメール冒頭の定型挨拶表現。",relatedInfo:"I hope you are doing well. / I hope this message finds you well.",isNew:true},
+{id:382,unit:"sentence",category:"カスタマーサポート",topic:"パソコンを直したい",japanese:"仕事用のノートパソコンの不具合について書いています。",keyPhrases:["writing about an issue","work laptop"],answer:"I am writing about an issue with my work laptop.",fullSentence:"I am writing about an issue with my work laptop.",source:"パソコンを直したい1",explanation:"I am writing about〜はメールの用件を伝える定型表現。",relatedInfo:"I am contacting you regarding / I am reaching out about",isNew:true},
+{id:383,unit:"sentence",category:"カスタマーサポート",topic:"パソコンを直したい",japanese:"最近のソフトウェアアップデート以降、私のノートパソコンは以前よりもずっと動作が遅くなっています。",keyPhrases:["since the recent software update","running much slower than before"],answer:"Since the recent software update, my laptop has been running much slower than before.",fullSentence:"Since the recent software update, my laptop has been running much slower than before.",source:"パソコンを直したい1",explanation:"現在完了進行形(has been running)で「更新以降ずっと遅い状態が続いている」ことを表す。",relatedInfo:"has become noticeably slower / has been performing poorly",isNew:true},
+{id:384,unit:"sentence",category:"カスタマーサポート",topic:"パソコンを直したい",japanese:"そのため、プログラムを開いたりタスクを完了させたりするのに時間がかかるようになり、日々の業務に影響が出て、締め切りを守るのが難しくなっています。",keyPhrases:["takes longer to open programs","affecting my daily work","harder to meet deadlines"],answer:"Because of this, it takes longer to open programs and complete tasks, which is affecting my daily work and making it harder to meet deadlines.",fullSentence:"Because of this, it takes longer to open programs and complete tasks, which is affecting my daily work and making it harder to meet deadlines.",source:"パソコンを直したい1",explanation:"which以下は関係代名詞の非制限用法で、前文全体を受けて結果を補足している。",relatedInfo:"is impacting my workflow / is making it difficult to hit deadlines",isNew:true},
+{id:385,unit:"sentence",category:"カスタマーサポート",topic:"パソコンを直したい",japanese:"この問題の解決をお手伝いいただくか、解決のために私が取れる手順を教えていただけますでしょうか。",keyPhrases:["could you please help resolve this problem","what steps i can take to fix it"],answer:"Could you please help resolve this problem or let me know what steps I can take to fix it?",fullSentence:"Could you please help resolve this problem or let me know what steps I can take to fix it?",source:"パソコンを直したい1",explanation:"Could you please〜?は丁寧な依頼を表す定型表現。orで二つの依頼を並べている。",relatedInfo:"Would you be able to assist with / Could you advise me on how to",isNew:true},
+{id:386,unit:"sentence",category:"カスタマーサポート",topic:"パソコンを直したい",japanese:"ご支援いただけますと幸いです。",keyPhrases:["i would appreciate your support"],answer:"I would appreciate your support.",fullSentence:"I would appreciate your support.",source:"パソコンを直したい1",explanation:"would appreciate〜は丁寧に感謝・依頼を伝える定型表現。",relatedInfo:"Your support would be appreciated. / I would be grateful for your help.",isNew:true},
+{id:387,unit:"sentence",category:"カスタマーサポート",topic:"パソコンを直したい",japanese:"ご連絡をお待ちしております。",keyPhrases:["looking forward to hearing from you"],answer:"I'm looking forward to hearing from you.",fullSentence:"I'm looking forward to hearing from you.",source:"パソコンを直したい1",explanation:"メールの結びの定型表現。",relatedInfo:"I look forward to your reply / awaiting your response",isNew:true},
+{id:388,unit:"sentence",category:"カスタマーサポート",topic:"パソコンを直したい",japanese:"敬具、",keyPhrases:["kind regards"],answer:"Kind regards,",fullSentence:"Kind regards,",source:"パソコンを直したい1",explanation:"ビジネスメールの結びの定型句。",relatedInfo:"Best regards, / Sincerely,",isNew:true},
+{id:389,unit:"sentence",category:"カスタマーサポート",topic:"パソコンを直したい",japanese:"IT部門様、",keyPhrases:["dear it department"],answer:"Dear IT Department,",fullSentence:"Dear IT Department,",source:"パソコンを直したい2",explanation:"Dear 〜,はビジネスメールの宛先を示す定型の書き出し。",relatedInfo:"Dear Sir or Madam, / To whom it may concern,",isNew:true},
+{id:390,unit:"sentence",category:"カスタマーサポート",topic:"パソコンを直したい",japanese:"このメッセージが良い状態で届いていることを願っています。",keyPhrases:["i hope this message finds you well"],answer:"I hope this message finds you well.",fullSentence:"I hope this message finds you well.",source:"パソコンを直したい2",explanation:"I hope this message finds you well.はI hope this email finds you well.と同義の挨拶表現。",relatedInfo:"I hope you are doing well. / I hope this email finds you well.",isNew:true},
+{id:391,unit:"sentence",category:"カスタマーサポート",topic:"パソコンを直したい",japanese:"最近のソフトウェアアップデート以降、仕事用のノートパソコンで発生している継続的な問題についてお知らせするために書いています。",keyPhrases:["writing to inform you about some ongoing issues","following the recent software update"],answer:"I'm writing to inform you about some ongoing issues I have experienced with my work laptop following the recent software update.",fullSentence:"I'm writing to inform you about some ongoing issues I have experienced with my work laptop following the recent software update.",source:"パソコンを直したい2",explanation:"I'm writing to inform you about〜はメールの用件を丁寧に伝える表現。followingは「〜の後に」という前置詞。",relatedInfo:"I am writing to let you know about / after the recent update",isNew:true},
+{id:392,unit:"sentence",category:"カスタマーサポート",topic:"パソコンを直したい",japanese:"インストール以降、ノートパソコンは明らかに遅くなっており、そのせいで日々のタスクを効率的にこなすのが難しくなっています。",keyPhrases:["since the installation","noticeably slower","difficult to complete my daily tasks efficiently"],answer:"Since the installation, the laptop has been noticeably slower, which has made it difficult to complete my daily tasks efficiently.",fullSentence:"Since the installation, the laptop has been noticeably slower, which has made it difficult to complete my daily tasks efficiently.",source:"パソコンを直したい2",explanation:"which以下は関係代名詞の非制限用法で前文の内容を受けて結果を補足している。",relatedInfo:"has clearly slowed down / has become hard to use efficiently",isNew:true},
+{id:393,unit:"sentence",category:"カスタマーサポート",topic:"パソコンを直したい",japanese:"処理速度の低下は、私の業務に不可欠なデータ分析ツールやプロジェクト管理ソフトウェアなど、負荷の高いアプリケーションを使う際に特に問題となります。",keyPhrases:["slow processing speed","resource-intensive applications","essential for my role"],answer:"The slow processing speed is especially problematic when using resource-intensive applications, such as data analysis tools and project management software that are essential for my role.",fullSentence:"The slow processing speed is especially problematic when using resource-intensive applications, such as data analysis tools and project management software that are essential for my role.",source:"パソコンを直したい2",explanation:"such as〜は「〜のような」と具体例を挙げる表現。",relatedInfo:"especially noticeable with / heavy applications",isNew:true},
+{id:394,unit:"sentence",category:"カスタマーサポート",topic:"パソコンを直したい",japanese:"通常であれば数分しかかからない作業に、今ではずっと長い時間がかかっています。",keyPhrases:["normally take only a few minutes","take much longer"],answer:"Tasks that normally take only a few minutes now take much longer.",fullSentence:"Tasks that normally take only a few minutes now take much longer.",source:"パソコンを直したい2",explanation:"that以下はTasksを修飾する関係代名詞節。",relatedInfo:"used to take just a few minutes / now takes significantly longer",isNew:true},
+{id:395,unit:"sentence",category:"カスタマーサポート",topic:"パソコンを直したい",japanese:"この動作の遅さは私の生産性に大きな影響を与えています。",keyPhrases:["this slowdown","significantly affected my productivity"],answer:"This slowdown has significantly affected my productivity.",fullSentence:"This slowdown has significantly affected my productivity.",source:"パソコンを直したい2",explanation:"has affectedは現在完了で、過去から続く影響を表す。",relatedInfo:"has greatly impacted my output / has hurt my efficiency",isNew:true},
+{id:396,unit:"sentence",category:"カスタマーサポート",topic:"パソコンを直したい",japanese:"さらに、ファイルを開いたりアプリケーション間を切り替えたりといった簡単な操作までも、いらだたしいほど動作が重くなり、業務の流れに不要な遅延を引き起こしています。",keyPhrases:["simple actions like opening files","frustratingly sluggish","unnecessary delays in my workflow"],answer:"Additionally, simple actions like opening files or switching between applications have become frustratingly sluggish, causing unnecessary delays in my workflow.",fullSentence:"Additionally, simple actions like opening files or switching between applications have become frustratingly sluggish, causing unnecessary delays in my workflow.",source:"パソコンを直したい2",explanation:"causing以下は分詞構文で、前文の結果を補足している。",relatedInfo:"have become annoyingly slow / creating needless delays",isNew:true},
+{id:397,unit:"sentence",category:"カスタマーサポート",topic:"パソコンを直したい",japanese:"できるだけ早く問題を確認し解決していただくための技術サポートをご提供いただけますと大変ありがたく存じます。",keyPhrases:["would greatly appreciate it if","provide technical support","as soon as possible"],answer:"I would greatly appreciate it if you could provide technical support to assess and resolve the issue as soon as possible.",fullSentence:"I would greatly appreciate it if you could provide technical support to assess and resolve the issue as soon as possible.",source:"パソコンを直したい2",explanation:"would appreciate it if you could〜は非常に丁寧な依頼表現。",relatedInfo:"It would be great if you could / I'd be grateful if you could",isNew:true},
+{id:398,unit:"sentence",category:"カスタマーサポート",topic:"パソコンを直したい",japanese:"ノートパソコンを確認していただく時間を調整するか、その間にこれらの性能上の問題を軽減できる暫定的な対策をご提案いただけると助かります。",keyPhrases:["arrange a time for you to look into the laptop","temporary solutions","in the meantime"],answer:"It would be helpful if we could arrange a time for you to look into the laptop or suggest any temporary solutions that could alleviate these performance problems in the meantime.",fullSentence:"It would be helpful if we could arrange a time for you to look into the laptop or suggest any temporary solutions that could alleviate these performance problems in the meantime.",source:"パソコンを直したい2",explanation:"that以下はsolutionsを修飾する関係代名詞節。in the meantimeは「その間に」という意味の副詞句。",relatedInfo:"set up a time to check / a temporary fix in the meantime",isNew:true},
+{id:399,unit:"sentence",category:"カスタマーサポート",topic:"パソコンを直したい",japanese:"この件への迅速なご対応、誠にありがとうございます。",keyPhrases:["thank you very much for your prompt attention"],answer:"Thank you very much for your prompt attention to this matter.",fullSentence:"Thank you very much for your prompt attention to this matter.",source:"パソコンを直したい2",explanation:"Thank you for your prompt attention to〜はビジネスメールで感謝を伝える定型表現。",relatedInfo:"Thank you for addressing this quickly / I appreciate your quick response",isNew:true},
+{id:400,unit:"sentence",category:"カスタマーサポート",topic:"パソコンを直したい",japanese:"この問題の解決にあたってのご協力をお待ちしております。",keyPhrases:["look forward to your assistance","resolving this issue"],answer:"I look forward to your assistance in resolving this issue.",fullSentence:"I look forward to your assistance in resolving this issue.",source:"パソコンを直したい2",explanation:"look forward to〜はメールの結びの定型表現。",relatedInfo:"I look forward to your help with this / awaiting your support on this issue",isNew:true},
+{id:401,unit:"sentence",category:"カスタマーサポート",topic:"パソコンを直したい",japanese:"敬具、",keyPhrases:["best regards"],answer:"Best regards,",fullSentence:"Best regards,",source:"パソコンを直したい2",explanation:"ビジネスメールの結びの定型句。",relatedInfo:"Kind regards, / Sincerely,",isNew:true},
+{id:402,unit:"sentence",category:"賛否問題",topic:"子育てとデジタル技術",japanese:"私の意見では、デジタルコンテンツのおかげで、以前よりも親が子育てをしやすくなっています。",keyPhrases:["in my opinion","makes it easier for parents to raise children"],answer:"In my opinion, digital content makes it easier for parents to raise children than before.",fullSentence:"In my opinion, digital content makes it easier for parents to raise children than before.",source:"子育てとデジタル技術1",explanation:"make it easier for A to doで「Aが〜しやすくなる」という表現。",relatedInfo:"In my view, / makes parenting easier than before",isNew:true},
+{id:403,unit:"sentence",category:"賛否問題",topic:"子育てとデジタル技術",japanese:"アンドリューが述べていたように、子どもたちは今やデジタル機器で動画を見ることで、外国語や料理、歴史といった新しいことを学べるようになっています。",keyPhrases:["as andrew mentioned","learn new things","by watching videos on their digital devices"],answer:"As Andrew mentioned, children can now learn new things like foreign languages, cooking, or history by watching videos on their digital devices.",fullSentence:"As Andrew mentioned, children can now learn new things like foreign languages, cooking, or history by watching videos on their digital devices.",source:"子育てとデジタル技術1",explanation:"as A mentionedは「Aが述べたように」と他者の発言を引用する表現。",relatedInfo:"as Andrew pointed out / as Andrew noted",isNew:true},
+{id:404,unit:"sentence",category:"賛否問題",topic:"子育てとデジタル技術",japanese:"これは、親が家庭教師や教室を探すために余計な時間や労力を費やす必要が必ずしもなくなることを意味します。",keyPhrases:["do not always have to spend extra time or effort","finding tutors or classes"],answer:"This means parents do not always have to spend extra time or effort finding tutors or classes.",fullSentence:"This means parents do not always have to spend extra time or effort finding tutors or classes.",source:"子育てとデジタル技術1",explanation:"do not always〜は「必ずしも〜とは限らない」という部分否定。",relatedInfo:"don't necessarily need to / no longer have to always",isNew:true},
+{id:405,unit:"sentence",category:"賛否問題",topic:"子育てとデジタル技術",japanese:"さらに、デジタルコンテンツは親子が一緒に話し合い共有する話題を見つける助けとなり、それが二人の絆を強めることにもつながります。",keyPhrases:["find topics to discuss and share together","strengthen their connection"],answer:"Additionally, digital content can help parents and children find topics to discuss and share together, which can strengthen their connection.",fullSentence:"Additionally, digital content can help parents and children find topics to discuss and share together, which can strengthen their connection.",source:"子育てとデジタル技術1",explanation:"help A doで「Aが〜するのを助ける」。which以下は関係代名詞の非制限用法。",relatedInfo:"help them bond / deepen their relationship",isNew:true},
+{id:406,unit:"sentence",category:"賛否問題",topic:"子育てとデジタル技術",japanese:"しかし、それでも親は子どもが何を見ているかを確認し、それが適切で教育的な内容であるかを確かめることが重要です。",keyPhrases:["still important for parents to monitor","make sure it is appropriate and educational"],answer:"However, it is still important for parents to monitor what their children are watching to make sure it is appropriate and educational.",fullSentence:"However, it is still important for parents to monitor what their children are watching to make sure it is appropriate and educational.",source:"子育てとデジタル技術1",explanation:"it is important for A to doで「Aが〜することが重要だ」という形式主語構文。",relatedInfo:"keep track of what / ensure it is suitable",isNew:true},
+{id:407,unit:"sentence",category:"賛否問題",topic:"子育てとデジタル技術",japanese:"私は、テクノロジーがもたらす便利さにもかかわらず、全体として子育てはより難しくなったと主張します。",keyPhrases:["i would argue that","has become more difficult overall","despite the conveniences technology provides"],answer:"I would argue that raising children has become more difficult overall, despite the conveniences technology provides.",fullSentence:"I would argue that raising children has become more difficult overall, despite the conveniences technology provides.",source:"子育てとデジタル技術2",explanation:"despite+名詞句で「〜にもかかわらず」という譲歩を表す。",relatedInfo:"I would contend that / in spite of the convenience technology offers",isNew:true},
+{id:408,unit:"sentence",category:"賛否問題",topic:"子育てとデジタル技術",japanese:"第一に、現代の親はより高い期待にさらされています。",keyPhrases:["modern parents face higher expectations"],answer:"First, modern parents face higher expectations.",fullSentence:"First, modern parents face higher expectations.",source:"子育てとデジタル技術2",explanation:"face+名詞で「〜に直面する」という表現。",relatedInfo:"are confronted with higher expectations / deal with greater expectations",isNew:true},
+{id:409,unit:"sentence",category:"賛否問題",topic:"子育てとデジタル技術",japanese:"アチェベ博士が述べているように、親は学校の勉強や放課後の活動、精神面での支えに深く関わることが求められています。",keyPhrases:["as dr. achebe mentions","supposed to be deeply involved","emotional support"],answer:"As Dr. Achebe mentions, they are supposed to be deeply involved in schoolwork, after-school activities, and emotional support.",fullSentence:"As Dr. Achebe mentions, they are supposed to be deeply involved in schoolwork, after-school activities, and emotional support.",source:"子育てとデジタル技術2",explanation:"be supposed to doで「〜することになっている、〜すべきとされる」という義務・期待を表す。",relatedInfo:"are expected to be closely involved / are required to take part in",isNew:true},
+{id:410,unit:"sentence",category:"賛否問題",topic:"子育てとデジタル技術",japanese:"今では両親が共働きである家庭も多く、フルタイムの仕事を続けながらこうした期待に応えることは非常に疲れることになりかねません。",keyPhrases:["two working parents","meeting these expectations while maintaining a full-time job","can be exhausting"],answer:"Many families now have two working parents, so meeting these expectations while maintaining a full-time job can be exhausting.",fullSentence:"Many families now have two working parents, so meeting these expectations while maintaining a full-time job can be exhausting.",source:"子育てとデジタル技術2",explanation:"while -ingで「〜しながら」と同時進行の状況を表す。",relatedInfo:"both parents working / can be draining",isNew:true},
+{id:411,unit:"sentence",category:"賛否問題",topic:"子育てとデジタル技術",japanese:"かつては地域の人々や親戚がもっと子育てを手伝ってくれることが多かったのですが、その支援ネットワークは多くの地域で弱まっています。",keyPhrases:["community members or extended family","child-rearing","support network has weakened"],answer:"In the past, community members or extended family often helped more with child-rearing, but that support network has weakened in many places.",fullSentence:"In the past, community members or extended family often helped more with child-rearing, but that support network has weakened in many places.",source:"子育てとデジタル技術2",explanation:"has weakenedは現在完了で過去から現在までの変化を表す。",relatedInfo:"extended relatives / that network of support has declined",isNew:true},
+{id:412,unit:"sentence",category:"賛否問題",topic:"子育てとデジタル技術",japanese:"第二に、デジタル技術は新たな責任をもたらします。",keyPhrases:["digital technology introduces new responsibilities"],answer:"Second, digital technology introduces new responsibilities.",fullSentence:"Second, digital technology introduces new responsibilities.",source:"子育てとデジタル技術2",explanation:"introduceは「（新たなものを）もたらす、導入する」という意味。",relatedInfo:"brings new responsibilities / creates additional duties",isNew:true},
+{id:413,unit:"sentence",category:"賛否問題",topic:"子育てとデジタル技術",japanese:"アンドリューが言うように、アプリやオンライン講座は子どもたちに素晴らしい学習機会を与えてくれます。",keyPhrases:["like andrew says","give children excellent learning opportunities"],answer:"Like Andrew says, apps and online courses give children excellent learning opportunities.",fullSentence:"Like Andrew says, apps and online courses give children excellent learning opportunities.",source:"子育てとデジタル技術2",explanation:"like A saysは「Aが言うように」と口語的に引用する表現。",relatedInfo:"as Andrew says / provide children with great learning opportunities",isNew:true},
+{id:414,unit:"sentence",category:"賛否問題",topic:"子育てとデジタル技術",japanese:"しかし、親は子どもが何を見ているか、そしてオンラインでどれくらいの時間を過ごしているかを常に監視しなければなりません。",keyPhrases:["must constantly monitor","how much time they spend online"],answer:"However, parents must constantly monitor what their kids watch and how much time they spend online.",fullSentence:"However, parents must constantly monitor what their kids watch and how much time they spend online.",source:"子育てとデジタル技術2",explanation:"must constantly doで「常に〜しなければならない」という強い義務を表す。",relatedInfo:"have to keep watching / need to keep track of",isNew:true},
+{id:415,unit:"sentence",category:"賛否問題",topic:"子育てとデジタル技術",japanese:"これは単なる技術的な作業ではなく、精神的な作業でもあります。",keyPhrases:["not just a technical task","also an emotional one"],answer:"This is not just a technical task; it is also an emotional one.",fullSentence:"This is not just a technical task; it is also an emotional one.",source:"子育てとデジタル技術2",explanation:"not just A; it is also Bで「Aだけでなく、Bでもある」という対比表現。oneはtask(仕事)を指す代名詞。",relatedInfo:"not merely a technical matter / it is emotional as well",isNew:true},
+{id:416,unit:"sentence",category:"賛否問題",topic:"子育てとデジタル技術",japanese:"クレアが指摘するように、デバイスは親子のコミュニケーションを妨げることがあり、親は子どもの注意を引くために画面と競わざるを得なくなります。",keyPhrases:["as claire points out","interfere with parent–child communication","compete with screens for their children's attention"],answer:"As Claire points out, devices can interfere with parent–child communication, forcing parents to compete with screens for their children's attention.",fullSentence:"As Claire points out, devices can interfere with parent–child communication, forcing parents to compete with screens for their children's attention.",source:"子育てとデジタル技術2",explanation:"forcing以下は分詞構文で結果を補足している。force A to doで「Aに〜せざるを得なくさせる」。",relatedInfo:"as Claire notes / get in the way of parent-child communication",isNew:true},
+{id:417,unit:"sentence",category:"賛否問題",topic:"子育てとデジタル技術",japanese:"これらの理由から、テクノロジーや現代的なリソースは役に立つこともありますが、より高い期待とデジタルの気を散らすものが組み合わさることで、子育ては以前よりも大変なものになっています。",keyPhrases:["for these reasons","combination of higher expectations and digital distractions","more demanding than it used to be"],answer:"For these reasons, although technology and modern resources can be helpful, the combination of higher expectations and digital distractions makes parenting more demanding than it used to be.",fullSentence:"For these reasons, although technology and modern resources can be helpful, the combination of higher expectations and digital distractions makes parenting more demanding than it used to be.",source:"子育てとデジタル技術2",explanation:"althoughは「〜だが」という譲歩を表す接続詞。than it used to beで「以前そうであったよりも」と過去との比較を示す。",relatedInfo:"for these reasons, / harder than it once was",isNew:true},
+{id:418,unit:"sentence",category:"賛否問題",topic:"テレビ広告の影響力",japanese:"私の意見では、いくつかの理由からテレビ広告の影響力は低下してきています。",keyPhrases:["in my opinion","becoming less influential for several reasons"],answer:"In my opinion, television advertising is becoming less influential for several reasons.",fullSentence:"In my opinion, television advertising is becoming less influential for several reasons.",source:"テレビ広告の影響力1",explanation:"become less〜で「〜でなくなってきている」という変化を表す。",relatedInfo:"In my view, / losing its influence for a number of reasons",isNew:true},
+{id:419,unit:"sentence",category:"賛否問題",topic:"テレビ広告の影響力",japanese:"第一に、多くの人が今ではスマートフォンで動画を見たりアプリを使ったりするようになっており、そこではオンライン広告や商品配置の方が一般的であるため、従来型のテレビ番組を見る時間は減少しています。",keyPhrases:["amount of time people spend watching traditional tv shows is decreasing","online ads and product placements are more common"],answer:"First, the amount of time people spend watching traditional TV shows is decreasing because many now watch videos or use apps on their smartphones, where online ads and product placements are more common.",fullSentence:"First, the amount of time people spend watching traditional TV shows is decreasing because many now watch videos or use apps on their smartphones, where online ads and product placements are more common.",source:"テレビ広告の影響力1",explanation:"whereは場所ではなく「そしてそこでは」と状況を補足する関係副詞的用法。",relatedInfo:"is on the decline / are more prevalent",isNew:true},
+{id:420,unit:"sentence",category:"賛否問題",topic:"テレビ広告の影響力",japanese:"第二に、テレビ広告は通常オンライン広告よりも費用が高いにもかかわらず、ターゲット層に同じくらい効果的に届くとは限りません。",keyPhrases:["more expensive than advertising online","may not reach the target audience as effectively"],answer:"Second, television advertising is usually more expensive than advertising online, yet it may not reach the target audience as effectively.",fullSentence:"Second, television advertising is usually more expensive than advertising online, yet it may not reach the target audience as effectively.",source:"テレビ広告の影響力1",explanation:"yetは「それにもかかわらず」という逆接の等位接続詞。",relatedInfo:"costs more than online advertising / may not be as effective at reaching",isNew:true},
+{id:421,unit:"sentence",category:"賛否問題",topic:"テレビ広告の影響力",japanese:"オンラインプラットフォームの台頭により、人々は他の消費者から直接商品レビューや情報を得られるようになり、そのためテレビ広告よりもオンラインの情報源を信頼するようになっています。",keyPhrases:["rise of online platforms","directly from other consumers","trust online resources more than tv ads"],answer:"With the rise of online platforms, people can find product reviews and information directly from other consumers, which makes them trust online resources more than TV ads.",fullSentence:"With the rise of online platforms, people can find product reviews and information directly from other consumers, which makes them trust online resources more than TV ads.",source:"テレビ広告の影響力1",explanation:"which以下は関係代名詞の非制限用法で前文全体を受けて結果を表す。",relatedInfo:"with the growth of / rely more on online sources than television ads",isNew:true},
+{id:422,unit:"sentence",category:"賛否問題",topic:"テレビ広告の影響力",japanese:"したがって、テレビ広告の影響力は弱まってきていると私は考えます。",keyPhrases:["therefore","influence of television advertising is getting weaker"],answer:"Therefore, I believe the influence of television advertising is getting weaker.",fullSentence:"Therefore, I believe the influence of television advertising is getting weaker.",source:"テレビ広告の影響力1",explanation:"get weakerで「弱くなっていく」という変化を表す。",relatedInfo:"Therefore, / is diminishing",isNew:true},
+{id:423,unit:"sentence",category:"賛否問題",topic:"テレビ広告の影響力",japanese:"私は、視聴者がもはや商品情報をテレビ広告に頼らなくなり、以前ほど信頼もしなくなっているという理由から、テレビ広告の影響力は低下してきていると考えます。",keyPhrases:["mainly because viewers no longer depend on it","trust it as much as before"],answer:"I believe television advertising is becoming less influential, mainly because viewers no longer depend on it for product information or trust it as much as before.",fullSentence:"I believe television advertising is becoming less influential, mainly because viewers no longer depend on it for product information or trust it as much as before.",source:"テレビ広告の影響力2",explanation:"mainly becauseで主な理由を提示する。no longer〜は「もはや〜ない」。",relatedInfo:"primarily because / as much as they used to",isNew:true},
+{id:424,unit:"sentence",category:"賛否問題",topic:"テレビ広告の影響力",japanese:"第一に、クレアが述べていたように、多くの消費者は意思決定のプロセスをオンラインで始めます。",keyPhrases:["as claire mentioned","begin their decision-making process online"],answer:"First, as Claire mentioned, many consumers begin their decision-making process online.",fullSentence:"First, as Claire mentioned, many consumers begin their decision-making process online.",source:"テレビ広告の影響力2",explanation:"begin -ing/名詞で「〜を始める」。decision-making processは「意思決定の過程」。",relatedInfo:"as Claire pointed out / start their decision-making online",isNew:true},
+{id:425,unit:"sentence",category:"賛否問題",topic:"テレビ広告の影響力",japanese:"ある商品に興味を持ったとき、私は通常レビューや比較動画、利用者のコメントを検索します。",keyPhrases:["search for reviews, comparison videos, and user comments"],answer:"When I am interested in a product, I usually search for reviews, comparison videos, and user comments.",fullSentence:"When I am interested in a product, I usually search for reviews, comparison videos, and user comments.",source:"テレビ広告の影響力2",explanation:"search for〜で「〜を探す、検索する」。",relatedInfo:"look up reviews and comparison videos",isNew:true},
+{id:426,unit:"sentence",category:"賛否問題",topic:"テレビ広告の影響力",japanese:"これらの情報源は、30秒のテレビコマーシャルではとても太刀打ちできないほど、詳細で最新かつしばしば批判的な情報を提供してくれます。",keyPhrases:["provide detailed, up-to-date, and often critical information","simply cannot match"],answer:"These sources provide detailed, up-to-date, and often critical information that a 30-second TV commercial simply cannot match.",fullSentence:"These sources provide detailed, up-to-date, and often critical information that a 30-second TV commercial simply cannot match.",source:"テレビ広告の影響力2",explanation:"that以下はinformationを修飾する関係代名詞節。simply cannot matchで「到底かなわない」という強調。",relatedInfo:"offer in-depth and current information / can't come close to",isNew:true},
+{id:427,unit:"sentence",category:"賛否問題",topic:"テレビ広告の影響力",japanese:"この情報の深さゆえに、オンラインコンテンツは短く洗練されたテレビ広告よりも説得力があるものになっています。",keyPhrases:["this depth makes online content more persuasive"],answer:"This depth makes online content more persuasive than a brief, polished TV ad.",fullSentence:"This depth makes online content more persuasive than a brief, polished TV ad.",source:"テレビ広告の影響力2",explanation:"make A + 比較級で「Aをより〜にする」という使役的表現。",relatedInfo:"this level of detail makes / more convincing than",isNew:true},
+{id:428,unit:"sentence",category:"賛否問題",topic:"テレビ広告の影響力",japanese:"第二に、視聴者の行動は変化しました。",keyPhrases:["audience behavior has changed"],answer:"Second, audience behavior has changed.",fullSentence:"Second, audience behavior has changed.",source:"テレビ広告の影響力2",explanation:"has changedは現在完了で過去から現在への変化の結果を表す。",relatedInfo:"the way audiences behave has shifted",isNew:true},
+{id:429,unit:"sentence",category:"賛否問題",topic:"テレビ広告の影響力",japanese:"多くの人々は今では、従来型のコマーシャルを取り除くか視聴者がスキップできるようにしているプラットフォームで番組を配信視聴しています。",keyPhrases:["stream shows on platforms","remove traditional commercials or allow viewers to skip them"],answer:"Many people now stream shows on platforms that either remove traditional commercials or allow viewers to skip them.",fullSentence:"Many people now stream shows on platforms that either remove traditional commercials or allow viewers to skip them.",source:"テレビ広告の影響力2",explanation:"either A or Bで「AかBのどちらか」。that以下はplatformsを修飾する関係代名詞節。",relatedInfo:"watch shows on streaming platforms / let viewers skip ads",isNew:true},
+{id:430,unit:"sentence",category:"賛否問題",topic:"テレビ広告の影響力",japanese:"その結果、企業がテレビに多額の費用をかけたとしても、実際に注意を払ってその広告を見ている人の割合は少なくなっています。",keyPhrases:["even if companies spend heavily on television","watches those ads attentively"],answer:"As a result, even if companies spend heavily on television, a smaller portion of the population actually watches those ads attentively.",fullSentence:"As a result, even if companies spend heavily on television, a smaller portion of the population actually watches those ads attentively.",source:"テレビ広告の影響力2",explanation:"even if〜は「たとえ〜でも」という譲歩を表す。",relatedInfo:"invest heavily in TV / pay close attention to those ads",isNew:true},
+{id:431,unit:"sentence",category:"賛否問題",topic:"テレビ広告の影響力",japanese:"アンドリューは、テレビが最初に商品を紹介する役割を果たすかもしれないという興味深い指摘をしています。",keyPhrases:["andrew raises an interesting point","might introduce products initially"],answer:"Andrew raises an interesting point that television might introduce products initially.",fullSentence:"Andrew raises an interesting point that television might introduce products initially.",source:"テレビ広告の影響力2",explanation:"raise a pointで「意見・指摘を述べる」という表現。",relatedInfo:"makes an interesting point / could be the first to introduce products",isNew:true},
+{id:432,unit:"sentence",category:"賛否問題",topic:"テレビ広告の影響力",japanese:"しかし今日では、その紹介役はソーシャルメディアのインフルエンサーやターゲット広告、バイラルコンテンツによってますます担われるようになっています。",keyPhrases:["that introductory role is increasingly played by","social media influencers"],answer:"However, today that introductory role is increasingly played by social media influencers, targeted online ads, and viral content.",fullSentence:"However, today that introductory role is increasingly played by social media influencers, targeted online ads, and viral content.",source:"テレビ広告の影響力2",explanation:"be played by〜で「〜によって担われる」という受動態表現。",relatedInfo:"is increasingly taken on by / targeted advertising",isNew:true},
+{id:433,unit:"sentence",category:"賛否問題",topic:"テレビ広告の影響力",japanese:"これらのチャネルは特定の視聴者層により効率的に届き、従来のテレビCMよりも本物らしく感じられることが多いです。",keyPhrases:["reach specific audiences more efficiently","more authentic than conventional tv spots"],answer:"These channels reach specific audiences more efficiently and often feel more authentic than conventional TV spots.",fullSentence:"These channels reach specific audiences more efficiently and often feel more authentic than conventional TV spots.",source:"テレビ広告の影響力2",explanation:"feel + 形容詞で「〜のように感じられる」という表現。",relatedInfo:"target specific audiences more effectively / more genuine than traditional TV ads",isNew:true},
+];
+
+const PQ_PART6 = [
+{id:97,unit:"paragraph",category:"カスタマーサポート",topic:"パソコンを直したい",japanese:"仕事用のノートパソコンの不具合について書いています。最近のソフトウェアアップデート以降、私のノートパソコンは以前よりもずっと動作が遅くなっています。そのため、プログラムを開いたりタスクを完了させたりするのに時間がかかるようになり、日々の業務に影響が出て、締め切りを守るのが難しくなっています。",keyPhrases:["issue with my work laptop","running much slower than before","harder to meet deadlines"],answer:"I am writing about an issue with my work laptop. Since the recent software update, my laptop has been running much slower than before. Because of this, it takes longer to open programs and complete tasks, which is affecting my daily work and making it harder to meet deadlines.",fullSentence:"I am writing about an issue with my work laptop. Since the recent software update, my laptop has been running much slower than before. Because of this, it takes longer to open programs and complete tasks, which is affecting my daily work and making it harder to meet deadlines.",source:"パソコンを直したい1",explanation:"問題の提示→原因→具体的な悪影響、という不具合報告メールの型。",relatedInfo:"模範解答と見比べて、whichによる結果の補足の仕方を確認しましょう。",isNew:true},
+{id:98,unit:"paragraph",category:"カスタマーサポート",topic:"パソコンを直したい",japanese:"この問題の解決をお手伝いいただくか、解決のために私が取れる手順を教えていただけますでしょうか。ご支援いただけますと幸いです。",keyPhrases:["help resolve this problem","i would appreciate your support"],answer:"Could you please help resolve this problem or let me know what steps I can take to fix it? I would appreciate your support.",fullSentence:"Could you please help resolve this problem or let me know what steps I can take to fix it? I would appreciate your support.",source:"パソコンを直したい1",explanation:"依頼文＋感謝の一言という締めくくりの型。",relatedInfo:"模範解答と見比べて、Could you please〜?の丁寧な依頼表現を確認しましょう。",isNew:true},
+{id:99,unit:"paragraph",category:"カスタマーサポート",topic:"パソコンを直したい",japanese:"このメッセージが良い状態で届いていることを願っています。最近のソフトウェアアップデート以降、仕事用のノートパソコンで発生している継続的な問題についてお知らせするために書いています。インストール以降、ノートパソコンは明らかに遅くなっており、そのせいで日々のタスクを効率的にこなすのが難しくなっています。",keyPhrases:["ongoing issues","following the recent software update","noticeably slower"],answer:"I hope this message finds you well. I'm writing to inform you about some ongoing issues I have experienced with my work laptop following the recent software update. Since the installation, the laptop has been noticeably slower, which has made it difficult to complete my daily tasks efficiently.",fullSentence:"I hope this message finds you well. I'm writing to inform you about some ongoing issues I have experienced with my work laptop following the recent software update. Since the installation, the laptop has been noticeably slower, which has made it difficult to complete my daily tasks efficiently.",source:"パソコンを直したい2",explanation:"挨拶→用件提示→具体的な症状の説明という不具合報告メールの導入段落。",relatedInfo:"模範解答と見比べて、followingの使い方を確認しましょう。",isNew:true},
+{id:100,unit:"paragraph",category:"カスタマーサポート",topic:"パソコンを直したい",japanese:"処理速度の低下は、私の業務に不可欠なデータ分析ツールやプロジェクト管理ソフトウェアなど、負荷の高いアプリケーションを使う際に特に問題となります。通常であれば数分しかかからない作業に、今ではずっと長い時間がかかっています。この動作の遅さは私の生産性に大きな影響を与えています。さらに、ファイルを開いたりアプリケーション間を切り替えたりといった簡単な操作までも、いらだたしいほど動作が重くなり、業務の流れに不要な遅延を引き起こしています。",keyPhrases:["resource-intensive applications","take much longer","frustratingly sluggish"],answer:"The slow processing speed is especially problematic when using resource-intensive applications, such as data analysis tools and project management software that are essential for my role. Tasks that normally take only a few minutes now take much longer. This slowdown has significantly affected my productivity. Additionally, simple actions like opening files or switching between applications have become frustratingly sluggish, causing unnecessary delays in my workflow.",fullSentence:"The slow processing speed is especially problematic when using resource-intensive applications, such as data analysis tools and project management software that are essential for my role. Tasks that normally take only a few minutes now take much longer. This slowdown has significantly affected my productivity. Additionally, simple actions like opening files or switching between applications have become frustratingly sluggish, causing unnecessary delays in my workflow.",source:"パソコンを直したい2",explanation:"具体的な症状を複数の文で積み重ねて問題の深刻さを説得力を持って伝える段落。",relatedInfo:"模範解答と見比べて、causingによる分詞構文の使い方を確認しましょう。",isNew:true},
+{id:101,unit:"paragraph",category:"カスタマーサポート",topic:"パソコンを直したい",japanese:"できるだけ早く問題を確認し解決していただくための技術サポートをご提供いただけますと大変ありがたく存じます。ノートパソコンを確認していただく時間を調整するか、その間にこれらの性能上の問題を軽減できる暫定的な対策をご提案いただけると助かります。",keyPhrases:["provide technical support","arrange a time","temporary solutions"],answer:"I would greatly appreciate it if you could provide technical support to assess and resolve the issue as soon as possible. It would be helpful if we could arrange a time for you to look into the laptop or suggest any temporary solutions that could alleviate these performance problems in the meantime.",fullSentence:"I would greatly appreciate it if you could provide technical support to assess and resolve the issue as soon as possible. It would be helpful if we could arrange a time for you to look into the laptop or suggest any temporary solutions that could alleviate these performance problems in the meantime.",source:"パソコンを直したい2",explanation:"依頼を丁寧な仮定法(would appreciate it if / would be helpful if)で重ねて伝える段落。",relatedInfo:"模範解答と見比べて、It would be helpful if〜の丁寧な依頼表現を確認しましょう。",isNew:true},
+{id:102,unit:"paragraph",category:"カスタマーサポート",topic:"パソコンを直したい",japanese:"この件への迅速なご対応、誠にありがとうございます。この問題の解決にあたってのご協力をお待ちしております。",keyPhrases:["prompt attention to this matter","look forward to your assistance"],answer:"Thank you very much for your prompt attention to this matter. I look forward to your assistance in resolving this issue.",fullSentence:"Thank you very much for your prompt attention to this matter. I look forward to your assistance in resolving this issue.",source:"パソコンを直したい2",explanation:"感謝＋結びの定型表現を組み合わせた締めくくりの段落。",relatedInfo:"模範解答と見比べて、in resolving this issueの前置詞句の使い方を確認しましょう。",isNew:true},
+{id:103,unit:"paragraph",category:"賛否問題",topic:"子育てとデジタル技術",japanese:"私の意見では、デジタルコンテンツのおかげで、以前よりも親が子育てをしやすくなっています。アンドリューが述べていたように、子どもたちは今やデジタル機器で動画を見ることで、外国語や料理、歴史といった新しいことを学べるようになっています。これは、親が家庭教師や教室を探すために余計な時間や労力を費やす必要が必ずしもなくなることを意味します。さらに、デジタルコンテンツは親子が一緒に話し合い共有する話題を見つける助けとなり、それが二人の絆を強めることにもつながります。しかし、それでも親は子どもが何を見ているかを確認し、それが適切で教育的な内容であるかを確かめることが重要です。",keyPhrases:["makes it easier for parents to raise children","learn new things","important for parents to monitor"],answer:"In my opinion, digital content makes it easier for parents to raise children than before. As Andrew mentioned, children can now learn new things like foreign languages, cooking, or history by watching videos on their digital devices. This means parents do not always have to spend extra time or effort finding tutors or classes. Additionally, digital content can help parents and children find topics to discuss and share together, which can strengthen their connection. However, it is still important for parents to monitor what their children are watching to make sure it is appropriate and educational.",fullSentence:"In my opinion, digital content makes it easier for parents to raise children than before. As Andrew mentioned, children can now learn new things like foreign languages, cooking, or history by watching videos on their digital devices. This means parents do not always have to spend extra time or effort finding tutors or classes. Additionally, digital content can help parents and children find topics to discuss and share together, which can strengthen their connection. However, it is still important for parents to monitor what their children are watching to make sure it is appropriate and educational.",source:"子育てとデジタル技術1",explanation:"肯定的な意見→具体例→補足のメリット→留意点、という賛成意見段落の典型構成。",relatedInfo:"模範解答と見比べて、However以下で譲歩を加えるバランスの取り方を確認しましょう。",isNew:true},
+{id:104,unit:"paragraph",category:"賛否問題",topic:"子育てとデジタル技術",japanese:"第一に、現代の親はより高い期待にさらされています。アチェベ博士が述べているように、親は学校の勉強や放課後の活動、精神面での支えに深く関わることが求められています。今では両親が共働きである家庭も多く、フルタイムの仕事を続けながらこうした期待に応えることは非常に疲れることになりかねません。かつては地域の人々や親戚がもっと子育てを手伝ってくれることが多かったのですが、その支援ネットワークは多くの地域で弱まっています。",keyPhrases:["modern parents face higher expectations","two working parents","support network has weakened"],answer:"First, modern parents face higher expectations. As Dr. Achebe mentions, they are supposed to be deeply involved in schoolwork, after-school activities, and emotional support. Many families now have two working parents, so meeting these expectations while maintaining a full-time job can be exhausting. In the past, community members or extended family often helped more with child-rearing, but that support network has weakened in many places.",fullSentence:"First, modern parents face higher expectations. As Dr. Achebe mentions, they are supposed to be deeply involved in schoolwork, after-school activities, and emotional support. Many families now have two working parents, so meeting these expectations while maintaining a full-time job can be exhausting. In the past, community members or extended family often helped more with child-rearing, but that support network has weakened in many places.",source:"子育てとデジタル技術2",explanation:"主張の第一の理由を、背景説明→具体的状況→時代の変化の対比という流れで展開する段落。",relatedInfo:"模範解答と見比べて、butで対比を導く接続詞の使い方を確認しましょう。",isNew:true},
+{id:105,unit:"paragraph",category:"賛否問題",topic:"子育てとデジタル技術",japanese:"第二に、デジタル技術は新たな責任をもたらします。アンドリューが言うように、アプリやオンライン講座は子どもたちに素晴らしい学習機会を与えてくれます。しかし、親は子どもが何を見ているか、そしてオンラインでどれくらいの時間を過ごしているかを常に監視しなければなりません。これは単なる技術的な作業ではなく、精神的な作業でもあります。クレアが指摘するように、デバイスは親子のコミュニケーションを妨げることがあり、親は子どもの注意を引くために画面と競わざるを得なくなります。",keyPhrases:["digital technology introduces new responsibilities","must constantly monitor","compete with screens for their children's attention"],answer:"Second, digital technology introduces new responsibilities. Like Andrew says, apps and online courses give children excellent learning opportunities. However, parents must constantly monitor what their kids watch and how much time they spend online. This is not just a technical task; it is also an emotional one. As Claire points out, devices can interfere with parent–child communication, forcing parents to compete with screens for their children's attention.",fullSentence:"Second, digital technology introduces new responsibilities. Like Andrew says, apps and online courses give children excellent learning opportunities. However, parents must constantly monitor what their kids watch and how much time they spend online. This is not just a technical task; it is also an emotional one. As Claire points out, devices can interfere with parent–child communication, forcing parents to compete with screens for their children's attention.",source:"子育てとデジタル技術2",explanation:"第二の理由を、メリットの譲歩→デメリットの提示→具体的な弊害という流れで展開する段落。",relatedInfo:"模範解答と見比べて、not just A; it is also Bの対比表現を確認しましょう。",isNew:true},
+{id:106,unit:"paragraph",category:"賛否問題",topic:"テレビ広告の影響力",japanese:"私の意見では、いくつかの理由からテレビ広告の影響力は低下してきています。第一に、多くの人が今ではスマートフォンで動画を見たりアプリを使ったりするようになっており、そこではオンライン広告や商品配置の方が一般的であるため、従来型のテレビ番組を見る時間は減少しています。第二に、テレビ広告は通常オンライン広告よりも費用が高いにもかかわらず、ターゲット層に同じくらい効果的に届くとは限りません。オンラインプラットフォームの台頭により、人々は他の消費者から直接商品レビューや情報を得られるようになり、そのためテレビ広告よりもオンラインの情報源を信頼するようになっています。したがって、テレビ広告の影響力は弱まってきていると私は考えます。",keyPhrases:["becoming less influential","more expensive than advertising online","trust online resources more than tv ads"],answer:"In my opinion, television advertising is becoming less influential for several reasons. First, the amount of time people spend watching traditional TV shows is decreasing because many now watch videos or use apps on their smartphones, where online ads and product placements are more common. Second, television advertising is usually more expensive than advertising online, yet it may not reach the target audience as effectively. With the rise of online platforms, people can find product reviews and information directly from other consumers, which makes them trust online resources more than TV ads. Therefore, I believe the influence of television advertising is getting weaker.",fullSentence:"In my opinion, television advertising is becoming less influential for several reasons. First, the amount of time people spend watching traditional TV shows is decreasing because many now watch videos or use apps on their smartphones, where online ads and product placements are more common. Second, television advertising is usually more expensive than advertising online, yet it may not reach the target audience as effectively. With the rise of online platforms, people can find product reviews and information directly from other consumers, which makes them trust online resources more than TV ads. Therefore, I believe the influence of television advertising is getting weaker.",source:"テレビ広告の影響力1",explanation:"主張→理由1→理由2→補足説明→結論という賛否意見段落の典型構成。",relatedInfo:"模範解答と見比べて、First/Secondで理由を整理する構成を確認しましょう。",isNew:true},
+{id:107,unit:"paragraph",category:"賛否問題",topic:"テレビ広告の影響力",japanese:"第一に、クレアが述べていたように、多くの消費者は意思決定のプロセスをオンラインで始めます。ある商品に興味を持ったとき、私は通常レビューや比較動画、利用者のコメントを検索します。これらの情報源は、30秒のテレビコマーシャルではとても太刀打ちできないほど、詳細で最新かつしばしば批判的な情報を提供してくれます。この情報の深さゆえに、オンラインコンテンツは短く洗練されたテレビ広告よりも説得力があるものになっています。",keyPhrases:["begin their decision-making process online","provide detailed, up-to-date, and often critical information","more persuasive than a brief, polished tv ad"],answer:"First, as Claire mentioned, many consumers begin their decision-making process online. When I am interested in a product, I usually search for reviews, comparison videos, and user comments. These sources provide detailed, up-to-date, and often critical information that a 30-second TV commercial simply cannot match. This depth makes online content more persuasive than a brief, polished TV ad.",fullSentence:"First, as Claire mentioned, many consumers begin their decision-making process online. When I am interested in a product, I usually search for reviews, comparison videos, and user comments. These sources provide detailed, up-to-date, and often critical information that a 30-second TV commercial simply cannot match. This depth makes online content more persuasive than a brief, polished TV ad.",source:"テレビ広告の影響力2",explanation:"第一の理由を、消費者の行動→具体的な情報収集→情報の質→結論という流れで展開する段落。",relatedInfo:"模範解答と見比べて、thatで導かれる関係代名詞節の使い方を確認しましょう。",isNew:true},
+{id:108,unit:"paragraph",category:"賛否問題",topic:"テレビ広告の影響力",japanese:"第二に、視聴者の行動は変化しました。多くの人々は今では、従来型のコマーシャルを取り除くか視聴者がスキップできるようにしているプラットフォームで番組を配信視聴しています。その結果、企業がテレビに多額の費用をかけたとしても、実際に注意を払ってその広告を見ている人の割合は少なくなっています。",keyPhrases:["audience behavior has changed","allow viewers to skip them","even if companies spend heavily on television"],answer:"Second, audience behavior has changed. Many people now stream shows on platforms that either remove traditional commercials or allow viewers to skip them. As a result, even if companies spend heavily on television, a smaller portion of the population actually watches those ads attentively.",fullSentence:"Second, audience behavior has changed. Many people now stream shows on platforms that either remove traditional commercials or allow viewers to skip them. As a result, even if companies spend heavily on television, a smaller portion of the population actually watches those ads attentively.",source:"テレビ広告の影響力2",explanation:"第二の理由を、変化の提示→具体例→結果という流れで展開する段落。",relatedInfo:"模範解答と見比べて、even if〜の譲歩表現を確認しましょう。",isNew:true},
+{id:109,unit:"paragraph",category:"賛否問題",topic:"テレビ広告の影響力",japanese:"アンドリューは、テレビが最初に商品を紹介する役割を果たすかもしれないという興味深い指摘をしています。しかし今日では、その紹介役はソーシャルメディアのインフルエンサーやターゲット広告、バイラルコンテンツによってますます担われるようになっています。これらのチャネルは特定の視聴者層により効率的に届き、従来のテレビCMよりも本物らしく感じられることが多いです。",keyPhrases:["andrew raises an interesting point","increasingly played by social media influencers","more authentic than conventional tv spots"],answer:"Andrew raises an interesting point that television might introduce products initially. However, today that introductory role is increasingly played by social media influencers, targeted online ads, and viral content. These channels reach specific audiences more efficiently and often feel more authentic than conventional TV spots.",fullSentence:"Andrew raises an interesting point that television might introduce products initially. However, today that introductory role is increasingly played by social media influencers, targeted online ads, and viral content. These channels reach specific audiences more efficiently and often feel more authentic than conventional TV spots.",source:"テレビ広告の影響力2",explanation:"他者の意見を認めつつ反論する譲歩→反論の段落構成。",relatedInfo:"模範解答と見比べて、Howeverで反論を導く構成を確認しましょう。",isNew:true},
+];
+
+const SENTENCE_QUESTIONS = [].concat(SQ_PART1,SQ_PART2,SQ_PART3,SQ_PART4,SQ_PART5,SQ_PART6);
+const PARAGRAPH_QUESTIONS = [].concat(PQ_PART1,PQ_PART2,PQ_PART3,PQ_PART4,PQ_PART5,PQ_PART6);
 
 
 const FOLDER_KEY = "TOEFL_writing";
@@ -886,7 +987,7 @@ function getRandomSessionQuestions(unit, allQuestions) {
   const unseenQuestions = allQuestions.filter(q => !seenSet.has(q.id));
 
   if (seenQuestions.length > 0) {
-    const total = Math.min(20, allQuestions.length);
+    const total = Math.min(10, allQuestions.length);
     const fromSeen = Math.round(total * 0.3);
     const fromUnseen = total - fromSeen;
     const pickedSeen = shuffle(seenQuestions).slice(0, fromSeen);
@@ -898,21 +999,28 @@ function getRandomSessionQuestions(unit, allQuestions) {
     }
     return shuffle([...pickedSeen, ...pickedUnseen]);
   }
-  return shuffle(allQuestions).slice(0, Math.min(20, allQuestions.length));
+  return shuffle(allQuestions).slice(0, Math.min(10, allQuestions.length));
 }
 function getAllSessionQuestions(allQuestions) { return shuffle(allQuestions); }
 function getCategorySessionQuestions(allQuestions, categoryName) {
   return shuffle(allQuestions.filter(q => q.category === categoryName));
 }
-function getBookmarkSessionQuestions(unit, allQuestions) {
+function getBookmarkSelectedSessionQuestions(allQuestions, selectedIds) {
+  const idSet = new Set(selectedIds || []);
+  return shuffle(allQuestions.filter(q => idSet.has(q.id)));
+}
+function getBookmarkRandomSessionQuestions(unit, allQuestions) {
   const bookmarks = new Set(getBookmarks(unit));
-  return shuffle(allQuestions.filter(q => bookmarks.has(q.id)));
+  const pool = allQuestions.filter(q => bookmarks.has(q.id));
+  return shuffle(pool).slice(0, Math.min(10, pool.length));
 }
 
 // ---- State ----
 let currentUnit = null;
 let currentMode = null;
 let currentCategory = null;
+let currentSelectedIds = [];
+let bookmarkSelectChecked = new Set();
 let sessionQuestions = [];
 let currentIndex = 0;
 let correctCount = 0;
@@ -925,7 +1033,7 @@ function getPool(unit) {
 
 // ---- Screen navigation ----
 function showScreen(id) {
-  ['screen-unit','screen-start','screen-quiz','screen-result'].forEach(s => {
+  ['screen-unit','screen-start','screen-bookmark-select','screen-quiz','screen-result'].forEach(s => {
     document.getElementById(s).classList.toggle('hidden', s !== id);
   });
 }
@@ -933,6 +1041,17 @@ function showScreen(id) {
 function showUnitScreen() {
   document.getElementById('count-sentence').textContent = `全 ${SENTENCE_QUESTIONS.length} 問`;
   document.getElementById('count-paragraph').textContent = `全 ${PARAGRAPH_QUESTIONS.length} 問`;
+
+  const newSentenceCount = SENTENCE_QUESTIONS.filter(q => q.isNew === true).length;
+  const newSentenceEl = document.getElementById('new-count-sentence');
+  newSentenceEl.textContent = newSentenceCount > 0 ? `🆕 今回追加: ${newSentenceCount}問` : '';
+  newSentenceEl.classList.toggle('hidden', newSentenceCount === 0);
+
+  const newParagraphCount = PARAGRAPH_QUESTIONS.filter(q => q.isNew === true).length;
+  const newParagraphEl = document.getElementById('new-count-paragraph');
+  newParagraphEl.textContent = newParagraphCount > 0 ? `🆕 今回追加: ${newParagraphCount}問` : '';
+  newParagraphEl.classList.toggle('hidden', newParagraphCount === 0);
+
   showScreen('screen-unit');
 }
 
@@ -953,9 +1072,16 @@ function showStartScreen() {
   const bmBtn = document.getElementById('bookmark-start-btn');
   bmBtn.disabled = bookmarks.length === 0;
   bmBtn.title = bookmarks.length === 0 ? '復習リストに問題がありません。問題画面で🔖チェックすると追加されます。' : '';
+  document.getElementById('bookmark-random-count-label').textContent = `復習リスト${bookmarks.length}問から最大10問をランダム出題`;
+  const bmRandomBtn = document.getElementById('bookmark-random-start-btn');
+  bmRandomBtn.disabled = bookmarks.length === 0;
 
   const cats = {};
-  pool.forEach(q => { cats[q.category] = (cats[q.category] || 0) + 1; });
+  const newCats = {};
+  pool.forEach(q => {
+    cats[q.category] = (cats[q.category] || 0) + 1;
+    if (q.isNew === true) newCats[q.category] = (newCats[q.category] || 0) + 1;
+  });
   currentCategory = null;
   document.getElementById('cat-start-btn').disabled = true;
   const catListEl = document.getElementById('category-list');
@@ -963,7 +1089,7 @@ function showStartScreen() {
   Object.keys(cats).forEach(cat => {
     const btn = document.createElement('button');
     btn.className = 'cat-btn';
-    btn.textContent = `${cat} (${cats[cat]}問)`;
+    btn.textContent = `${cat} (${cats[cat]}問)` + (newCats[cat] ? ` 🆕${newCats[cat]}` : '');
     btn.onclick = () => {
       currentCategory = cat;
       document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('selected'));
@@ -976,13 +1102,15 @@ function showStartScreen() {
   showScreen('screen-start');
 }
 
-function startMode(mode) {
+function startMode(mode, selectedIds) {
   currentMode = mode;
+  currentSelectedIds = selectedIds || [];
   const pool = getPool(currentUnit);
   if (mode === 'random') sessionQuestions = getRandomSessionQuestions(currentUnit, pool);
   else if (mode === 'all') sessionQuestions = getAllSessionQuestions(pool);
   else if (mode === 'category') sessionQuestions = getCategorySessionQuestions(pool, currentCategory);
-  else if (mode === 'bookmark') sessionQuestions = getBookmarkSessionQuestions(currentUnit, pool);
+  else if (mode === 'bookmarkSelect') sessionQuestions = getBookmarkSelectedSessionQuestions(pool, currentSelectedIds);
+  else if (mode === 'bookmarkRandom') sessionQuestions = getBookmarkRandomSessionQuestions(currentUnit, pool);
 
   if (sessionQuestions.length === 0) {
     alert('出題できる問題がありません。');
@@ -995,7 +1123,58 @@ function startMode(mode) {
 }
 
 function retrySameMode() {
-  startMode(currentMode);
+  startMode(currentMode, currentSelectedIds);
+}
+
+function showBookmarkSelectScreen() {
+  const pool = getPool(currentUnit);
+  const bookmarks = new Set(getBookmarks(currentUnit));
+  const items = pool.filter(q => bookmarks.has(q.id));
+  bookmarkSelectChecked = new Set();
+  document.getElementById('bookmark-select-title').textContent =
+    `🔖 復習リストから問題を選ぶ（${currentUnit === 'sentence' ? '✏️ 文単位' : '📄 段落単位'}）`;
+  const listEl = document.getElementById('bookmark-select-list');
+  if (items.length === 0) {
+    listEl.innerHTML = '<p class="subtitle">復習リストに問題がありません</p>';
+    document.getElementById('bookmark-select-count').textContent = '';
+    document.getElementById('bookmark-select-start-btn').disabled = true;
+  } else {
+    listEl.innerHTML = items.map(q => {
+      const excerpt = (q.japanese || '').slice(0, 60);
+      return `<div class="card" data-id="${q.id}" style="padding:12px;">
+        <label style="display:flex;align-items:flex-start;gap:8px;cursor:pointer;">
+          <input type="checkbox" onchange="toggleBookmarkSelectItem(${q.id})">
+          <span>
+            <span class="badge">${q.category}</span> <span class="topic-label">${q.topic || ''}</span>
+            <div style="margin-top:6px;">${excerpt}</div>
+          </span>
+        </label>
+      </div>`;
+    }).join('');
+    document.getElementById('bookmark-select-count').textContent = `0 / ${items.length}問を選択中`;
+    document.getElementById('bookmark-select-start-btn').disabled = true;
+  }
+  showScreen('screen-bookmark-select');
+}
+function toggleBookmarkSelectItem(id) {
+  if (bookmarkSelectChecked.has(id)) bookmarkSelectChecked.delete(id); else bookmarkSelectChecked.add(id);
+  const total = document.querySelectorAll('#bookmark-select-list [data-id]').length;
+  document.getElementById('bookmark-select-count').textContent = `${bookmarkSelectChecked.size} / ${total}問を選択中`;
+  document.getElementById('bookmark-select-start-btn').disabled = bookmarkSelectChecked.size === 0;
+}
+function bookmarkSelectAll(checked) {
+  const rows = document.querySelectorAll('#bookmark-select-list [data-id]');
+  bookmarkSelectChecked = new Set();
+  rows.forEach(row => {
+    const cb = row.querySelector('input[type=checkbox]');
+    cb.checked = checked;
+    if (checked) bookmarkSelectChecked.add(Number(row.getAttribute('data-id')));
+  });
+  document.getElementById('bookmark-select-count').textContent = `${bookmarkSelectChecked.size} / ${rows.length}問を選択中`;
+  document.getElementById('bookmark-select-start-btn').disabled = bookmarkSelectChecked.size === 0;
+}
+function startBookmarkSelectedTest() {
+  startMode('bookmarkSelect', Array.from(bookmarkSelectChecked));
 }
 
 // ---- Quiz ----
@@ -1007,6 +1186,7 @@ function showQuestion() {
   document.getElementById('q-position').textContent = `Q ${currentIndex + 1} / ${sessionQuestions.length}`;
   document.getElementById('progress-fill').style.width = `${(currentIndex / sessionQuestions.length) * 100}%`;
   document.getElementById('q-category-badge').textContent = q.category;
+  document.getElementById('q-new-badge').classList.toggle('hidden', q.isNew !== true);
   document.getElementById('q-topic-label').textContent = q.topic + '（' + q.source + '）';
   document.getElementById('q-japanese').textContent = q.japanese;
   document.getElementById('answer-input').value = '';

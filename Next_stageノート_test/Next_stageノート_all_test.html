@@ -128,6 +128,7 @@ try {
 let currentFormat = null;
 let currentMode = null;
 let currentCategory = null;
+let currentSelectedIds = [];
 let sessionQuestions = [];
 let currentIndex = 0;
 let score = 0;
@@ -217,7 +218,7 @@ function getRandomSessionQuestions(format) {
   const seenQuestions = all.filter(q => seen.has(q.id));
   const unseenQuestions = all.filter(q => !seen.has(q.id));
   if (seenQuestions.length > 0) {
-    const total = Math.min(20, all.length);
+    const total = Math.min(10, all.length);
     const fromSeen = Math.round(total * 0.3);
     const fromUnseen = total - fromSeen;
     const pickedSeen = shuffle(seenQuestions).slice(0, fromSeen);
@@ -228,15 +229,20 @@ function getRandomSessionQuestions(format) {
     }
     return shuffle([...pickedSeen, ...pickedUnseen]);
   }
-  return shuffle(all).slice(0, 20);
+  return shuffle(all).slice(0, 10);
 }
 function getAllSessionQuestions(format) { return shuffle(activeQuestionsFor(format)); }
 function getCategorySessionQuestions(format, categoryName) {
   return shuffle(activeQuestionsFor(format).filter(q => q.category === categoryName));
 }
-function getBookmarkSessionQuestions(format) {
+function getBookmarkSelectedSessionQuestions(format, selectedIds) {
+  const idSet = new Set(selectedIds || []);
+  return shuffle(activeQuestionsFor(format).filter(q => idSet.has(q.id)));
+}
+function getBookmarkRandomSessionQuestions(format) {
   const bm = new Set(getBookmarks(format));
-  return shuffle(activeQuestionsFor(format).filter(q => bm.has(q.id)));
+  const pool = activeQuestionsFor(format).filter(q => bm.has(q.id));
+  return shuffle(pool).slice(0, Math.min(10, pool.length));
 }
 
 function saveSeenQuestions(format, questions) {
@@ -246,14 +252,16 @@ function saveSeenQuestions(format, questions) {
   writeList(key, merged);
 }
 
-function startTest(format, mode, categoryName) {
+function startTest(format, mode, categoryName, selectedIds) {
   currentFormat = format;
   currentMode = mode;
   currentCategory = categoryName || null;
+  currentSelectedIds = selectedIds || [];
   if (mode === 'random') sessionQuestions = getRandomSessionQuestions(format);
   else if (mode === 'all') sessionQuestions = getAllSessionQuestions(format);
   else if (mode === 'category') sessionQuestions = getCategorySessionQuestions(format, categoryName);
-  else if (mode === 'bookmark') sessionQuestions = getBookmarkSessionQuestions(format);
+  else if (mode === 'bookmarkSelect') sessionQuestions = getBookmarkSelectedSessionQuestions(format, currentSelectedIds);
+  else if (mode === 'bookmarkRandom') sessionQuestions = getBookmarkRandomSessionQuestions(format);
   sessionQuestions = sessionQuestions.map(q => q.type === 'choice' ? Object.assign({}, q, { shuffledChoices: shuffle(q.choices) }) : q);
   currentIndex = 0;
   score = 0;
@@ -300,7 +308,7 @@ function showFormatSelect() {
          +  `</div>`;
   });
   if (!storageAvailable) {
-    html += '<p class="sub">※ このブラウザでは localStorage が利用できないため、復習履歴・ブックマーク・ゴミ箱機能は使えません（毎回ランダム20問モードのみになります）。</p>';
+    html += '<p class="sub">※ このブラウザでは localStorage が利用できないため、復習履歴・ブックマーク・ゴミ箱機能は使えません（毎回ランダム10問モードのみになります）。</p>';
   }
   app.innerHTML = html;
 }
@@ -320,7 +328,7 @@ function showModeSelect(format) {
   html += `<h1 style="margin-top:10px;">${meta.emoji} ${esc(meta.label)}</h1>`;
   html += `<p class="sub">問題プール総数：${all.length}問</p>`;
 
-  html += '<div class="card mode-card"><h3>🎲 ランダム20問（おまかせ）</h3><p>前回の復習30%＋未出題70%で自動選出</p>';
+  html += '<div class="card mode-card"><h3>🎲 ランダム10問（おまかせ）</h3><p>前回の復習30%＋未出題70%で自動選出</p>';
   html += storageAvailable
     ? `<button class="btn-primary" onclick="startTest('${format}','random')">このモードで始める</button>`
     : `<button class="btn-primary" onclick="startTest('${format}','random')">このモードで始める（履歴なし）</button>`;
@@ -344,18 +352,71 @@ function showModeSelect(format) {
   }
   html += '</div>';
 
-  html += `<div class="card mode-card"><h3>🔖 復習リストから挑戦</h3><p>ブックマーク：${bookmarks.length}件</p>`;
+  html += `<div class="card mode-card"><h3>🔖 復習リストから選んで挑戦</h3><p>ブックマーク：${bookmarks.length}件</p>`;
   if (storageAvailable && bookmarks.length > 0) {
-    html += `<button class="btn-secondary" onclick="startTest('${format}','bookmark')">復習リストで始める</button>`;
+    html += `<button class="btn-secondary" onclick="showBookmarkSelectScreen('${format}')">問題を選ぶ</button>`;
   } else {
-    html += `<button class="btn-secondary" disabled>復習リストで始める</button>`;
+    html += `<button class="btn-secondary" disabled>問題を選ぶ</button>`;
     html += `<p class="sub" style="margin-top:8px;">問題画面の🔖チェックボックスでブックマークすると、ここに追加されます。</p>`;
+  }
+  html += '</div>';
+
+  html += `<div class="card mode-card"><h3>🔀 復習リストからランダム10問</h3><p>ブックマーク：${bookmarks.length}件から最大10問をランダム出題</p>`;
+  if (storageAvailable && bookmarks.length > 0) {
+    html += `<button class="btn-secondary" onclick="startTest('${format}','bookmarkRandom')">このモードで始める</button>`;
+  } else {
+    html += `<button class="btn-secondary" disabled>このモードで始める</button>`;
   }
   html += '</div>';
 
   html += `<div class="foot-links"><a class="link trash-link" onclick="showTrashScreen()">🗑 ゴミ箱 (${trash.length}問)</a></div>`;
 
   app.innerHTML = html;
+}
+
+let bookmarkSelectChecked = new Set();
+function showBookmarkSelectScreen(format) {
+  currentFormat = format;
+  const items = activeQuestionsFor(format).filter(q => getBookmarks(format).includes(q.id));
+  bookmarkSelectChecked = new Set();
+  let html = '';
+  html += `<a class="link" onclick="showModeSelect('${format}')">&larr; モード選択に戻る</a>`;
+  html += `<h1 style="margin-top:10px;">🔖 復習リストから問題を選ぶ（${esc(FORMAT_META[format].label)}）</h1>`;
+  if (items.length === 0) {
+    html += `<div class="card"><p class="sub" style="margin:0;">復習リストに問題がありません</p></div>`;
+  } else {
+    html += `<div style="margin-bottom:10px;">`
+         +  `<button class="btn-small" onclick="bookmarkSelectAll(true)">全選択</button> `
+         +  `<button class="btn-small" onclick="bookmarkSelectAll(false)">全解除</button>`
+         +  `</div>`;
+    html += `<p class="sub" id="bookmarkSelectCount">0 / ${items.length}問を選択中</p>`;
+    items.forEach(q => {
+      const text = q.question || q.hint || (q.pairs && q.pairs[0] ? q.pairs[0].japanese : '');
+      html += `<div class="card" style="padding:12px;">`
+           +  `<label style="display:flex;align-items:flex-start;gap:8px;cursor:pointer;">`
+           +  `<input type="checkbox" class="bookmarkSelectChk" data-id="${q.id}" onchange="toggleBookmarkSelectItem(${q.id}, ${items.length})">`
+           +  `<span><span class="type-badge">${typeLabel(q.type)}</span><span class="cat-badge">${esc(q.category||'')}</span>`
+           +  `<div style="margin-top:6px;font-size:0.92rem;">${esc(stripBrackets(text))}</div></span>`
+           +  `</label></div>`;
+    });
+    html += `<button class="btn-primary" id="bookmarkSelectStartBtn" disabled onclick="startBookmarkSelectedTest('${format}')">選んだ問題で挑戦する</button>`;
+  }
+  app.innerHTML = html;
+}
+function toggleBookmarkSelectItem(id, total) {
+  if (bookmarkSelectChecked.has(id)) bookmarkSelectChecked.delete(id); else bookmarkSelectChecked.add(id);
+  document.getElementById('bookmarkSelectCount').textContent = `${bookmarkSelectChecked.size} / ${total}問を選択中`;
+  document.getElementById('bookmarkSelectStartBtn').disabled = bookmarkSelectChecked.size === 0;
+}
+function bookmarkSelectAll(checked) {
+  const boxes = document.querySelectorAll('.bookmarkSelectChk');
+  bookmarkSelectChecked = new Set();
+  boxes.forEach(b => { b.checked = checked; if (checked) bookmarkSelectChecked.add(Number(b.getAttribute('data-id'))); });
+  document.getElementById('bookmarkSelectCount').textContent = `${bookmarkSelectChecked.size} / ${boxes.length}問を選択中`;
+  document.getElementById('bookmarkSelectStartBtn').disabled = bookmarkSelectChecked.size === 0;
+}
+function startBookmarkSelectedTest(format) {
+  startTest(format, 'bookmarkSelect', null, Array.from(bookmarkSelectChecked));
 }
 
 function selectCategory(btn) {
@@ -719,7 +780,7 @@ function showResults() {
   html += `<div class="result-score">${score} / ${total}</div>`;
   html += `<div class="result-stars">${stars}</div>`;
   html += `<p class="result-msg">正解率 ${rate}%　${esc(msg)}</p>`;
-  html += `<button class="btn-primary" onclick="startTest(currentFormat, currentMode, currentCategory)">もう一度同じ形式・モードで挑戦する</button>`;
+  html += `<button class="btn-primary" onclick="startTest(currentFormat, currentMode, currentCategory, currentSelectedIds)">もう一度同じ形式・モードで挑戦する</button>`;
   html += `<div style="height:10px;"></div>`;
   html += `<button class="btn-secondary" onclick="showFormatSelect()">別の形式に挑戦する</button>`;
   html += `<div style="height:10px;"></div>`;
