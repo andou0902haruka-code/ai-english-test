@@ -123,7 +123,11 @@
       <button class="ctrlbtn small" id="nextBtn" title="次の文">⏭</button>
       <button class="ctrlbtn small" id="repeatBtn" title="この文をもう一度">🔁</button>
       <select id="speedSelect">
+        <option value="0.6">0.6x</option>
+        <option value="0.7">0.7x</option>
         <option value="0.75">0.75x</option>
+        <option value="0.8">0.8x</option>
+        <option value="0.9">0.9x</option>
         <option value="1" selected>1.0x</option>
         <option value="1.25">1.25x</option>
       </select>
@@ -6501,6 +6505,11 @@ function audioPath(id){
   return `audio/${currentTopic}/${id}.mp3`;
 }
 
+// 質問文(Q)は常に等速で再生し、速度変更(#speedSelect)は解答文(A)にのみ適用する
+function rateForSeg(seg){
+  return seg.speaker === "Q" ? 1 : parseFloat(document.getElementById("speedSelect").value);
+}
+
 /* ---------- NEWバッジ既読管理(localStorage、クリックで消える) ---------- */
 function getSeenNew(){
   try{ return JSON.parse(localStorage.getItem("shadowingSeenNew") || "[]"); }catch(e){ return []; }
@@ -6642,7 +6651,7 @@ function playIndex(i){
   currentIndex = i;
   const seg = segments[i];
   player.src = audioPath(seg.id);
-  player.playbackRate = parseFloat(document.getElementById("speedSelect").value);
+  player.playbackRate = rateForSeg(seg);
   player.play();
   isPlaying = true;
   playBtn.textContent = "⏸";
@@ -6724,8 +6733,10 @@ document.getElementById("nextBtn").addEventListener("click", ()=>{
 document.getElementById("repeatBtn").addEventListener("click", ()=>{
   if(currentIndex >= 0) playIndex(currentIndex);
 });
-document.getElementById("speedSelect").addEventListener("change", (e)=>{
-  player.playbackRate = parseFloat(e.target.value);
+document.getElementById("speedSelect").addEventListener("change", ()=>{
+  if(currentIndex >= 0 && segments[currentIndex]){
+    player.playbackRate = rateForSeg(segments[currentIndex]);
+  }
 });
 
 document.getElementById("sentenceLoopBtn").addEventListener("click", (e)=>{
