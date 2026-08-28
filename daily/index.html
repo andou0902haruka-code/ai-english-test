@@ -1,0 +1,1038 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="今日の学習">
+<title>今日の学習 | AI English</title>
+<style>
+:root{
+  --bg:#f4f6fb; --card:#fff; --text:#22262f; --sub:#5b6472; --border:#e2e6ee;
+  --accent:#4a6cf7; --good:#1fa971; --bad:#e5484d; --warn:#f0a63a;
+  --learn:#4a6cf7; --review:#ef8a37; --fav:#e2557a; --rec:#1fa971;
+  --shadow:0 2px 10px rgba(20,30,60,.05);
+}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--bg);color:var(--text);line-height:1.7;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Hiragino Sans,"Yu Gothic",Meiryo,sans-serif;
+  -webkit-text-size-adjust:100%;}
+#app{max-width:720px;margin:0 auto;padding:16px 16px 72px;}
+h1,h2,h3{line-height:1.4;margin:0;}
+.hidden{display:none !important;}
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:18px;margin-bottom:14px;box-shadow:var(--shadow);}
+.muted{color:var(--sub);font-size:.85rem;}
+.center{text-align:center;}
+
+/* ---- ヘッダー（レベル・連続日数） ---- */
+.hero{background:linear-gradient(135deg,#4a6cf7,#7b5cf0);color:#fff;border:none;padding:18px 18px 16px;}
+.hero .row{display:flex;align-items:center;justify-content:space-between;gap:12px;}
+.hero .lv{font-size:.78rem;opacity:.85;letter-spacing:.06em;}
+.hero .lvnum{font-size:1.9rem;font-weight:800;line-height:1.1;}
+.hero .streak{text-align:right;}
+.hero .streak b{font-size:1.6rem;font-weight:800;}
+.xpbar{height:8px;border-radius:99px;background:rgba(255,255,255,.28);margin-top:10px;overflow:hidden;}
+.xpbar i{display:block;height:100%;background:#ffe08a;border-radius:99px;transition:width .4s;}
+.hero .xptext{font-size:.75rem;opacity:.9;margin-top:5px;}
+.today-line{margin-top:12px;padding-top:11px;border-top:1px solid rgba(255,255,255,.25);font-size:.88rem;}
+.today-line b{font-size:1.15rem;}
+
+/* ---- コーナーカード ---- */
+.corner{border-left:5px solid var(--c);}
+.corner h2{font-size:1.12rem;display:flex;align-items:center;gap:7px;}
+.corner .lead{color:var(--sub);font-size:.86rem;margin:5px 0 12px;}
+.chips{display:flex;flex-wrap:wrap;gap:7px;align-items:center;margin-bottom:12px;}
+.chips .lbl{font-size:.82rem;color:var(--sub);margin-right:2px;}
+.chip{border:1.5px solid var(--border);background:#f8f9fc;color:var(--sub);border-radius:99px;
+  padding:6px 13px;font-size:.85rem;cursor:pointer;font-weight:600;}
+.chip.on{border-color:var(--c);background:color-mix(in srgb,var(--c) 12%,#fff);color:var(--c);}
+.btn{display:block;width:100%;border:none;border-radius:12px;padding:13px 18px;font-size:1rem;
+  font-weight:700;cursor:pointer;background:var(--c,var(--accent));color:#fff;text-align:center;}
+.btn:disabled{background:#c3c9d6;cursor:not-allowed;}
+.btn.ghost{background:transparent;color:var(--c,var(--accent));border:2px solid var(--c,var(--accent));}
+.btn.sm{width:auto;padding:8px 15px;font-size:.85rem;border-radius:9px;display:inline-block;}
+.btnrow{display:flex;gap:8px;}
+.btnrow .btn{flex:1;}
+.est{font-size:.8rem;color:var(--sub);margin-top:8px;text-align:center;}
+.toggle{display:flex;align-items:center;gap:8px;font-size:.83rem;color:var(--sub);margin-bottom:10px;cursor:pointer;}
+.toggle input{width:17px;height:17px;accent-color:var(--c);}
+
+/* ---- 復習の予定グラフ ---- */
+.due-num{font-weight:700;color:var(--review);}
+.fc7{display:inline-flex;gap:3px;align-items:flex-end;height:20px;margin-left:8px;vertical-align:-4px;}
+.fc7 i{display:block;width:7px;background:#cfd6e4;border-radius:2px;}
+.fc7 i.over{background:var(--warn);}
+
+/* ---- カレンダー ---- */
+.cal{display:flex;gap:3px;overflow-x:auto;padding-bottom:4px;}
+.cal .wk{display:flex;flex-direction:column;gap:3px;}
+.cal .dy{width:13px;height:13px;border-radius:3px;background:#e7ebf2;}
+.cal .dy.l1{background:#c9d8f8;} .cal .dy.l2{background:#8fadf3;}
+.cal .dy.l3{background:#5b82ee;} .cal .dy.l4{background:#3355d8;}
+.cal .dy.today{outline:2px solid var(--warn);outline-offset:1px;}
+.callegend{display:flex;align-items:center;gap:5px;font-size:.75rem;color:var(--sub);margin-top:8px;justify-content:flex-end;}
+
+/* ---- バッジ ---- */
+.badges{display:grid;grid-template-columns:repeat(auto-fill,minmax(94px,1fr));gap:9px;}
+.bdg{border:1px solid var(--border);border-radius:12px;padding:10px 6px;text-align:center;background:#fbfcfe;}
+.bdg.got{border-color:#ffd98a;background:linear-gradient(180deg,#fffaf0,#fff5e0);}
+.bdg .ic{font-size:1.5rem;filter:grayscale(1);opacity:.35;}
+.bdg.got .ic{filter:none;opacity:1;}
+.bdg .nm{font-size:.72rem;font-weight:700;margin-top:3px;}
+.bdg .cond{font-size:.66rem;color:var(--sub);line-height:1.35;}
+
+/* ---- 出題画面 ---- */
+.qmeta{display:flex;justify-content:space-between;align-items:center;font-size:.82rem;color:var(--sub);margin-bottom:7px;}
+.prog{height:7px;background:#e4e8f0;border-radius:99px;overflow:hidden;margin-bottom:14px;}
+.prog i{display:block;height:100%;background:var(--c,var(--accent));transition:width .3s;}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:.72rem;font-weight:700;margin:0 5px 4px 0;}
+.b-type{background:#eef1ff;color:var(--accent);}
+.b-cat{background:#f2f4f8;color:var(--sub);}
+.b-src{background:#fff2e6;color:#c9711d;}
+.qtop{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;flex-wrap:wrap;}
+.qhint{background:#fffbe9;border-left:3px solid var(--warn);padding:9px 12px;border-radius:8px;font-size:.88rem;margin:12px 0;}
+.qsent{font-size:1.08rem;font-weight:600;margin:12px 0;word-break:break-word;}
+.qja{font-size:1.02rem;line-height:1.85;background:#f7f9fd;border-radius:10px;padding:13px;margin:12px 0;}
+input[type=text],textarea{width:100%;padding:12px;border:1.5px solid var(--border);border-radius:10px;
+  font-size:1rem;font-family:inherit;background:#fff;color:var(--text);}
+textarea{min-height:110px;resize:vertical;}
+input[type=text]:focus,textarea:focus{outline:none;border-color:var(--accent);}
+.choices label{display:block;border:1.5px solid var(--border);border-radius:10px;padding:11px 13px;margin-bottom:8px;cursor:pointer;background:#fff;}
+.choices label:has(input:checked){border-color:var(--accent);background:#eef1ff;}
+.choices input{margin-right:8px;accent-color:var(--accent);}
+.tilearea{min-height:56px;border:1.5px dashed var(--border);border-radius:10px;padding:9px;margin-bottom:10px;color:var(--sub);font-size:.88rem;}
+.tilepool{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:12px;}
+.tile{display:inline-block;background:#eef1ff;color:var(--accent);border:1px solid #d5ddfb;border-radius:8px;
+  padding:7px 11px;font-size:.95rem;cursor:pointer;font-weight:600;margin:0 5px 5px 0;}
+.mcols{display:flex;gap:9px;margin-bottom:12px;}
+.mcol{flex:1;display:flex;flex-direction:column;gap:7px;}
+.mbtn{border:1.5px solid var(--border);background:#fff;border-radius:9px;padding:9px;font-size:.82rem;
+  cursor:pointer;text-align:left;font-family:inherit;color:var(--text);}
+.mbtn.sel{border-color:var(--accent);background:#eef1ff;}
+.mbtn.paired{border-color:var(--good);background:#eefaf3;}
+.mark{background:#fff3cd;color:#7a5b00;padding:1px 5px;border-radius:4px;text-decoration:underline;}
+.fb{border-radius:12px;padding:14px;margin-top:14px;}
+.fb.ok{background:#eefaf3;border:1px solid #bfe8d4;}
+.fb.ng{background:#fdeeee;border:1px solid #f5c9c9;}
+.fb h3{font-size:1.05rem;margin-bottom:8px;}
+.ansline{font-weight:700;margin:6px 0;word-break:break-word;}
+.info{background:#fff;border-radius:9px;padding:10px 12px;margin-top:9px;font-size:.86rem;}
+.play{display:inline-block;background:#fff;border:1.5px solid var(--accent);color:var(--accent);
+  border-radius:8px;padding:6px 12px;font-size:.83rem;cursor:pointer;font-weight:700;margin:6px 0;}
+.play.playing{background:var(--accent);color:#fff;}
+.thumbs{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px;}
+.thumb{width:66px;height:66px;object-fit:cover;border-radius:7px;border:1px solid var(--border);cursor:pointer;}
+.mini{color:var(--sub);font-size:.78rem;cursor:pointer;text-decoration:underline;}
+.rowline{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:10px 0 0;flex-wrap:wrap;}
+.fav-star{background:none;border:none;font-size:1.35rem;cursor:pointer;padding:0 2px;line-height:1;filter:grayscale(1);opacity:.4;}
+.fav-star.on{filter:none;opacity:1;}
+
+/* ---- お気に入り一覧 ---- */
+.favrow{display:flex;gap:9px;align-items:flex-start;border-bottom:1px solid var(--border);padding:11px 0;}
+.favrow:last-child{border-bottom:none;}
+.favrow .txt{flex:1;min-width:0;}
+.favrow .lb{font-size:.9rem;word-break:break-word;}
+.favrow .mt{font-size:.72rem;color:var(--sub);margin-top:2px;}
+.filters{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;}
+
+/* ---- 結果 ---- */
+.score{font-size:2.4rem;font-weight:800;text-align:center;}
+.stars{font-size:1.8rem;color:var(--warn);text-align:center;}
+.gain{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:12px;}
+.gain span{background:#f2f4f8;border-radius:99px;padding:5px 13px;font-size:.85rem;font-weight:700;}
+.newbadge{background:linear-gradient(135deg,#ffb347,#ff8c42);color:#fff;border-radius:12px;padding:12px;margin-top:12px;text-align:center;font-weight:700;}
+.backlink{display:inline-block;color:var(--accent);cursor:pointer;font-size:.88rem;margin-bottom:12px;}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.8);display:flex;align-items:center;justify-content:center;z-index:60;padding:20px;}
+.overlay img{max-width:100%;max-height:100%;border-radius:8px;}
+.overlay .x{position:absolute;top:14px;right:20px;color:#fff;font-size:2rem;cursor:pointer;}
+.loading{text-align:center;color:var(--sub);padding:26px;font-size:.9rem;}
+.spin{display:inline-block;width:19px;height:19px;border:3px solid #d7dcE6;border-top-color:var(--accent);
+  border-radius:50%;animation:sp .8s linear infinite;vertical-align:-4px;margin-right:7px;}
+@keyframes sp{to{transform:rotate(360deg)}}
+.foot{text-align:center;font-size:.82rem;color:var(--sub);margin-top:18px;}
+.foot a,.foot span{color:var(--accent);cursor:pointer;margin:0 7px;text-decoration:none;}
+</style>
+</head>
+<body>
+<div id="app"><div class="loading"><span class="spin"></span>読み込んでいます…</div></div>
+<div id="overlay" class="overlay hidden" onclick="closeImg()"><span class="x">&times;</span><img id="overlayImg" alt=""></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script>
+/* =========================================================================
+   今日の学習 / 今日の復習 / お気に入り  —— 7テスト横断の日替わり学習ページ
+   データ（data/manifest.json, data/c/*.json）は extract.py が生成する。
+   出題した問題の「解いた記録」は各テストのHTMLと同じ localStorage キーに書くので、
+   このページで解いたぶんは元のテストの「ランダム10問」でも出題済み扱いになる。
+   ========================================================================= */
+
+/* ---------------- localStorage ---------------- */
+const OK = (function(){ try{ localStorage.setItem('__t','1'); localStorage.removeItem('__t'); return true; }catch(e){ return false; } })();
+function ls(k, d){ if(!OK) return d; try{ const v = localStorage.getItem(k); return v==null ? d : JSON.parse(v); }catch(e){ return d; } }
+function ss(k, v){ if(!OK) return; try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+
+const K_SRS='dq_srs', K_LOG='dq_log', K_XP='dq_xp', K_BADGE='dq_badges', K_STAT='dq_stat';
+const K_MIN='dq_min', K_REVMIN='dq_revmin', K_PACE='dq_pace', K_PARA='dq_para', K_FRESH='dq_fresh', K_OPEN='dq_open';
+/* 端末ごとの都合なので合言葉同期に入れないもの: dq_min / dq_revmin / dq_pace / dq_para / dq_fresh / dq_open */
+const SYNC_KEYS = [K_SRS, K_LOG, K_XP, K_BADGE, K_STAT];
+
+/* ---------------- 日付 ---------------- */
+function todayStr(offset){
+  const d = new Date(); d.setHours(0,0,0,0);
+  if(offset) d.setDate(d.getDate()+offset);
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function daysBetween(a, b){ return Math.round((new Date(b) - new Date(a)) / 86400000); }
+
+/* ---------------- データ読み込み ---------------- */
+let MAN = null, ITEMS = [], POS = new Map(), LABELS = null;
+const chunkReq = new Map(), qCache = new Map();
+
+async function loadManifest(){
+  MAN = await (await fetch('data/manifest.json', {cache:'no-cache'})).json();
+  ITEMS = MAN.items.map((s, i) => {
+    const p = s.split(':');
+    const it = { uid: p[0]+':'+p[1]+':'+p[2], t: p[0], f: p[1], id: +p[2], ty: p[3], pos: i };
+    POS.set(it.uid, i);
+    return it;
+  });
+}
+function chunkIdx(uid){ return Math.floor(POS.get(uid) / MAN.chunkSize); }
+function loadChunk(idx){
+  if(!chunkReq.has(idx)){
+    chunkReq.set(idx, fetch(`data/c/${String(idx).padStart(4,'0')}.json`)
+      .then(r => r.json())
+      .then(o => { Object.keys(o).forEach(u => qCache.set(u, o[u])); return o; })
+      .catch(e => { chunkReq.delete(idx); throw e; }));
+  }
+  return chunkReq.get(idx);
+}
+async function getQ(uid){
+  if(qCache.has(uid)) return qCache.get(uid);
+  await loadChunk(chunkIdx(uid));
+  return qCache.get(uid);
+}
+function prefetch(uids){ [...new Set(uids.map(chunkIdx))].forEach(i => loadChunk(i).catch(()=>{})); }
+async function getMany(uids){
+  await Promise.all([...new Set(uids.map(chunkIdx))].map(i => loadChunk(i).catch(()=>{})));
+  return uids.map(u => qCache.get(u)).filter(Boolean);
+}
+async function getLabels(){
+  if(!LABELS) LABELS = await (await fetch('data/labels.json')).json();
+  return LABELS;
+}
+
+/* ---------------- 各テストと共有する記録（解いた／お気に入り／非表示） ---------------- */
+function fmtMeta(it){ return MAN.fmts[it.t + ':' + it.f]; }
+const setCache = new Map();
+function idSet(key){
+  if(!key) return new Set();
+  if(!setCache.has(key)) setCache.set(key, new Set(ls(key, [])));
+  return setCache.get(key);
+}
+function addId(key, id){
+  if(!key) return;
+  const s = idSet(key);
+  if(s.has(id)) return false;
+  s.add(id); ss(key, [...s]);
+  return true;
+}
+function removeId(key, id){
+  const s = idSet(key);
+  if(!s.delete(id)) return false;
+  ss(key, [...s]);
+  return true;
+}
+function isSeen(it){ return idSet(fmtMeta(it).seen).has(it.id); }
+function isTrashed(it){ const k = fmtMeta(it).trash; return k ? idSet(k).has(it.id) : false; }
+function isFav(it){ return idSet(fmtMeta(it).bm).has(it.id); }
+function toggleFav(it){
+  const key = fmtMeta(it).bm;
+  const on = !isFav(it);
+  if(on) addId(key, it.id); else removeId(key, it.id);
+  pushTestKey(it.t, key);
+  checkBadges();
+  return on;
+}
+function markSeen(it){ addId(fmtMeta(it).seen, it.id); }
+
+/* ---------------- 間隔反復（Leitner・writing-compose と同じ設計） ----------------
+   箱は6段。段が少ないと覚えた問題でも最長間隔ごとに必ず全部戻ってきて、
+   件数が増えるほど「今日の復習」が構造的に溢れるため 0/2/5/12/30/60日の6段にしている。 */
+const BOX_DAYS = {1:0, 2:2, 3:5, 4:12, 5:30, 6:60}, BOX_MAX = 6;
+function getSrs(){ return ls(K_SRS, {}); }
+function saveSrs(o){ ss(K_SRS, o); pushMine(K_SRS); }
+function updateSrs(uid, correct){
+  const srs = getSrs(), cur = srs[uid] || {box:1, correct:0, wrong:0};
+  const box = correct ? Math.min(BOX_MAX, (cur.box||1)+1) : 1;
+  srs[uid] = { box,
+    correct:(cur.correct||0)+(correct?1:0), wrong:(cur.wrong||0)+(correct?0:1),
+    due: spreadDue(box, srs, uid), last: todayStr(0) };
+  saveSrs(srs);
+}
+/* 予定日のならし: 同じ日に解いたものは同じ日に戻ってくるので山ができる。
+   前後で予定がいちばん空いている日に寄せる。まちがえた直後（箱1・2）はずらさない。 */
+function spreadDue(box, srs, skipUid){
+  const off = BOX_DAYS[box] || 0;
+  const win = off >= 30 ? 3 : (off >= 12 ? 2 : (off >= 5 ? 1 : 0));
+  if(!win) return todayStr(off);
+  const load = {};
+  Object.keys(srs).forEach(k => { if(k !== skipUid && srs[k] && srs[k].due) load[srs[k].due] = (load[srs[k].due]||0)+1; });
+  let best = todayStr(off), bestN = load[best] || 0;
+  for(let d = -win; d <= win; d++){
+    if(d === 0 || off + d < 1) continue;
+    const t = todayStr(off+d), n = load[t] || 0;
+    if(n < bestN){ best = t; bestN = n; }
+  }
+  return best;
+}
+function overdueDays(due){ return due ? Math.max(0, daysBetween(due, todayStr(0))) : 0; }
+/* 忘れかけている順＝箱が低い順。箱が高くても2週間以上遅れていれば箱2相当まで前に出す */
+function riskRank(e){ const b = (e && e.box) || 1; return overdueDays(e && e.due) >= 14 ? Math.min(b, 2) : b; }
+
+/* ---------------- 1問あたりの所要時間（実測の中央値） ---------------- */
+const BASE_SEC = {f:35, c:25, r:55, x:35, w:75, m:90, s:90, p:300};
+function getPace(){ const v = ls(K_PACE, {}); return (v && typeof v === 'object' && !Array.isArray(v)) ? v : {}; }
+function pushPace(ty, seconds){
+  const base = BASE_SEC[ty] || 60;
+  if(!(seconds > 0)) return;
+  const per = Math.min(base*3, Math.max(base*0.3, seconds));
+  const all = getPace();
+  all[ty] = (all[ty]||[]).concat(Math.round(per)).slice(-10);
+  ss(K_PACE, all);
+}
+function paceOf(ty){
+  const l = (getPace()[ty] || []).slice().sort((a,b)=>a-b);
+  return l.length < 3 ? (BASE_SEC[ty] || 60) : l[Math.floor(l.length/2)];
+}
+/* 予算の秒数に収まるところまで問題を詰める */
+function fitToBudget(list, seconds, maxN){
+  const out = []; let used = 0;
+  for(const it of list){
+    const c = paceOf(it.ty);
+    if(out.length && used + c > seconds) break;
+    out.push(it); used += c;
+    if(out.length >= (maxN || 80)) break;
+  }
+  return out;
+}
+function estMinutes(list){ return Math.round(list.reduce((s,it)=>s+paceOf(it.ty), 0) / 60); }
+
+/* ---------------- 今日の記録・経験値・バッジ ---------------- */
+function getLog(){ return ls(K_LOG, {}); }
+function bumpLog(correct, seconds){
+  const log = getLog(), d = todayStr(0);
+  const e = log[d] || {n:0, c:0, sec:0};
+  e.n++; if(correct) e.c++; e.sec += Math.round(seconds||0);
+  log[d] = e; ss(K_LOG, log); pushMine(K_LOG);
+}
+function getStat(){ const s = ls(K_STAT, null); return s || {n:0, c:0, rev:0, ty:{}}; }
+function bumpStat(ty, correct, isReview){
+  const s = getStat();
+  s.n++; if(correct) s.c++; if(isReview) s.rev++;
+  s.ty[ty] = (s.ty[ty]||0)+1;
+  ss(K_STAT, s); pushMine(K_STAT);
+}
+function getXp(){ return ls(K_XP, 0) || 0; }
+function addXp(n){ const v = getXp()+n; ss(K_XP, v); pushMine(K_XP); return v; }
+function levelOf(xp){
+  let lv = 1, need = 200, rest = xp;
+  while(rest >= need && lv < 99){ rest -= need; lv++; need = Math.round(need*1.22); }
+  return {lv, cur: rest, need};
+}
+/* 連続日数。今日まだ解いていない日は、昨日までの連続を保ったまま数える */
+function streakDays(){
+  const log = getLog();
+  let d = todayStr(0);
+  if(!(log[d] && log[d].n > 0)) d = todayStr(-1);
+  let n = 0;
+  while(log[d] && log[d].n > 0){ n++; d = shiftDay(d); }
+  return n;
+}
+function shiftDay(d){ const x = new Date(d); x.setDate(x.getDate()-1);
+  return `${x.getFullYear()}-${String(x.getMonth()+1).padStart(2,'0')}-${String(x.getDate()).padStart(2,'0')}`; }
+
+const BADGES = [
+  {id:'first',  ic:'🌱', nm:'はじめの一歩', cond:'1問解く',            test:s=>s.stat.n>=1},
+  {id:'d3',     ic:'🔥', nm:'3日連続',      cond:'3日つづける',        test:s=>s.streak>=3},
+  {id:'d7',     ic:'🔥', nm:'7日連続',      cond:'7日つづける',        test:s=>s.streak>=7},
+  {id:'d30',    ic:'🏔️', nm:'30日連続',     cond:'30日つづける',       test:s=>s.streak>=30},
+  {id:'q100',   ic:'💯', nm:'100問',        cond:'累計100問',          test:s=>s.stat.n>=100},
+  {id:'q500',   ic:'📚', nm:'500問',        cond:'累計500問',          test:s=>s.stat.n>=500},
+  {id:'q1000',  ic:'🎓', nm:'1000問',       cond:'累計1000問',         test:s=>s.stat.n>=1000},
+  {id:'q3000',  ic:'🧠', nm:'3000問',       cond:'累計3000問',         test:s=>s.stat.n>=3000},
+  {id:'rev100', ic:'🔁', nm:'復習の達人',   cond:'復習を累計100問',    test:s=>s.stat.rev>=100},
+  {id:'kinds',  ic:'🎲', nm:'全形式制覇',   cond:'8つの形式を全部解く',test:s=>Object.keys(s.stat.ty||{}).length>=8},
+  {id:'acc90',  ic:'🎯', nm:'高正答率',     cond:'10問以上で正答率90%',test:s=>s.acc90},
+  {id:'fav30',  ic:'⭐', nm:'お気に入り30', cond:'お気に入りを30件',   test:s=>s.favN>=30},
+];
+function badgeState(extra){
+  return Object.assign({ stat:getStat(), streak:streakDays(), favN:favUids().length, acc90:false }, extra||{});
+}
+function checkBadges(extra){
+  const got = ls(K_BADGE, {}), s = badgeState(extra), fresh = [];
+  BADGES.forEach(b => { if(!got[b.id] && b.test(s)){ got[b.id] = todayStr(0); fresh.push(b); } });
+  if(fresh.length){ ss(K_BADGE, got); pushMine(K_BADGE); }
+  return fresh;
+}
+
+/* ---------------- お気に入り（7テスト横断） ---------------- */
+function favUids(){
+  const out = [];
+  for(const it of ITEMS){ if(idSet(fmtMeta(it).bm).has(it.id)) out.push(it); }
+  return out;
+}
+
+/* ---------------- 合言葉によるクラウド同期（既存テストと同じ Firebase） ----------------
+   自分の記録は daily_quest ドキュメントへ。お気に入りは各テストのドキュメントを
+   そのまま読み書きするので、テスト側の画面とお気に入りが行き来する。 */
+const SYNC_CONFIG = {
+  apiKey:"AIzaSyASWojYpZ3KJBYG9V30Y4BmplUFORYOelw",
+  authDomain:"ai-english-review.firebaseapp.com",
+  projectId:"ai-english-review",
+  storageBucket:"ai-english-review.firebasestorage.app",
+  messagingSenderId:"146537476580",
+  appId:"1:146537476580:web:4ef3dfdf9c0969f25b17f1"
+};
+let _db = null, _mineRef = null, _testRefs = {}, favSyncDone = null;
+function syncId(){
+  let id = OK ? localStorage.getItem('aien_sync_id') : null;
+  if(id === null){
+    const input = prompt('学習記録とお気に入りを他の端末（PC/スマホ）と共有する場合は、合言葉を入力してください。\n全ての端末で同じ言葉を入力すると共有されます。\n共有しない場合は空欄のままOKしてください。', '');
+    id = (input && input.trim()) ? input.trim() : '__none__';
+    if(OK) localStorage.setItem('aien_sync_id', id);
+  }
+  return id === '__none__' ? null : id;
+}
+function changeSyncId(){
+  const cur = OK ? localStorage.getItem('aien_sync_id') : '';
+  const input = prompt('他の端末と共有するための合言葉を入力してください（全端末で同じ言葉にしてください）。\n共有をやめる場合は空欄のままOKしてください。', (cur && cur !== '__none__') ? cur : '');
+  if(input === null) return;
+  localStorage.setItem('aien_sync_id', input.trim() ? input.trim() : '__none__');
+  location.reload();
+}
+function syncLabel(){
+  const id = OK ? localStorage.getItem('aien_sync_id') : null;
+  return (id && id !== '__none__') ? `共有ON（合言葉: ${id}）` : '共有OFF';
+}
+async function initSync(){
+  const id = syncId();
+  if(!id) { favSyncDone = Promise.resolve(); return; }
+  try{
+    if(!window._app) window._app = firebase.initializeApp(SYNC_CONFIG);
+    _db = firebase.firestore();
+    _mineRef = _db.collection('reviewLists').doc(id + '__daily_quest');
+    const snap = await Promise.race([_mineRef.get(), new Promise((_,j)=>setTimeout(()=>j(new Error('timeout')), 5000))]);
+    if(snap && snap.exists){
+      const d = snap.data();
+      SYNC_KEYS.forEach(k => { if(d[k] !== undefined && d[k] !== null) ss(k, d[k]); });
+    }
+  }catch(e){ console.warn('学習記録の同期に失敗しました（オフラインの可能性）。この端末のデータで動きます。', e); }
+  favSyncDone = pullFavorites(id);
+}
+/* 7テストのお気に入りを読み込む。ホームを待たせないよう裏で走らせる */
+async function pullFavorites(id){
+  if(!_db) return;
+  const keysOf = {};
+  Object.keys(MAN.fmts).forEach(k => {
+    const t = k.split(':')[0];
+    (keysOf[t] = keysOf[t] || []).push(MAN.fmts[k].bm);
+  });
+  await Promise.all(Object.keys(keysOf).map(async t => {
+    try{
+      const ref = _db.collection('reviewLists').doc(id + '__' + MAN.tests[t].sync);
+      _testRefs[t] = ref;
+      const snap = await Promise.race([ref.get(), new Promise((_,j)=>setTimeout(()=>j(new Error('timeout')), 6000))]);
+      if(snap && snap.exists){
+        const d = snap.data();
+        keysOf[t].forEach(key => {
+          if(Array.isArray(d[key])){ ss(key, d[key]); setCache.set(key, new Set(d[key])); }
+        });
+      }
+    }catch(e){ console.warn('お気に入りの同期に失敗しました: ' + t, e); }
+  }));
+}
+function pushMine(key){
+  if(!_mineRef) return;
+  try{
+    _mineRef.set({ [key]: ls(key, null), updatedAt: firebase.firestore.FieldValue.serverTimestamp() }, {merge:true})
+      .catch(e => console.warn('記録の送信に失敗しました', e));
+  }catch(e){}
+}
+function pushTestKey(t, key){
+  const ref = _testRefs[t];
+  if(!ref) return;
+  try{
+    ref.set({ [key]: [...idSet(key)], updatedAt: firebase.firestore.FieldValue.serverTimestamp() }, {merge:true})
+      .catch(e => console.warn('お気に入りの送信に失敗しました', e));
+  }catch(e){}
+}
+
+/* ---------------- 汎用 ---------------- */
+function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function shuffle(a){ a = a.slice(); for(let i=a.length-1;i>0;i--){ const j = Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+function app(){ return document.getElementById('app'); }
+const TY_LABEL = {f:'穴埋め', c:'選択肢', r:'並べ替え', x:'誤り訂正', w:'自由記述', m:'マッチング', s:'和文英訳', p:'和文英訳（段落）'};
+function audioSrc(it, q, pairIdx){
+  const dir = MAN.tests[it.t].dir, folder = fmtMeta(it).audio;
+  const name = (pairIdx == null) ? it.id : (it.id + '_p' + pairIdx);
+  return `../${dir}/${folder}/${name}.mp3`;
+}
+function imgSrc(it, source){ return `../${MAN.tests[it.t].dir}/images/${source}.jpg`; }
+
+/* ---------------- 音声 ---------------- */
+let curAudio = null, curBtn = null;
+function resetPlay(b){ b.textContent = b.dataset.lbl || '🔊 英文を聞く'; b.classList.remove('playing'); }
+function playAudio(btn, src){
+  const same = (curBtn === btn);
+  if(curAudio){ curAudio.pause(); curAudio.currentTime = 0; }
+  if(curBtn){ resetPlay(curBtn); curBtn = null; }
+  curAudio = null;
+  if(same) return;
+  const a = new Audio(src);
+  curAudio = a; curBtn = btn;
+  btn.dataset.lbl = btn.dataset.lbl || btn.textContent;
+  btn.textContent = '■ 停止'; btn.classList.add('playing');
+  a.onended = a.onerror = () => { resetPlay(btn); if(curBtn === btn){ curBtn = null; curAudio = null; } };
+  a.play().catch(()=>{ resetPlay(btn); });
+}
+function stopAudio(){ if(curAudio){ curAudio.pause(); curAudio.currentTime = 0; } if(curBtn) resetPlay(curBtn); curAudio = null; curBtn = null; }
+function openImg(src){ document.getElementById('overlayImg').src = src; document.getElementById('overlay').classList.remove('hidden'); }
+function closeImg(){ document.getElementById('overlay').classList.add('hidden'); document.getElementById('overlayImg').src = ''; }
+document.addEventListener('keydown', e => { if(e.key === 'Escape') closeImg(); });
+
+/* =========================== ホーム =========================== */
+const MIN_CHOICES = [5, 10, 15, 20, 30];   /* 上限30分 */
+function learnMinutes(){ const v = ls(K_MIN, 15); return MIN_CHOICES.includes(v) ? v : 15; }
+function reviewMinutes(){ const v = ls(K_REVMIN, 30); return MIN_CHOICES.includes(v) ? v : 30; }
+function setLearnMin(m){ ss(K_MIN, m); showHome(); }
+function setReviewMin(m){ ss(K_REVMIN, m); showHome(); }
+function toggleParagraph(el){ ss(K_PARA, el.checked); showHome(); }
+function toggleFresh(el){ ss(K_FRESH, el.checked); showHome(); }
+
+function chipsHtml(cur, fn){
+  return `<div class="chips"><span class="lbl">今日つかう時間</span>` +
+    MIN_CHOICES.map(m => `<button class="chip${m===cur?' on':''}" onclick="${fn}(${m})">${m}分</button>`).join('') + `</div>`;
+}
+
+/* 出題対象。ゴミ箱に入れた問題と、（オフのときは）段落まるごとの英訳は外す */
+function pool(){
+  const withPara = ls(K_PARA, false);
+  return ITEMS.filter(it => !isTrashed(it) && (withPara || it.ty !== 'p'));
+}
+function dueList(){
+  const srs = getSrs(), today = todayStr(0);
+  return pool().filter(it => { const e = srs[it.uid]; return e && e.due && e.due <= today; })
+    .sort((a,b) => {
+      const ea = srs[a.uid] || {}, eb = srs[b.uid] || {};
+      const ra = riskRank(ea), rb = riskRank(eb);
+      return ra !== rb ? ra - rb : String(ea.due||'').localeCompare(String(eb.due||''));
+    });
+}
+function buildLearn(){
+  const p = pool(), preferFresh = ls(K_FRESH, true);
+  let base;
+  if(preferFresh){
+    const fresh = shuffle(p.filter(it => !isSeen(it)));
+    base = fresh.length ? fresh.concat(shuffle(p.filter(isSeen))) : shuffle(p);
+  } else {
+    base = shuffle(p);
+  }
+  return fitToBudget(base, learnMinutes()*60);
+}
+function buildReview(){ return fitToBudget(dueList(), reviewMinutes()*60); }
+
+function calHtml(){
+  const log = getLog(), weeks = 12;
+  const end = new Date(todayStr(0));
+  end.setDate(end.getDate() + (6 - end.getDay()));      /* その週の土曜まで埋める */
+  const cells = [];
+  for(let w = weeks - 1; w >= 0; w--){
+    const col = [];
+    for(let d = 0; d < 7; d++){
+      const x = new Date(end); x.setDate(x.getDate() - (w*7 + (6-d)));
+      const key = `${x.getFullYear()}-${String(x.getMonth()+1).padStart(2,'0')}-${String(x.getDate()).padStart(2,'0')}`;
+      const n = (log[key] || {}).n || 0;
+      const lv = n === 0 ? 0 : (n < 5 ? 1 : (n < 12 ? 2 : (n < 25 ? 3 : 4)));
+      col.push(`<div class="dy l${lv}${key===todayStr(0)?' today':''}" title="${key} ${n}問"></div>`);
+    }
+    cells.push(`<div class="wk">${col.join('')}</div>`);
+  }
+  return `<div class="cal">${cells.join('')}</div>
+    <div class="callegend">すくない <span class="dy l0" style="display:inline-block"></span><span class="dy l1" style="display:inline-block"></span><span class="dy l2" style="display:inline-block"></span><span class="dy l3" style="display:inline-block"></span><span class="dy l4" style="display:inline-block"></span> おおい</div>`;
+}
+function badgesHtml(){
+  const got = ls(K_BADGE, {});
+  return `<div class="badges">` + BADGES.map(b =>
+    `<div class="bdg${got[b.id]?' got':''}"><div class="ic">${b.ic}</div><div class="nm">${esc(b.nm)}</div>
+     <div class="cond">${got[b.id] ? esc(got[b.id]) : esc(b.cond)}</div></div>`).join('') + `</div>`;
+}
+function forecastHtml(due, cap){
+  const srs = getSrs(), fc = [];
+  for(let i = 1; i <= 7; i++){
+    const d = todayStr(i);
+    fc.push({d, n: Object.keys(srs).filter(k => srs[k] && srs[k].due === d).length});
+  }
+  const mx = Math.max(cap, ...fc.map(x => x.n), 1);
+  return `<span class="fc7">` + fc.map(x =>
+    `<i class="${x.n > cap ? 'over' : ''}" style="height:${Math.max(2, Math.round(x.n/mx*18))}px" title="${x.d} ${x.n}件"></i>`).join('') + `</span>`;
+}
+
+function showHome(){
+  stopAudio();
+  const xp = getXp(), L = levelOf(xp), stat = getStat(), log = getLog();
+  const t = log[todayStr(0)] || {n:0, c:0, sec:0};
+  const streak = streakDays();
+  const learn = buildLearn(), due = dueList(), rev = buildReview();
+  const favN = favUids().length;
+  const open = ls(K_OPEN, null);
+  const totalSeen = ITEMS.reduce((s, it) => s + (isSeen(it) ? 1 : 0), 0);
+
+  app().innerHTML = `
+  <div class="card hero">
+    <div class="row">
+      <div>
+        <div class="lv">LEVEL</div>
+        <div class="lvnum">${L.lv}</div>
+      </div>
+      <div class="streak">
+        <div class="lv">つづけている日数</div>
+        <div><b>🔥 ${streak}</b> 日</div>
+      </div>
+    </div>
+    <div class="xpbar"><i style="width:${Math.round(L.cur/L.need*100)}%"></i></div>
+    <div class="xptext">次のレベルまで ${L.need - L.cur} XP（累計 ${xp} XP・${stat.n}問）</div>
+    <div class="today-line">今日は <b>${t.n}</b> 問（正解 ${t.c}・${Math.round(t.sec/60)}分）</div>
+  </div>
+
+  ${open && open.rest && open.rest.length ? `
+  <div class="card corner" style="--c:var(--warn)">
+    <h2>↩️ 途中まで解いた問題があります</h2>
+    <p class="lead">${esc(open.mode === 'review' ? '今日の復習' : (open.mode === 'fav' ? 'お気に入り' : '今日の学習'))}の続きが ${open.rest.length}問 残っています。<br>ここまで解いたぶんは記録ずみです。</p>
+    <div class="btnrow">
+      <button class="btn" style="--c:var(--warn)" onclick="resumeSession()">続きから解く</button>
+      <button class="btn ghost sm" style="--c:var(--sub);flex:0 0 auto" onclick="dropSession()">やめる</button>
+    </div>
+  </div>` : ''}
+
+  <div class="card corner" style="--c:var(--learn)">
+    <h2>📖 今日の学習</h2>
+    <p class="lead">7つのテスト・全${ITEMS.length.toLocaleString()}問から、形式もまぜて完全にランダムに出します。</p>
+    ${chipsHtml(learnMinutes(), 'setLearnMin')}
+    <label class="toggle" style="--c:var(--learn)"><input type="checkbox" ${ls(K_FRESH,true)?'checked':''} onchange="toggleFresh(this)">まだ解いていない問題を優先する（残り ${(ITEMS.length - totalSeen).toLocaleString()}問）</label>
+    <label class="toggle" style="--c:var(--learn)"><input type="checkbox" ${ls(K_PARA,false)?'checked':''} onchange="toggleParagraph(this)">TOEFL和文英訳の「段落まるごと」も混ぜる（1問5分前後）</label>
+    <button class="btn" style="--c:var(--learn)" onclick="startSession('learn')" ${learn.length?'':'disabled'}>${learn.length ? `${learn.length}問を解く` : '出題できる問題がありません'}</button>
+    <div class="est">${learn.length ? `目安 約${estMinutes(learn)}分 ／ 学習ずみ ${totalSeen.toLocaleString()} / ${ITEMS.length.toLocaleString()}問` : ''}</div>
+  </div>
+
+  <div class="card corner" style="--c:var(--review)">
+    <h2>🔁 今日の復習</h2>
+    <p class="lead">一度解いた問題が、忘れそうなころに戻ってきます（0→2→5→12→30→60日）。</p>
+    ${chipsHtml(reviewMinutes(), 'setReviewMin')}
+    <div class="muted" style="margin-bottom:11px">
+      <span class="due-num">今日は ${rev.length}件</span>（期限が来たのは ${due.length}件${due.length > rev.length ? `／残り ${due.length - rev.length}件は翌日以降` : ''}）
+      ${forecastHtml(due, Math.max(rev.length, 1))}
+    </div>
+    <button class="btn" style="--c:var(--review)" onclick="startSession('review')" ${rev.length?'':'disabled'}>${rev.length ? `${rev.length}問を復習する` : '今日の復習はありません'}</button>
+    <div class="est">${rev.length ? `目安 約${estMinutes(rev)}分` : '「今日の学習」を解くと、ここに戻ってきます'}</div>
+  </div>
+
+  <div class="card corner" style="--c:var(--fav)">
+    <h2>⭐ お気に入りリスト</h2>
+    <p class="lead">7つのテストで☆を付けた問題をひとまとめにしています。</p>
+    <button class="btn" style="--c:var(--fav)" onclick="showFav()">${favN}件を見る</button>
+  </div>
+
+  <div class="card corner" style="--c:var(--rec)">
+    <h2>📅 学習の記録</h2>
+    <p class="lead">直近12週間。1マスが1日です。</p>
+    ${calHtml()}
+    <h3 style="font-size:1rem;margin:18px 0 9px">🏅 バッジ（${Object.keys(ls(K_BADGE,{})).length} / ${BADGES.length}）</h3>
+    ${badgesHtml()}
+  </div>
+
+  <div class="foot">
+    <span onclick="changeSyncId()">🔗 ${esc(syncLabel())}</span><br>
+    <a href="../">← テスト一覧にもどる</a>
+  </div>`;
+}
+
+/* =========================== 出題 =========================== */
+let S = null;  /* 進行中のセッション */
+const XP_OK = {f:8, c:6, r:12, x:8, w:15, m:18, s:18, p:50};
+const MODE_COLOR = {learn:'var(--learn)', review:'var(--review)', fav:'var(--fav)'};
+const MODE_NAME  = {learn:'今日の学習', review:'今日の復習', fav:'お気に入り'};
+
+function startSession(mode, list){
+  const q = list || (mode === 'review' ? buildReview()
+                   : mode === 'fav' ? shuffle(favFiltered()).slice(0, 10)
+                   : buildLearn());
+  if(!q.length){ alert('出題できる問題がありません。'); return; }
+  S = {mode, queue:q.slice(), idx:0, correct:0, done:0, wrongs:[], answered:false, startedAt:Date.now(), qStart:0};
+  saveOpen();
+  prefetch(q.slice(0, 4).map(x => x.uid));
+  renderQ();
+}
+function resumeSession(){
+  const o = ls(K_OPEN, null);
+  if(!o || !o.rest || !o.rest.length){ showHome(); return; }
+  const byUid = new Map(ITEMS.map(i => [i.uid, i]));
+  const q = o.rest.map(u => byUid.get(u)).filter(Boolean);
+  if(!q.length){ dropSession(); return; }
+  S = {mode:o.mode, queue:q, idx:0, correct:0, done:0, wrongs:[], answered:false, startedAt:Date.now(), qStart:0};
+  prefetch(q.slice(0, 4).map(x => x.uid));
+  renderQ();
+}
+function dropSession(){ ss(K_OPEN, null); showHome(); }
+function saveOpen(){
+  if(!S){ ss(K_OPEN, null); return; }
+  const rest = S.queue.slice(S.idx).filter(it => !it.again).map(it => it.uid);
+  ss(K_OPEN, rest.length ? {mode:S.mode, rest} : null);
+}
+function quitSession(){
+  const left = S.queue.length - S.idx;
+  if(!confirm(`ここでやめます。解いた ${S.done}問はすでに記録ずみです。\n残り ${left}問はホームの「続きから」に残ります。`)) return;
+  saveOpen(); stopAudio(); S = null; showHome();
+}
+
+async function renderQ(){
+  stopAudio();
+  S.answered = false;
+  const it = S.queue[S.idx];
+  const c = MODE_COLOR[S.mode];
+  app().innerHTML = `<div class="loading"><span class="spin"></span>問題を読み込んでいます…</div>`;
+  const q = await getQ(it.uid);
+  prefetch(S.queue.slice(S.idx+1, S.idx+4).map(x => x.uid));
+  if(!q){ S.idx++; return S.idx < S.queue.length ? renderQ() : showResult(); }
+  S.q = q; S.qStart = Date.now();
+
+  const total = S.queue.length, pct = Math.round(S.idx / total * 100);
+  const fav = isFav(it);
+  const srs = getSrs()[it.uid];
+  app().innerHTML = `
+    <span class="backlink" onclick="quitSession()">← 中断する${S.done ? `（ここまでの ${S.done}問は記録ずみ）` : ''}</span>
+    <div class="qmeta">
+      <span>${MODE_NAME[S.mode]}${it.again ? '・おかわり' : ''}</span>
+      <span>Q ${S.idx+1} / ${total}</span>
+    </div>
+    <div class="prog" style="--c:${c}"><i style="width:${pct}%"></i></div>
+    <div class="card">
+      <div class="qtop">
+        <div>
+          <span class="badge b-type">${TY_LABEL[it.ty]}</span>
+          <span class="badge b-cat">${esc(q.cat || '')}</span>
+          <span class="badge b-src">${esc(MAN.tests[it.t].short)}</span>
+          ${srs ? `<span class="badge b-cat">箱${srs.box}</span>` : ''}
+        </div>
+        <button class="fav-star${fav?' on':''}" id="favBtn" title="お気に入り" onclick="onFav()">⭐</button>
+      </div>
+      <div id="qbody">${bodyHtml(it, q)}</div>
+      <div id="fb"></div>
+    </div>`;
+  if(it.ty === 'r') initReorder(q);
+  if(it.ty === 'm') initMatch(q);
+  const first = document.querySelector('#qbody input[type=text], #qbody textarea');
+  if(first && window.innerWidth > 700) first.focus();
+}
+
+function bodyHtml(it, q){
+  const hint = q.hint ? `<div class="qhint">💡 ${esc(q.hint)}</div>` : '';
+  if(it.ty === 'f') return hint + `
+    <div class="qsent">${esc(q.question)}</div>
+    <input type="text" id="ans" placeholder="英語で入力してください" autocapitalize="off" autocomplete="off" onkeydown="if(event.key==='Enter')submitAnswer()">
+    <button class="btn" style="margin-top:11px" onclick="submitAnswer()">回答する</button>`;
+  if(it.ty === 'c') return hint + `
+    <div class="qsent">${esc(q.question)}</div>
+    <div class="choices">${(q._shuffled || (q._shuffled = shuffle(q.choices||[]))).map(o =>
+      `<label><input type="radio" name="opt" value="${esc(o)}">${esc(o)}</label>`).join('')}</div>
+    <button class="btn" onclick="submitAnswer()">回答する</button>`;
+  if(it.ty === 'r') return hint + `
+    <div id="asm" class="tilearea">タップして単語を並べてください</div>
+    <div id="pool" class="tilepool"></div>
+    <button class="btn ghost sm" onclick="resetReorder()">リセット</button>
+    <button class="btn" style="margin-top:11px" id="okBtn" disabled onclick="submitAnswer()">回答する</button>`;
+  if(it.ty === 'x') return hint + `
+    <div class="qsent">${esc(q.question).replace(/\[\[(.+?)\]\]/, (m,p) => `<span class="mark">${p}</span>`)}</div>
+    <div class="muted" style="margin-bottom:9px">下線部を正しい形に直してください</div>
+    <input type="text" id="ans" placeholder="正しい形を入力" autocapitalize="off" autocomplete="off" onkeydown="if(event.key==='Enter')submitAnswer()">
+    <button class="btn" style="margin-top:11px" onclick="submitAnswer()">回答する</button>`;
+  if(it.ty === 'w') return hint + `
+    <textarea id="ans" placeholder="英文を入力してください"></textarea>
+    <button class="btn" style="margin-top:11px" onclick="submitAnswer()">回答する</button>`;
+  if(it.ty === 'm') return hint + `
+    <div class="mcols"><div class="mcol" id="mL"></div><div class="mcol" id="mR"></div></div>
+    <button class="btn" id="okBtn" disabled onclick="submitAnswer()">回答する</button>`;
+  /* s / p : 和文英訳 */
+  return `<div class="muted">${esc(q.topic || '')}</div>
+    <div class="qja">${esc(q.japanese)}</div>
+    <textarea id="ans" placeholder="英語に直して入力してください" ${it.ty==='p'?'style="min-height:190px"':''}></textarea>
+    <button class="btn" style="margin-top:11px" onclick="submitAnswer()">回答する</button>`;
+}
+
+/* ---- 並べ替え ---- */
+let asm = [], pl = [];
+function initReorder(q){ asm = []; pl = shuffle((q.tokens||[]).map((t,i) => ({t, k:i}))); drawTiles(); }
+function drawTiles(){
+  const q = S.q;
+  document.getElementById('asm').innerHTML = asm.length
+    ? asm.map((x,i) => `<span class="tile" onclick="unpick(${i})">${esc(x.t)}</span>`).join('')
+    : 'タップして単語を並べてください';
+  document.getElementById('pool').innerHTML = pl.map((x,i) => `<span class="tile" onclick="pick(${i})">${esc(x.t)}</span>`).join('');
+  document.getElementById('okBtn').disabled = !(pl.length === 0 && asm.length === (q.tokens||[]).length);
+}
+function pick(i){ asm.push(pl.splice(i,1)[0]); drawTiles(); }
+function unpick(i){ pl.push(asm.splice(i,1)[0]); drawTiles(); }
+function resetReorder(){ pl = shuffle(pl.concat(asm)); asm = []; drawTiles(); }
+
+/* ---- マッチング ---- */
+let mL = [], mR = [], mSel = null, mPairs = [];
+function initMatch(q){
+  mL = shuffle((q.pairs||[]).map((p,i) => ({t:p.japanese, o:i})));
+  mR = shuffle((q.pairs||[]).map((p,i) => ({t:p.english, o:i})));
+  mSel = null; mPairs = []; drawMatch();
+}
+function drawMatch(){
+  const n = (S.q.pairs||[]).length;
+  document.getElementById('mL').innerHTML = mL.map(x => {
+    let c = 'mbtn'; if(mSel === x.o) c += ' sel'; if(mPairs.some(p => p.l === x.o)) c += ' paired';
+    return `<button class="${c}" onclick="mClickL(${x.o})">${esc(x.t)}</button>`; }).join('');
+  document.getElementById('mR').innerHTML = mR.map(x => {
+    let c = 'mbtn'; if(mPairs.some(p => p.r === x.o)) c += ' paired';
+    return `<button class="${c}" onclick="mClickR(${x.o})">${esc(x.t)}</button>`; }).join('');
+  document.getElementById('okBtn').disabled = mPairs.length !== n;
+}
+function mClickL(o){ mPairs = mPairs.filter(p => p.l !== o); mSel = o; drawMatch(); }
+function mClickR(o){
+  if(mSel === null) return;
+  mPairs = mPairs.filter(p => p.r !== o && p.l !== mSel);
+  mPairs.push({l:mSel, r:o}); mSel = null; drawMatch();
+}
+
+function onFav(){
+  const on = toggleFav(S.queue[S.idx]);
+  const b = document.getElementById('favBtn');
+  if(b) b.classList.toggle('on', on);
+}
+
+/* =========================== 採点 =========================== */
+function norm(s){ return String(s||'').trim().toLowerCase().replace(/\s+/g,' '); }
+function val(id){ const e = document.getElementById(id); return e ? e.value : ''; }
+
+function submitAnswer(){
+  if(S.answered) return;
+  const it = S.queue[S.idx], q = S.q;
+  let correct = false, extra = '';
+
+  if(it.ty === 'f' || it.ty === 'x'){
+    correct = norm(val('ans')) === norm(q.answer);
+    extra = `<div class="ansline">正解: ${esc(q.answer)}</div>` + sentenceHtml(it, q);
+  } else if(it.ty === 'c'){
+    const sel = document.querySelector('input[name="opt"]:checked');
+    if(!sel){ alert('選択肢を選んでください'); return; }
+    correct = norm(sel.value) === norm(q.answer);
+    extra = `<div class="ansline">正解: ${esc(q.answer)}</div>` + sentenceHtml(it, q);
+  } else if(it.ty === 'r'){
+    const user = asm.map(x => x.t).join(' ');
+    correct = user === (q.tokens||[]).join(' ') || norm(user) === norm(q.fullSentence);
+    extra = `<div class="ansline">正解の英文: ${esc(q.fullSentence)}</div>` + playHtml(it);
+  } else if(it.ty === 'w' || it.ty === 's' || it.ty === 'p'){
+    const raw = norm(val('ans'));
+    const keys = q.keyPhrases || [];
+    const missing = keys.filter(k => !raw.includes(norm(k)));
+    correct = missing.length === 0 && raw.length > 0;
+    if(!raw.length) { alert('英文を入力してください'); return; }
+    if(missing.length) extra += `<div class="muted">不足している語句: ${esc(missing.join(', '))}</div>`;
+    extra += `<div class="ansline">模範解答: ${esc(q.answer)}</div>` + playHtml(it)
+      + `<div class="muted" style="margin-top:6px">必須語句が入っているかだけの簡易採点です。模範解答と見比べて確認しましょう。</div>`;
+  } else if(it.ty === 'm'){
+    const pairs = q.pairs || [];
+    if(mPairs.length !== pairs.length){ alert('すべて組み合わせてください'); return; }
+    const nOk = mPairs.filter(p => p.l === p.r).length;
+    correct = nOk === pairs.length;
+    extra = `<div class="ansline">${nOk} / ${pairs.length} 正解</div>` + pairs.map((p, i) => {
+      const u = mPairs.find(x => x.l === i);
+      return `<div style="margin:6px 0">${(u && u.r === i) ? '✅' : '❌'} ${esc(p.japanese)} → <b>${esc(p.english)}</b>
+        <button class="play" data-lbl="🔊" onclick="playAudio(this, '${audioSrc(it, q, i)}')">🔊</button></div>`;
+    }).join('');
+  }
+  record(it, q, correct);
+  showFeedback(it, q, correct, extra);
+}
+function sentenceHtml(it, q){
+  return playHtml(it) + (q.fullSentence ? `<div class="qsent" style="font-size:1rem">${esc(q.fullSentence)}</div>` : '');
+}
+function playHtml(it){ return `<button class="play" onclick="playAudio(this, '${audioSrc(it, S.q)}')">🔊 英文を聞く</button>`; }
+
+/* 答え合わせをした瞬間に記録する。途中でやめても、そこまでは学習ずみになる */
+function record(it, q, correct){
+  S.answered = true;
+  const sec = Math.min(600, (Date.now() - S.qStart)/1000);
+  if(it.again){                       /* おかわりは箱も成績も動かさない */
+    if(correct) S.correct++;
+    return;
+  }
+  markSeen(it);
+  updateSrs(it.uid, correct);
+  bumpLog(correct, sec);
+  bumpStat(it.ty, correct, S.mode === 'review');
+  pushPace(it.ty, sec);
+  const gain = correct ? (XP_OK[it.ty]||8) : Math.round((XP_OK[it.ty]||8)*0.4);
+  S.gain = (S.gain||0) + gain;
+  addXp(gain);
+  S.done++;
+  if(correct) S.correct++; else S.wrongs.push(it);
+  saveOpen();
+}
+
+function showFeedback(it, q, correct, extra){
+  const isLast = S.idx === S.queue.length - 1;
+  const thumbs = (q.src||[]).length ? `<div class="thumbs">${(q.src||[]).map(s =>
+    `<img class="thumb" src="${imgSrc(it, s)}" loading="lazy" alt="${esc(s)}" onclick="openImg('${imgSrc(it, s)}')" onerror="this.style.display='none'">`).join('')}</div>
+    <div class="muted">📷 出典: ${esc((q.src||[]).join(', '))}</div>` : '';
+  document.getElementById('fb').innerHTML = `
+    <div class="fb ${correct?'ok':'ng'}">
+      <h3>${correct ? '✅ 正解！' : '❌ 不正解'}</h3>
+      ${extra}
+      ${q.relatedInfo ? `<div class="info">💡 関連知識: ${esc(q.relatedInfo)}</div>` : ''}
+      ${q.explanation ? `<div class="info">📝 解説: ${esc(q.explanation)}</div>` : ''}
+      ${thumbs}
+      <div class="rowline">
+        <span class="mini" onclick="hideThis()">🗑 この問題はもう出さない</span>
+        <span class="mini" onclick="openTest()">元のテストを開く</span>
+      </div>
+      <button class="btn" style="margin-top:13px;--c:${MODE_COLOR[S.mode]}" onclick="nextQ()">${isLast ? '結果を見る' : '次の問題 →'}</button>
+    </div>`;
+  const el = document.getElementById('fb');
+  if(el.scrollIntoView) el.scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+function hideThis(){
+  const it = S.queue[S.idx], key = fmtMeta(it).trash;
+  if(!key){ alert('このテストは非表示に対応していません。'); return; }
+  if(!confirm('この問題を今後出さないようにします（元のテストのゴミ箱から戻せます）。')) return;
+  addId(key, it.id);
+  alert('ゴミ箱に移動しました。');
+}
+function openTest(){
+  const it = S.queue[S.idx];
+  window.open('../' + encodeURI(MAN.tests[it.t].dir) + '/', '_blank');
+}
+
+function nextQ(){
+  if(S.idx < S.queue.length - 1){ S.idx++; saveOpen(); renderQ(); return; }
+  /* おかわり: まちがえた問題をこのセッションの最後にもう一度だけ出す（箱も成績も動かさない） */
+  if(S.wrongs.length && !S.encore){
+    S.encore = true;
+    S.queue = S.queue.concat(shuffle(S.wrongs).map(x => Object.assign({}, x, {again:true})));
+    S.idx++; saveOpen(); renderQ(); return;
+  }
+  ss(K_OPEN, null);
+  showResult();
+}
+
+/* =========================== 結果 =========================== */
+function showResult(){
+  stopAudio();
+  const n = S.done, ok = Math.min(S.correct, n), rate = n ? ok/n : 0;
+  const fresh = checkBadges({acc90: n >= 10 && rate >= 0.9});
+  let stars, msg;
+  if(rate >= .9){ stars = '★★★'; msg = 'Excellent! この調子です'; }
+  else if(rate >= .7){ stars = '★★'; msg = 'Good! あと少しで完璧です'; }
+  else if(rate >= .5){ stars = '★'; msg = '復習コーナーで取り返しましょう'; }
+  else { stars = '—'; msg = 'まちがえた問題は明日また出てきます'; }
+  const L = levelOf(getXp());
+  const mode = S.mode;
+  app().innerHTML = `
+    <div class="card">
+      <div class="stars">${stars}</div>
+      <div class="score">${ok} / ${n} 問正解</div>
+      <p class="center muted">${esc(msg)}</p>
+      <div class="gain">
+        <span>＋${S.gain||0} XP</span><span>🔥 ${streakDays()}日</span><span>Lv.${L.lv}</span>
+      </div>
+      ${fresh.length ? `<div class="newbadge">🎉 バッジ獲得！ ${fresh.map(b => b.ic + ' ' + esc(b.nm)).join(' / ')}</div>` : ''}
+      <div class="muted center" style="margin-top:14px">まちがえた ${S.wrongs.length}問は、明日また「今日の復習」に出ます。</div>
+      <div class="btnrow" style="margin-top:16px">
+        <button class="btn" style="--c:${MODE_COLOR[mode]}" onclick="startSession('${mode}')">もう1セット</button>
+        <button class="btn ghost" onclick="showHome()">ホームへ</button>
+      </div>
+    </div>`;
+  S = null;
+}
+
+/* =========================== お気に入りリスト =========================== */
+let favFilterT = 'all', favFilterY = 'all';
+async function showFav(){
+  stopAudio();
+  app().innerHTML = `<div class="loading"><span class="spin"></span>お気に入りを読み込んでいます…</div>`;
+  try{ await favSyncDone; }catch(e){}
+  await getLabels();
+  renderFav();
+}
+function favFiltered(){
+  return favUids().filter(it => (favFilterT === 'all' || it.t === favFilterT)
+                             && (favFilterY === 'all' || it.ty === favFilterY));
+}
+function setFavT(t){ favFilterT = t; renderFav(); }
+function setFavY(y){ favFilterY = y; renderFav(); }
+function renderFav(){
+  const all = favUids(), list = favFiltered();
+  const byTest = {}, byTy = {};
+  all.forEach(it => { byTest[it.t] = (byTest[it.t]||0)+1; byTy[it.ty] = (byTy[it.ty]||0)+1; });
+  const chipT = `<button class="chip${favFilterT==='all'?' on':''}" style="--c:var(--fav)" onclick="setFavT('all')">すべて ${all.length}</button>`
+    + Object.keys(byTest).map(t => `<button class="chip${favFilterT===t?' on':''}" style="--c:var(--fav)" onclick="setFavT('${t}')">${esc(MAN.tests[t].short)} ${byTest[t]}</button>`).join('');
+  const chipY = `<button class="chip${favFilterY==='all'?' on':''}" style="--c:var(--fav)" onclick="setFavY('all')">全形式</button>`
+    + Object.keys(byTy).map(y => `<button class="chip${favFilterY===y?' on':''}" style="--c:var(--fav)" onclick="setFavY('${y}')">${esc(TY_LABEL[y])} ${byTy[y]}</button>`).join('');
+
+  app().innerHTML = `
+    <span class="backlink" onclick="showHome()">← ホームにもどる</span>
+    <div class="card corner" style="--c:var(--fav)">
+      <h2>⭐ お気に入りリスト</h2>
+      <p class="lead">7つのテストの☆をまとめています。各テストの画面で付けた☆もここに出ます。</p>
+      ${all.length ? `<div class="filters">${chipT}</div><div class="filters">${chipY}</div>
+      <div class="btnrow">
+        ${[10, 20, 0].map(n => `<button class="btn" style="--c:var(--fav)" onclick="startFav(${n})" ${list.length?'':'disabled'}>${n ? `ランダム${n}問` : `全${list.length}問`}</button>`).join('')}
+      </div>` : `<p class="muted">まだお気に入りがありません。出題画面の ⭐ を押すと、ここに貯まります。</p>`}
+    </div>
+    ${list.length ? `<div class="card">${list.map(it => `
+      <div class="favrow">
+        <button class="fav-star on" title="お気に入りから外す" onclick="removeFav('${it.uid}')">⭐</button>
+        <div class="txt">
+          <div class="lb">${esc((LABELS||{})[it.uid] || it.uid)}</div>
+          <div class="mt">${esc(MAN.tests[it.t].short)}・${esc(TY_LABEL[it.ty])}</div>
+        </div>
+        <button class="btn ghost sm" style="--c:var(--fav)" onclick="startFavOne('${it.uid}')">解く</button>
+      </div>`).join('')}</div>` : ''}`;
+}
+function removeFav(uid){
+  const it = ITEMS[POS.get(uid)];
+  if(!it) return;
+  toggleFav(it);
+  renderFav();
+}
+function startFav(n){
+  const list = shuffle(favFiltered());
+  startSession('fav', n ? list.slice(0, n) : list);
+}
+function startFavOne(uid){ const it = ITEMS[POS.get(uid)]; if(it) startSession('fav', [it]); }
+
+/* =========================== 起動 =========================== */
+async function boot(){
+  try{
+    await loadManifest();
+  }catch(e){
+    app().innerHTML = `<div class="card"><h2>読み込めませんでした</h2>
+      <p class="muted">問題データ（data/manifest.json）が見つかりません。通信状況を確かめて再読み込みしてください。</p>
+      <button class="btn" onclick="location.reload()">再読み込み</button></div>`;
+    return;
+  }
+  showHome();                       /* 先に画面を出す。同期は裏で追いつかせる */
+  await initSync();
+  checkBadges();
+  if(!S) showHome();
+}
+window.addEventListener('beforeunload', () => { if(S) saveOpen(); });
+boot();
+</script>
+</body>
+</html>
