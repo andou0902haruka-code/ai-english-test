@@ -164,6 +164,23 @@
   }
   .play-btn.playing { background: var(--red); }
   .self-check-note { font-size:0.85rem; color: var(--yellow); background:#fff8e6; border:1px solid #f0dfa8; border-radius:8px; padding:10px 12px; margin-bottom:12px; }
+  .self-score { margin: 12px 0 14px; padding: 14px; border: 1px solid var(--border); border-radius: 10px; background: #f7f9ff; }
+  .self-score .label { font-weight: 700; font-size: 0.95rem; margin-bottom: 4px; }
+  .self-score .sub { font-size: 0.82rem; color: var(--text-sub); margin-bottom: 10px; }
+  .self-btns { display: flex; gap: 8px; }
+  @media (max-width:480px){ .self-btns { flex-wrap: wrap; } }
+  .self-btn {
+    flex: 1 1 0; min-width: 62px; padding: 12px 4px;
+    border: 2px solid var(--border); border-radius: 9px; background: #fff;
+    font-size: 1rem; font-weight: 700; color: var(--text-sub);
+    cursor: pointer; transition: border-color .12s, background .12s, color .12s;
+  }
+  .self-btn:hover { border-color: var(--accent); }
+  .self-btn.on { border-color: var(--accent); background: var(--accent); color: #fff; }
+  .self-score .picked { font-size: 0.85rem; color: var(--accent-dark); font-weight: 700; margin-top: 10px; }
+  .skip-link { display:block; width:100%; margin-top:8px; background:none; border:none; color: var(--text-sub); font-size:0.86rem; text-decoration: underline; cursor:pointer; padding:6px; }
+  .skip-link:hover { color: var(--accent); }
+  .result-sub { font-size: 0.92rem; color: var(--text-sub); margin-top: 6px; }
   .info-block { font-size:0.88rem; color: var(--text-sub); margin-bottom: 8px; }
   .info-block b { color: var(--text); }
   .source-row { font-size:0.82rem; color: var(--text-sub); margin: 10px 0; }
@@ -294,9 +311,10 @@
       </label>
 
       <div class="jp-card" id="q-japanese"></div>
-      <textarea class="answer-input" id="answer-input" placeholder="ここに英文を入力してください"></textarea>
+      <textarea class="answer-input" id="answer-input" placeholder="ここに英文を入力してください（空欄のまま提出して、答えを見てから自己採点もできます）"></textarea>
       <div style="margin-top:12px;">
         <button class="btn block" id="submit-btn" onclick="submitAnswer()">回答する</button>
+        <button class="skip-link" id="skip-btn" onclick="submitAnswer()">書くのが面倒なときは、書かずに答えを見て自己採点する</button>
       </div>
 
       <div class="feedback-box hidden" id="feedback-box">
@@ -309,6 +327,13 @@
             <button class="play-btn" id="play-btn" onclick="onPlayClick()">🔊</button>
           </div>
           <div id="answer-text"></div>
+        </div>
+
+        <div class="self-score" id="self-score">
+          <div class="label">自己採点</div>
+          <div class="sub">模範解答と見くらべて、書けたと思う割合を選んでください（60%以上で「書けた」として数えます）</div>
+          <div class="self-btns" id="self-btns"></div>
+          <div class="picked hidden" id="self-picked"></div>
         </div>
 
         <div class="self-check-note" id="self-check-note"></div>
@@ -337,6 +362,7 @@
     <div class="card result-card">
       <h2>お疲れさまでした！</h2>
       <div class="result-score" id="result-score"></div>
+      <div class="result-sub" id="result-self"></div>
       <div class="stars" id="result-stars"></div>
       <div class="result-msg" id="result-msg"></div>
       <div class="result-actions">
@@ -1367,7 +1393,11 @@ let currentSelectedIds = [];
 let bookmarkSelectChecked = new Set();
 let sessionQuestions = [];
 let currentIndex = 0;
-let correctCount = 0;
+/* 1問ずつの答え合わせの記録。{auto:自動採点の正誤, self:自己採点の%（未採点はnull）, blank:空欄で提出したか}
+   自己採点をつけた問題は、自動採点ではなく自己採点のほうを成績に使う */
+let answerLog = [];
+const SELF_LEVELS = [20, 40, 60, 80, 100];
+const SELF_OK = 60;
 let currentAudio = null;
 let currentBtn = null;
 
@@ -1462,7 +1492,7 @@ function startMode(mode, selectedIds) {
     return;
   }
   currentIndex = 0;
-  correctCount = 0;
+  answerLog = [];
   showQuestion();
   showScreen('screen-quiz');
 }
@@ -1538,6 +1568,7 @@ function showQuestion() {
   document.getElementById('answer-input').value = '';
   document.getElementById('answer-input').disabled = false;
   document.getElementById('submit-btn').disabled = false;
+  document.getElementById('skip-btn').classList.remove('hidden');
   document.getElementById('feedback-box').classList.add('hidden');
   document.getElementById('practice-input').value = '';
 
@@ -1553,36 +1584,30 @@ function onBookmarkToggle() {
   toggleBookmark(currentUnit, q.id);
 }
 
+/* 空欄のまま提出してもよい。書くのが面倒なときは答えを見て自己採点だけで進められる */
 function submitAnswer() {
   const q = currentQuestion();
-  const input = document.getElementById('answer-input').value.trim().toLowerCase();
+  const raw = document.getElementById('answer-input').value.trim();
+  const input = raw.toLowerCase();
   const missing = q.keyPhrases.filter(p => !input.includes(p.toLowerCase()));
-  const isCorrect = missing.length === 0 && input.length > 0;
-  if (isCorrect) correctCount++;
+  const blank = raw.length === 0;
+  const isCorrect = !blank && missing.length === 0;
+  answerLog[currentIndex] = { auto: isCorrect, self: null, blank: blank, missing: missing };
 
   document.getElementById('answer-input').disabled = true;
   document.getElementById('submit-btn').disabled = true;
+  document.getElementById('skip-btn').classList.add('hidden');
 
-  const resultLine = document.getElementById('result-line');
-  const missingEl = document.getElementById('missing-phrases');
-  if (isCorrect) {
-    resultLine.textContent = '✅ 必須語句を全て含んでいます！';
-    resultLine.className = 'result-line correct';
-    missingEl.classList.add('hidden');
-  } else {
-    resultLine.textContent = '❌ 不足している語句があります';
-    resultLine.className = 'result-line incorrect';
-    missingEl.textContent = '不足している語句: ' + missing.join(', ');
-    missingEl.classList.remove('hidden');
-  }
+  drawResultLine();
+  renderSelfButtons();
 
   document.getElementById('answer-text').textContent = q.answer;
 
   const selfCheckNote = document.getElementById('self-check-note');
   if (currentUnit === 'paragraph') {
-    selfCheckNote.textContent = 'この判定は必須語句の含有チェックのみの簡易採点です。段落単位は特に、模範解答と見比べて自己採点してください。';
+    selfCheckNote.textContent = '自動判定は必須語句が入っているかを見ているだけです。段落単位は特に、模範解答と見比べて上の自己採点で点をつけてください。';
   } else {
-    selfCheckNote.textContent = '模範解答と見比べて、表現の違いも確認しましょう。';
+    selfCheckNote.textContent = '模範解答と見比べて、表現の違いも確認しましょう。自己採点で点をつけると、その点が成績になります。';
   }
 
   document.getElementById('source-link').textContent = q.source;
@@ -1591,6 +1616,63 @@ function submitAnswer() {
 
   document.getElementById('feedback-box').classList.remove('hidden');
   document.getElementById('next-btn').textContent = (currentIndex === sessionQuestions.length - 1) ? '結果を見る' : '次の問題 →';
+}
+
+/* 判定行。自己採点をつけたらそちらを表示し、消せば自動判定の表示に戻る */
+function drawResultLine() {
+  const e = answerLog[currentIndex] || { auto:false, self:null, blank:true, missing:[] };
+  const resultLine = document.getElementById('result-line');
+  const missingEl = document.getElementById('missing-phrases');
+  if (e.self != null) {
+    const ok = e.self >= SELF_OK;
+    resultLine.textContent = `自己採点 ${e.self}%（${ok ? '書けた問題として数えます' : 'まだの問題として数えます'}）`;
+    resultLine.className = 'result-line ' + (ok ? 'correct' : 'incorrect');
+    missingEl.classList.add('hidden');
+    return;
+  }
+  if (e.blank) {
+    resultLine.textContent = '✍️ 空欄のまま提出しました。模範解答を見て自己採点しましょう';
+    resultLine.className = 'result-line';
+    missingEl.classList.add('hidden');
+  } else if (e.auto) {
+    resultLine.textContent = '✅ 必須語句を全て含んでいます！';
+    resultLine.className = 'result-line correct';
+    missingEl.classList.add('hidden');
+  } else {
+    resultLine.textContent = '❌ 不足している語句があります';
+    resultLine.className = 'result-line incorrect';
+    missingEl.textContent = '不足している語句: ' + e.missing.join(', ');
+    missingEl.classList.remove('hidden');
+  }
+}
+
+function renderSelfButtons() {
+  const e = answerLog[currentIndex];
+  const cur = e ? e.self : null;
+  document.getElementById('self-btns').innerHTML = SELF_LEVELS.map(v =>
+    `<button class="self-btn${cur === v ? ' on' : ''}" onclick="setSelfScore(${v})">${v}%</button>`).join('');
+  const picked = document.getElementById('self-picked');
+  if (cur == null) {
+    picked.classList.add('hidden');
+    picked.textContent = '';
+  } else {
+    picked.classList.remove('hidden');
+    picked.textContent = `この問題は ${cur}% で記録しました。押し直せば付け直せます（同じ%をもう一度押すと取り消し）。`;
+  }
+}
+
+function setSelfScore(v) {
+  const e = answerLog[currentIndex];
+  if (!e) return;
+  e.self = (e.self === v) ? null : v;
+  renderSelfButtons();
+  drawResultLine();
+}
+
+/* その問題ができたかどうか。自己採点があればそれを優先する */
+function isQuestionCorrect(e) {
+  if (!e) return false;
+  return e.self != null ? e.self >= SELF_OK : e.auto;
 }
 
 function nextQuestion() {
@@ -1605,8 +1687,14 @@ function nextQuestion() {
 function showResults() {
   saveSeenQuestions(currentUnit, sessionQuestions);
   const total = sessionQuestions.length;
+  let correctCount = 0;
+  for (let i = 0; i < total; i++) if (isQuestionCorrect(answerLog[i])) correctCount++;
   const rate = total > 0 ? correctCount / total : 0;
   document.getElementById('result-score').textContent = `${correctCount} / ${total} 問正解`;
+  const selfs = answerLog.filter(e => e && e.self != null).map(e => e.self);
+  document.getElementById('result-self').textContent = selfs.length
+    ? `うち自己採点した ${selfs.length}問の平均: ${Math.round(selfs.reduce((a, b) => a + b, 0) / selfs.length)}%`
+    : '';
   let stars = '', msg = '';
   if (rate >= 0.9) { stars = '★★★'; msg = 'Excellent! TOEFL満点レベルの実力です'; }
   else if (rate >= 0.7) { stars = '★★'; msg = 'Good! あと少しで完璧です'; }

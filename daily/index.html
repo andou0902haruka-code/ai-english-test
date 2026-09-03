@@ -123,6 +123,16 @@ input[type=text]:focus,textarea:focus{outline:none;border-color:var(--accent);}
 .thumbs{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px;}
 .thumb{width:66px;height:66px;object-fit:cover;border-radius:7px;border:1px solid var(--border);cursor:pointer;}
 .mini{color:var(--sub);font-size:.78rem;cursor:pointer;text-decoration:underline;}
+
+/* ---- 自己採点（和文英訳） ---- */
+.selfbox{border:1px solid var(--border);background:#f7f9ff;border-radius:12px;padding:13px;margin:12px 0;}
+.selfbox .lbl{font-weight:700;font-size:.95rem;margin-bottom:2px;}
+.selfbtns{display:flex;gap:7px;}
+@media (max-width:420px){ .selfbtns{flex-wrap:wrap;} }
+.selfbtn{flex:1 1 0;min-width:60px;padding:12px 4px;border:2px solid var(--border);border-radius:10px;
+  background:#fff;color:var(--sub);font-size:1rem;font-weight:700;cursor:pointer;}
+.selfbtn.on{border-color:var(--accent);background:var(--accent);color:#fff;}
+.selfpicked{font-size:.82rem;color:var(--accent);font-weight:700;margin-top:9px;}
 .rowline{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:10px 0 0;flex-wrap:wrap;}
 .fav-star{background:none;border:none;font-size:1.35rem;cursor:pointer;padding:0 2px;line-height:1;filter:grayscale(1);opacity:.4;}
 .fav-star.on{filter:none;opacity:1;}
@@ -699,6 +709,7 @@ function quitSession(){
 async function renderQ(){
   stopAudio();
   S.answered = false;
+  S.selfPct = null; S.fbExtra = '';
   const it = S.queue[S.idx];
   const c = MODE_COLOR[S.mode];
   app().innerHTML = `<div class="loading"><span class="spin"></span>問題を読み込んでいます…</div>`;
@@ -763,11 +774,12 @@ function bodyHtml(it, q){
   if(it.ty === 'm') return hint + `
     <div class="mcols"><div class="mcol" id="mL"></div><div class="mcol" id="mR"></div></div>
     <button class="btn" id="okBtn" disabled onclick="submitAnswer()">回答する</button>`;
-  /* s / p : 和文英訳 */
+  /* s / p : 和文英訳。書かずに出しても答えを見て自己採点できる */
   return `<div class="muted">${esc(q.topic || '')}</div>
     <div class="qja">${esc(q.japanese)}</div>
-    <textarea id="ans" placeholder="英語に直して入力してください" ${it.ty==='p'?'style="min-height:190px"':''}></textarea>
-    <button class="btn" style="margin-top:11px" onclick="submitAnswer()">回答する</button>`;
+    <textarea id="ans" placeholder="英語に直して入力してください（空欄のままでも提出できます）" ${it.ty==='p'?'style="min-height:190px"':''}></textarea>
+    <button class="btn" style="margin-top:11px" onclick="submitAnswer()">回答する</button>
+    <div class="rowline"><span class="mini" onclick="submitAnswer()">書くのが面倒なときは、書かずに答えを見て自己採点する</span></div>`;
 }
 
 /* ---- 並べ替え ---- */
@@ -841,6 +853,16 @@ function submitAnswer(){
     const keys = q.keyPhrases || [];
     const missing = keys.filter(k => !raw.includes(norm(k)));
     correct = missing.length === 0 && raw.length > 0;
+    if(SELF_TY[it.ty]){
+      /* 和文英訳: 空欄でも提出できる。ここではまだ記録せず、点を選んだ瞬間が答え合わせになる */
+      S.fbExtra = (raw.length
+          ? (missing.length ? `<div class="muted">不足している語句: ${esc(missing.join(', '))}</div>`
+                            : `<div class="muted">必須語句はすべて入っています。</div>`)
+          : `<div class="muted">空欄のまま提出しました。模範解答を見て点をつけましょう。</div>`)
+        + `<div class="ansline">模範解答: ${esc(q.answer)}</div>` + playHtml(it);
+      showFeedback(it, q, false, S.fbExtra, true);
+      return;
+    }
     if(!raw.length) { alert('英文を入力してください'); return; }
     if(missing.length) extra += `<div class="muted">不足している語句: ${esc(missing.join(', '))}</div>`;
     extra += `<div class="ansline">模範解答: ${esc(q.answer)}</div>` + playHtml(it)
@@ -885,15 +907,18 @@ function record(it, q, correct){
   saveOpen();
 }
 
-function showFeedback(it, q, correct, extra){
+function showFeedback(it, q, correct, extra, selfMode){
   const isLast = S.idx === S.queue.length - 1;
+  const graded = !selfMode || S.selfPct != null;   /* 自己採点はまだ点をつけていないと判定が出ない */
+  if(selfMode && graded) correct = S.selfPct >= SELF_OK;
   const thumbs = (q.src||[]).length ? `<div class="thumbs">${(q.src||[]).map(s =>
     `<img class="thumb" src="${imgSrc(it, s)}" loading="lazy" alt="${esc(s)}" onclick="openImg('${imgSrc(it, s)}')" onerror="this.style.display='none'">`).join('')}</div>
     <div class="muted">📷 出典: ${esc((q.src||[]).join(', '))}</div>` : '';
   document.getElementById('fb').innerHTML = `
-    <div class="fb ${correct?'ok':'ng'}">
-      <h3>${correct ? '✅ 正解！' : '❌ 不正解'}</h3>
+    <div class="fb ${graded ? (correct?'ok':'ng') : ''}" ${graded ? '' : 'style="border:1px solid var(--border);background:#fafbfe"'}>
+      <h3>${graded ? (correct ? '✅ 正解！' : '❌ 不正解') : '答え合わせ'}</h3>
       ${extra}
+      ${selfMode ? selfBarHtml() : ''}
       ${q.relatedInfo ? `<div class="info">💡 関連知識: ${esc(q.relatedInfo)}</div>` : ''}
       ${q.explanation ? `<div class="info">📝 解説: ${esc(q.explanation)}</div>` : ''}
       ${thumbs}
@@ -901,10 +926,55 @@ function showFeedback(it, q, correct, extra){
         <span class="mini" onclick="hideThis()">🗑 この問題はもう出さない</span>
         <span class="mini" onclick="openTest()">元のテストを開く</span>
       </div>
-      <button class="btn" style="margin-top:13px;--c:${MODE_COLOR[S.mode]}" onclick="nextQ()">${isLast ? '結果を見る' : '次の問題 →'}</button>
+      ${graded ? `<button class="btn" style="margin-top:13px;--c:${MODE_COLOR[S.mode]}" onclick="nextQ()">${isLast ? '結果を見る' : '次の問題 →'}</button>` : ''}
     </div>`;
   const el = document.getElementById('fb');
-  if(el.scrollIntoView) el.scrollIntoView({behavior:'smooth', block:'nearest'});
+  if(el.scrollIntoView && !(selfMode && graded)) el.scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+
+/* ---- 自己採点（和文英訳）----
+   自動採点は必須語句が入っているかを見ているだけで、書けたかどうかは測れない。
+   そこで和文英訳だけは自分でつけた点を成績にする。点を選んだ瞬間が答え合わせ＝そこで記録するので、
+   途中でやめても、そこまでは学習ずみになる。 */
+const SELF_TY = {s:1, p:1};
+const SELF_LEVELS = [20, 40, 60, 80, 100];
+const SELF_OK = 60;
+
+function selfBarHtml(){
+  const cur = S.selfPct;
+  return `<div class="selfbox">
+    <div class="lbl">自己採点</div>
+    <div class="muted" style="margin-bottom:9px">模範解答と見くらべて、書けたと思う割合を選んでください（${SELF_OK}%以上で「できた」として数えます）</div>
+    <div class="selfbtns">${SELF_LEVELS.map(v =>
+      `<button class="selfbtn${cur === v ? ' on' : ''}" onclick="pickSelf(${v})">${v}%</button>`).join('')}</div>
+    ${cur == null
+      ? `<div class="rowline"><span class="mini" onclick="skipSelf()">点をつけずに次へ（この問題は記録に残りません）</span></div>`
+      : `<div class="selfpicked">${cur}% で記録しました。押し直せば付け直せます（復習の箱は最初につけた点のままです）。</div>`}
+  </div>`;
+}
+
+function pickSelf(pct){
+  const it = S.queue[S.idx], q = S.q, ok = pct >= SELF_OK;
+  if(!S.answered){
+    S.selfPct = pct;
+    record(it, q, ok);                     /* 最初の1回だけが答え合わせ。箱も成績もここで動く */
+  } else {
+    const prevOk = S.selfPct >= SELF_OK;
+    S.selfPct = pct;
+    if(prevOk !== ok){                     /* 付け直し: この回の成績表示だけ直す */
+      S.correct += ok ? 1 : -1;
+      if(!it.again){
+        if(ok) S.wrongs = S.wrongs.filter(x => x.uid !== it.uid); else S.wrongs.push(it);
+        saveOpen();
+      }
+    }
+  }
+  showFeedback(it, q, ok, S.fbExtra, true);
+}
+
+function skipSelf(){
+  if(!confirm('点をつけずに次の問題へ進みます。この問題は記録に残りません。')) return;
+  nextQ();
 }
 function hideThis(){
   const it = S.queue[S.idx], key = fmtMeta(it).trash;
