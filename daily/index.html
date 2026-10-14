@@ -596,6 +596,7 @@ async function pullGate(id){
       /* 2台で解いたぶんは多いほう、解除時刻は遅いほうを採る */
       ss(K_GATE, {n:Math.max(g.n, d.n|0), until:Math.max(g.until, +d.untilMs || 0)});
     }
+    else pushGate();   /* ショートカットが読みにいく先を先に作っておく（無いと判定できない） */
   }catch(e){ console.warn('ゲートの同期に失敗しました', e); }
 }
 function gateCount(){
