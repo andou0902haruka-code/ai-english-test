@@ -86,6 +86,7 @@ h1,h2,h3{line-height:1.4;margin:0;}
 .gatebar i{display:block;height:100%;background:var(--gate);}
 .gate-open{background:#eafaf2;border-radius:10px;padding:10px 12px;font-size:.9rem;margin-bottom:10px;}
 .gate-url{font-size:.72rem;word-break:break-all;background:#f4f5f9;border-radius:8px;padding:8px;margin-top:6px;user-select:all;}
+.gate-scope{margin:4px 0 10px;font-size:.88rem}.gate-scope summary{cursor:pointer;color:var(--sub);margin-bottom:8px}
 .gate-flash{outline:3px solid var(--gate);outline-offset:2px;}
 .qmeta{display:flex;justify-content:space-between;align-items:center;font-size:.82rem;color:var(--sub);margin-bottom:7px;}
 .prog{height:7px;background:#e4e8f0;border-radius:99px;overflow:hidden;margin-bottom:14px;}
@@ -253,6 +254,213 @@ input[type=text]:focus,textarea:focus{outline:none;border-color:var(--accent);}
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 <script>
+window.SNS_GATE_NO_BADGE = true;   /* このページはホームのカードで見せる */
+/* SNSGATE:JS:BEGIN */
+/* SNSゲート（5サイト共通）。正本は .claude/skills_assets/sns-gate/gate.js → inject.py で配る。
+   どのサイトでも答え合わせ1問ごとに SNSGate.count() を呼ぶ。30問ごとに「30分」が1回ぶんたまり、
+   使うと reviewLists/{合言葉}__sns_gate に解除時刻(until)を書く。iPhoneのショートカットがそれを読んで
+   Instagram・X・YouTube を開かせるか、日替わり学習ページへ飛ばすかを決める。
+   問数は Firestore の increment で足すので、どのサイト・どの端末で解いても1か所に合流する。 */
+(function (G) {
+  if (G.SNSGate) return;
+  var CFG = {
+    apiKey: 'AIzaSyASWojYpZ3KJBYG9V30Y4BmplUFORYOelw',
+    authDomain: 'ai-english-review.firebaseapp.com',
+    projectId: 'ai-english-review',
+    storageBucket: 'ai-english-review.firebasestorage.app',
+    messagingSenderId: '146537476580',
+    appId: '1:146537476580:web:4ef3dfdf9c0969f25b17f1'
+  };
+  var N = 30, MIN = 30, CK = 'sns_gate_cache';
+  var DAILY = 'https://andou0902haruka-code.github.io/ai-english-test/daily/';
+  var APPS = [
+    { nm: 'Instagram', url: 'instagram://' },
+    { nm: 'X', url: 'twitter://' },
+    { nm: 'YouTube', url: 'youtube://' }
+  ];
+  var FB = 'https://www.gstatic.com/firebasejs/10.14.1/';
+  var st = load(), ref = null, db = null, pend = 0, subs = [], lastHave = null;
+
+  function load() {
+    try { var v = JSON.parse(localStorage.getItem(CK)); if (v && typeof v === 'object') return { n: Math.max(0, v.n | 0), until: +v.until || 0 }; } catch (e) {}
+    return { n: 0, until: 0 };
+  }
+  function save() { try { localStorage.setItem(CK, JSON.stringify(st)); } catch (e) {} }
+  function sid() {
+    var v = null;
+    try { v = localStorage.getItem('aien_sync_id'); } catch (e) { return null; }
+    return (v && v !== '__none__') ? v : null;
+  }
+  function iso(ms) {   /* ショートカットの「入力から日付を取得」が読めるよう +09:00 つきにする */
+    return new Date(ms + 9 * 3600000).toISOString().slice(0, 19) + '+09:00';
+  }
+  function unlocks() { return Math.floor(st.n / N); }
+  function part() { return st.n % N; }
+  function leftMin() { return Math.max(0, Math.ceil((st.until - Date.now()) / 60000)); }
+  function notify() {
+    var have = unlocks();
+    if (lastHave !== null && have > lastHave) toast('📵 ' + N + '問たまりました！ SNSを' + MIN + '分使えます');
+    lastHave = have;
+    subs.forEach(function (f) { try { f(st); } catch (e) {} });
+    badge();
+  }
+  function stamp() { return G.firebase.firestore.FieldValue.serverTimestamp(); }
+
+  /* ---- クラウド ---- */
+  function script(src) {
+    return new Promise(function (ok, ng) {
+      var s = document.createElement('script'); s.src = src; s.onload = ok; s.onerror = ng;
+      document.head.appendChild(s);
+    });
+  }
+  function ensureFirebase() {
+    if (G.firebase && G.firebase.firestore) return Promise.resolve();
+    var p = G.firebase ? Promise.resolve() : script(FB + 'firebase-app-compat.js');
+    return p.then(function () { return G.firebase.firestore ? null : script(FB + 'firebase-firestore-compat.js'); });
+  }
+  function connect() {
+    var id = sid();
+    if (!id || typeof document === 'undefined') return;
+    ensureFirebase().then(function () {
+      var fb = G.firebase, app = null;
+      (fb.apps || []).forEach(function (a) { if (a.name === 'snsgate') app = a; });
+      app = app || fb.initializeApp(CFG, 'snsgate');
+      db = app.firestore();
+      ref = db.collection('reviewLists').doc(id + '__sns_gate');
+      ref.onSnapshot(function (s) {
+        if (!s.exists) {   /* ショートカットが読みにいく先を先に作っておく（無いと判定できない） */
+          ref.set({ n: 0, until: iso(0), untilMs: 0, updatedAt: stamp() }, { merge: true });
+          return;
+        }
+        var d = s.data();
+        st = { n: Math.max(0, d.n | 0) + pend, until: +d.untilMs || 0 };   /* pend = まだ送れていないぶん */
+        save(); notify();
+      }, function (e) { console.warn('SNSゲートの同期に失敗しました', e); });
+      if (pend) flush();
+    }).catch(function (e) { console.warn('SNSゲート: Firebaseを読み込めませんでした', e); });
+  }
+  function flush() {
+    if (!ref || !pend) return;
+    var k = pend; pend = 0;
+    ref.set({ n: G.firebase.firestore.FieldValue.increment(k), updatedAt: stamp() }, { merge: true })
+      .catch(function (e) { pend += k; console.warn('SNSゲートの送信に失敗しました', e); });
+  }
+
+  /* ---- 外から呼ぶもの ---- */
+  function count() {
+    st.n++; save(); pend++;
+    try { flush(); notify(); } catch (e) {}
+  }
+  function use() {
+    if (unlocks() < 1) { alert('あと ' + (N - part()) + '問 解くと使えます。'); return Promise.resolve(false); }
+    if (!ref) { alert('ゲートを使うには合言葉の共有をONにしてください。\nショートカットがクラウドの記録を読みにいくためです。'); return Promise.resolve(false); }
+    return db.runTransaction(function (tx) {
+      return tx.get(ref).then(function (s) {
+        var d = s.exists ? s.data() : {}, n = d.n | 0;
+        if (n < N) throw new Error('short');
+        var until = Math.max(Date.now(), +d.untilMs || 0) + MIN * 60000;   /* 残りがあれば足し算 */
+        tx.set(ref, { n: n - N, until: iso(until), untilMs: until, updatedAt: stamp() }, { merge: true });
+        return { n: n - N, until: until };
+      });
+    }).then(function (r) { st = r; save(); notify(); return true; })
+      .catch(function (e) {
+        alert(e && e.message === 'short' ? '問数が足りませんでした（別の端末で使った可能性があります）。'
+                                         : '送信できませんでした。通信状況を確かめてからもう一度押してください。');
+        return false;
+      });
+  }
+  function apiUrl() {
+    var id = sid();
+    if (!id) return '';
+    return 'https://firestore.googleapis.com/v1/projects/' + CFG.projectId + '/databases/(default)/documents/reviewLists/'
+      + encodeURIComponent(id + '__sns_gate') + '?key=' + CFG.apiKey;
+  }
+  function copyUrl() {
+    var u = apiUrl();
+    if (!u) { alert('先に合言葉の共有をONにしてください。'); return; }
+    var done = function () { alert('コピーしました。ショートカットの「URLの内容を取得」に貼ってください。'); };
+    if (G.navigator && navigator.clipboard) navigator.clipboard.writeText(u).then(done, function () { prompt('このURLをコピーしてください', u); });
+    else prompt('このURLをコピーしてください', u);
+  }
+  function appsHtml() {
+    return APPS.map(function (a) {
+      return '<a class="sg-app" href="' + a.url + '">' + a.nm + '</a>';
+    }).join('');
+  }
+  function hhmm(ms) { return new Date(ms).toTimeString().slice(0, 5); }
+
+  /* ---- 画面（右下の小さな札＋開くと出る板）。日替わり学習ページは自前のカードがあるので札を出さない ---- */
+  var CSS = '.sg-badge{position:fixed;right:10px;bottom:calc(10px + env(safe-area-inset-bottom));z-index:9998;'
+    + 'background:#8a5cf6;color:#fff;border:none;border-radius:99px;padding:6px 11px;font:600 12px/1.2 system-ui,sans-serif;'
+    + 'box-shadow:0 2px 8px rgba(0,0,0,.2);opacity:.9;cursor:pointer}'
+    + '.sg-badge.full{background:#1fa971}'
+    + '.sg-mask{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:9999;display:flex;align-items:flex-end;justify-content:center}'
+    + '.sg-panel{background:#fff;color:#222;width:100%;max-width:480px;border-radius:16px 16px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom));'
+    + 'font:14px/1.6 system-ui,sans-serif}'
+    + '.sg-panel h3{margin:0 0 6px;font-size:16px}.sg-sub{color:#666;font-size:12.5px}'
+    + '.sg-bar{height:10px;background:#eef0f6;border-radius:6px;overflow:hidden;margin:8px 0}.sg-bar i{display:block;height:100%;background:#8a5cf6}'
+    + '.sg-open{background:#eafaf2;border-radius:10px;padding:9px 11px;margin:8px 0}'
+    + '.sg-row{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}'
+    + '.sg-app,.sg-btn{flex:1;text-align:center;border-radius:10px;padding:9px 8px;font-weight:600;text-decoration:none;border:none;font-size:14px;cursor:pointer}'
+    + '.sg-app{background:#8a5cf6;color:#fff}.sg-btn{background:#8a5cf6;color:#fff}.sg-btn[disabled]{opacity:.45}'
+    + '.sg-btn.ghost{background:#f1f2f6;color:#555}.sg-link{color:#666;font-size:12px;text-decoration:underline;cursor:pointer;margin-top:10px;display:inline-block}'
+    + '.sg-toast{position:fixed;left:50%;bottom:calc(56px + env(safe-area-inset-bottom));transform:translateX(-50%);background:#1fa971;color:#fff;'
+    + 'padding:9px 14px;border-radius:10px;z-index:10000;font:600 13px system-ui,sans-serif;box-shadow:0 2px 10px rgba(0,0,0,.2)}';
+  function el(tag, cls, html) { var e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; }
+  function noBadge() { return !!G.SNS_GATE_NO_BADGE || typeof document === 'undefined' || !document.body; }
+  function badge() {
+    if (noBadge()) return;
+    var b = document.getElementById('sg-badge');
+    if (!b) {
+      var s = el('style', null, CSS); document.head.appendChild(s);
+      b = el('button', 'sg-badge'); b.id = 'sg-badge'; b.onclick = panel; document.body.appendChild(b);
+    }
+    var left = leftMin(), have = unlocks();
+    b.textContent = left ? '🔓 あと' + left + '分' : (have ? '📵 ' + MIN + '分×' + have : '📵 ' + part() + '/' + N);
+    b.classList.toggle('full', !!(left || have));
+  }
+  function panel() {
+    var old = document.getElementById('sg-mask'); if (old) old.remove();
+    var left = leftMin(), have = unlocks(), p = part();
+    var m = el('div', 'sg-mask'); m.id = 'sg-mask';
+    m.onclick = function (e) { if (e.target === m) m.remove(); };
+    m.innerHTML = '<div class="sg-panel">'
+      + '<h3>📵 SNSゲート</h3>'
+      + '<div class="sg-sub">どのサイトでも ' + N + '問 答え合わせをするごとに、Instagram・X・YouTube を ' + MIN + '分 使えます。</div>'
+      + (left ? '<div class="sg-open">🔓 あと <b>' + left + '分</b>（' + hhmm(st.until) + 'まで）<div class="sg-row">' + appsHtml() + '</div></div>' : '')
+      + '<div style="margin-top:8px">次の' + MIN + '分まで <b>' + p + ' / ' + N + '問</b>' + (have ? '（' + MIN + '分が <b>' + have + '回</b> たまっています）' : '') + '</div>'
+      + '<div class="sg-bar"><i style="width:' + (have ? 100 : Math.round(p / N * 100)) + '%"></i></div>'
+      + '<div class="sg-row"><button class="sg-btn" id="sg-use"' + (have ? '' : ' disabled') + '>'
+      + (have ? MIN + '分 使う' + (left ? '（残りに足す）' : '') : 'あと ' + (N - p) + '問') + '</button>'
+      + '<button class="sg-btn ghost" id="sg-close">閉じる</button></div>'
+      + '<a class="sg-link" href="' + DAILY + '">日替わり学習ページのゲートで解く</a>'
+      + '</div>';
+    document.body.appendChild(m);
+    document.getElementById('sg-close').onclick = function () { m.remove(); };
+    document.getElementById('sg-use').onclick = function () { use().then(function (ok) { if (ok) panel(); }); };
+  }
+  function toast(msg) {
+    if (typeof document === 'undefined' || !document.body) return;
+    var t = el('div', 'sg-toast', msg); document.body.appendChild(t);
+    setTimeout(function () { t.remove(); }, 3500);
+  }
+
+  G.SNSGate = {
+    N: N, MIN: MIN, APPS: APPS,
+    count: count, use: use, unlocks: unlocks, part: part, leftMin: leftMin, iso: iso,
+    state: function () { return { n: st.n, until: st.until }; },
+    onChange: function (f) { subs.push(f); },
+    apiUrl: apiUrl, copyUrl: copyUrl, panel: panel, connect: connect,
+    _set: function (v) { st = v; save(); lastHave = unlocks(); }   /* テスト用 */
+  };
+  lastHave = unlocks();
+  function start() { try { badge(); connect(); } catch (e) { console.warn('SNSゲートを起動できませんでした', e); } }
+  if (typeof document !== 'undefined' && document.createElement) {
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
+    else start();
+  }
+})(typeof window !== 'undefined' ? window : globalThis);
+/* SNSGATE:JS:END */
 /* =========================================================================
    今日の学習 / 今日の復習 / お気に入り  —— 7テスト横断の日替わり学習ページ
    データ（data/manifest.json, data/c/*.json）は extract.py が生成する。
@@ -525,7 +733,6 @@ async function initSync(){
       if(Array.isArray(d[K_HIST])){ ss(K_HIST, hsMerge(ls(K_HIST, null), d[K_HIST])); HS_LIST = null; }
     }
   }catch(e){ console.warn('学習記録の同期に失敗しました（オフラインの可能性）。この端末のデータで動きます。', e); }
-  await pullGate(id);
   favSyncDone = pullFavorites(id);
 }
 /* 7テストのお気に入りを読み込む。ホームを待たせないよう裏で走らせる */
@@ -557,93 +764,72 @@ function pushMine(key){
       .catch(e => console.warn('記録の送信に失敗しました', e));
   }catch(e){}
 }
-/* ---------------- SNSゲート ----------------
-   30問答え合わせをするごとに「30分ぶん」が1回たまる。使うと解除時刻(until)を
-   reviewLists/{合言葉}__sns_gate に書き込み、iPhoneのショートカットがそれを読んで
-   Instagram などを開かせるか、このページへ飛ばすかを決める。 */
-const GATE_N = 30, GATE_MIN = 30;
-const K_GATE = 'dq_gate';   /* {n: たまった問数, until: 解除が切れる時刻(ms)} */
-const GATE_APPS = [
-  {nm:'Instagram', url:'instagram://'},
-  {nm:'X', url:'twitter://'},
-  {nm:'YouTube', url:'youtube://'},
-];
-let _gateRef = null;
-function getGate(){
-  const g = ls(K_GATE, null);
-  return (g && typeof g === 'object') ? {n:Math.max(0, g.n|0), until:+g.until || 0} : {n:0, until:0};
+/* ---------------- SNSゲート（数える・使う・同期は下の SNSGATE ブロック＝5サイト共通） ----------------
+   このページでは右下の札を出さず、ホームのカードと「ゲートの問題を解く」（範囲を選べる）を出す。
+   ゲートで解いた問題も record() を通るので、復習の箱に入り「今日の復習」に戻ってくる。 */
+const K_GSCOPE = 'dq_gate_scope';   /* {t:[テスト], y:[形式], fresh} 空配列＝すべて。端末ごとの都合なので同期しない */
+function gateScope(){
+  const v = ls(K_GSCOPE, null) || {};
+  return { t: Array.isArray(v.t) ? v.t : [], y: Array.isArray(v.y) ? v.y : [], fresh: v.fresh !== false };
 }
-function gateLeftMin(){ return Math.max(0, Math.ceil((getGate().until - Date.now()) / 60000)); }
-function gateIso(ms){
-  /* ショートカットの「入力から日付を取得」が読めるよう、+09:00 つきのISO形式にする */
-  const d = new Date(ms + 9*3600000);
-  return d.toISOString().slice(0, 19) + '+09:00';
+function setGateScope(kind, key){
+  const sc = gateScope();
+  if(kind === 'fresh') sc.fresh = !sc.fresh;
+  else if(key === '*') sc[kind] = [];
+  else sc[kind] = sc[kind].includes(key) ? sc[kind].filter(x => x !== key) : sc[kind].concat(key);
+  ss(K_GSCOPE, sc);
+  gateRedraw(true);
 }
-function pushGate(){
-  if(!_gateRef) return Promise.resolve(false);
-  const g = getGate();
-  return _gateRef.set({ n:g.n, until:gateIso(g.until), untilMs:g.until,
-                        updatedAt: firebase.firestore.FieldValue.serverTimestamp() }, {merge:true})
-    .then(() => true).catch(e => { console.warn('ゲートの送信に失敗しました', e); return false; });
+function gatePool(){
+  const sc = gateScope(), withPara = sc.y.length ? sc.y.includes('p') : ls(K_PARA, false);
+  return ITEMS.filter(it => !isTrashed(it) && (withPara || it.ty !== 'p')
+    && (!sc.t.length || sc.t.includes(it.t)) && (!sc.y.length || sc.y.includes(it.ty)));
 }
-async function pullGate(id){
-  if(!_db) return;
-  try{
-    _gateRef = _db.collection('reviewLists').doc(id + '__sns_gate');
-    const snap = await Promise.race([_gateRef.get(), new Promise((_,j)=>setTimeout(()=>j(new Error('timeout')), 5000))]);
-    if(snap && snap.exists){
-      const d = snap.data(), g = getGate();
-      /* 2台で解いたぶんは多いほう、解除時刻は遅いほうを採る */
-      ss(K_GATE, {n:Math.max(g.n, d.n|0), until:Math.max(g.until, +d.untilMs || 0)});
-    }
-    else pushGate();   /* ショートカットが読みにいく先を先に作っておく（無いと判定できない） */
-  }catch(e){ console.warn('ゲートの同期に失敗しました', e); }
+function gateNeed(){ return SNSGate.N - SNSGate.part(); }
+function buildGate(){
+  const p = gatePool();
+  let base;
+  if(gateScope().fresh){
+    const fresh = shuffle(p.filter(it => !isSeen(it)));
+    base = fresh.concat(shuffle(p.filter(isSeen)));
+  } else base = shuffle(p);
+  return base.slice(0, gateNeed());
 }
-function gateCount(){
-  const g = getGate(); g.n++; ss(K_GATE, g);
-  if(g.n % 5 === 0 || g.n === GATE_N) pushGate();
+async function useGate(){ await SNSGate.use(); gateRedraw(); }
+function gateRedraw(openScope){
+  const g = document.getElementById('gate');
+  if(!g) return;
+  if(g.outerHTML !== undefined) g.outerHTML = gateHtml(openScope);
+  else showHome();
 }
-function gateUnlocks(){ return Math.floor(getGate().n / GATE_N); }
-async function useGate(){
-  const g = getGate();
-  if(g.n < GATE_N){ alert(`あと ${GATE_N - g.n}問 解くと使えます。`); return; }
-  if(!_gateRef){ alert('ゲートを使うには合言葉の共有をONにしてください（ページ下の🔗から）。\nショートカットがクラウドの記録を読みにいくためです。'); return; }
-  g.n -= GATE_N;
-  g.until = Math.max(Date.now(), g.until) + GATE_MIN*60000;   /* 残り時間があれば足し算 */
-  ss(K_GATE, g);
-  const sent = await pushGate();
-  if(!sent){
-    alert('送信できませんでした。通信状況を確かめてからもう一度押してください。');
-    g.n += GATE_N; g.until -= GATE_MIN*60000; ss(K_GATE, g);
-  }
-  showHome();
+function gateScopeHtml(open){
+  const sc = gateScope(), c = 'var(--gate)';
+  const chip = (kind, key, label, on) =>
+    `<button class="chip${on ? ' on' : ''}" style="--c:${c}" onclick="setGateScope('${kind}','${key}')">${esc(label)}</button>`;
+  const tests = Object.keys(MAN.tests);
+  const tys = Object.keys(TY_LABEL);
+  const n = gatePool().length;
+  return `<details class="gate-scope"${open ? ' open' : ''}><summary>🎯 出題の範囲（${sc.t.length || sc.y.length ? '絞り込み中' : 'すべて'}・${n.toLocaleString()}問）</summary>
+    <div class="chips"><span class="lbl">テスト</span>${chip('t','*','すべて',!sc.t.length)}${tests.map(t => chip('t', t, MAN.tests[t].short, sc.t.includes(t))).join('')}</div>
+    <div class="chips"><span class="lbl">形式</span>${chip('y','*','すべて',!sc.y.length)}${tys.map(y => chip('y', y, TY_LABEL[y], sc.y.includes(y))).join('')}</div>
+    <label class="toggle" style="--c:${c}"><input type="checkbox" ${sc.fresh ? 'checked' : ''} onchange="setGateScope('fresh')">まだ解いていない問題を優先する</label>
+  </details>`;
 }
-function gateApiUrl(){
-  const id = OK ? localStorage.getItem('aien_sync_id') : null;
-  if(!id || id === '__none__') return '';
-  return 'https://firestore.googleapis.com/v1/projects/' + SYNC_CONFIG.projectId
-       + '/databases/(default)/documents/reviewLists/' + encodeURIComponent(id + '__sns_gate')
-       + '?key=' + SYNC_CONFIG.apiKey;
-}
-function copyGateUrl(){
-  const u = gateApiUrl();
-  if(!u){ alert('先に合言葉の共有をONにしてください。'); return; }
-  const done = () => alert('コピーしました。ショートカットの「URLの内容を取得」に貼ってください。');
-  if(navigator.clipboard) navigator.clipboard.writeText(u).then(done, () => prompt('このURLをコピーしてください', u));
-  else prompt('このURLをコピーしてください', u);
-}
-function gateHtml(){
-  const g = getGate(), left = gateLeftMin(), have = gateUnlocks(), part = g.n % GATE_N;
+function gateHtml(openScope){
+  const g = SNSGate.state(), left = SNSGate.leftMin(), have = SNSGate.unlocks(), part = SNSGate.part();
+  const N = SNSGate.N, MIN = SNSGate.MIN, need = gateNeed(), n = Math.min(need, gatePool().length);
   const fromSns = /[?&]gate=1/.test((typeof location !== 'undefined' && location.search) || '');
   return `<div class="card corner${fromSns ? ' gate-flash' : ''}" id="gate" style="--c:var(--gate)">
     <h2>📵 SNSゲート</h2>
-    <p class="lead">${fromSns && !left ? '<b>SNSを開くには、先に問題を解きましょう。</b><br>' : ''}${GATE_N}問 答え合わせをするごとに、Instagram・X・YouTube を ${GATE_MIN}分 使えます。</p>
+    <p class="lead">${fromSns && !left ? '<b>SNSを開くには、先に問題を解きましょう。</b><br>' : ''}${N}問 答え合わせをするごとに、Instagram・X・YouTube を ${MIN}分 使えます。<br>このページ・表現メモ・英単語ノート・Next Stage・Gimmy のどこで解いても数えます。</p>
     ${left ? `<div class="gate-open">🔓 あと <b>${left}分</b> 使えます（${new Date(g.until).toTimeString().slice(0,5)}まで）
-      <div class="btnrow" style="margin-top:8px">${GATE_APPS.map(a => `<a class="btn sm" style="--c:var(--gate);text-decoration:none;text-align:center" href="${a.url}">${a.nm}</a>`).join('')}</div></div>` : ''}
-    <div class="muted">次の${GATE_MIN}分まで <b>${part} / ${GATE_N}問</b>${have ? `（使える${GATE_MIN}分が <b>${have}回</b> たまっています）` : ''}</div>
-    <div class="gatebar"><i style="width:${Math.round(have ? 100 : part/GATE_N*100)}%"></i></div>
-    <button class="btn" style="--c:var(--gate)" onclick="useGate()" ${have ? '' : 'disabled'}>${have ? `${GATE_MIN}分 使う${left ? '（今の残りに足す）' : ''}` : `あと ${GATE_N - part}問 で使えます`}</button>
-    <div class="rowline"><span class="mini" onclick="copyGateUrl()">⚙️ ショートカット用のURLをコピー</span></div>
+      <div class="btnrow" style="margin-top:8px">${SNSGate.APPS.map(a => `<a class="btn sm" style="--c:var(--gate);text-decoration:none;text-align:center" href="${a.url}">${a.nm}</a>`).join('')}</div></div>` : ''}
+    <div class="muted">次の${MIN}分まで <b>${part} / ${N}問</b>${have ? `（使える${MIN}分が <b>${have}回</b> たまっています）` : ''}</div>
+    <div class="gatebar"><i style="width:${Math.round(have ? 100 : part/N*100)}%"></i></div>
+    ${have ? `<button class="btn" style="--c:var(--gate);margin-bottom:9px" onclick="useGate()">${MIN}分 使う${left ? '（今の残りに足す）' : ''}</button>` : ''}
+    ${gateScopeHtml(openScope)}
+    <button class="btn${have ? ' ghost' : ''}" style="--c:var(--gate)" onclick="startSession('gate')" ${n ? '' : 'disabled'}>${n ? `🎯 ゲートの問題を ${n}問 解く` : 'この範囲には問題がありません'}</button>
+    <div class="rowline"><span class="mini" onclick="SNSGate.copyUrl()">⚙️ ショートカット用のURLをコピー</span></div>
   </div>`;
 }
 
@@ -1086,7 +1272,7 @@ function showHome(){
   ${open && open.rest && open.rest.length ? `
   <div class="card corner" style="--c:var(--warn)">
     <h2>↩️ 途中まで解いた問題があります</h2>
-    <p class="lead">${esc(open.mode === 'review' ? '今日の復習' : (open.mode === 'fav' ? 'お気に入り' : '今日の学習'))}の続きが ${open.rest.length}問 残っています。<br>ここまで解いたぶんは記録ずみです。</p>
+    <p class="lead">${esc(MODE_NAME[open.mode] || '今日の学習')}の続きが ${open.rest.length}問 残っています。<br>ここまで解いたぶんは記録ずみです。</p>
     <div class="btnrow">
       <button class="btn" style="--c:var(--warn)" onclick="resumeSession()">続きから解く</button>
       <button class="btn ghost sm" style="--c:var(--sub);flex:0 0 auto" onclick="dropSession()">やめる</button>
@@ -1145,12 +1331,13 @@ function showHome(){
 /* =========================== 出題 =========================== */
 let S = null;  /* 進行中のセッション */
 const XP_OK = {f:8, c:6, r:12, x:8, w:15, m:18, s:18, p:50};
-const MODE_COLOR = {learn:'var(--learn)', review:'var(--review)', fav:'var(--fav)'};
-const MODE_NAME  = {learn:'今日の学習', review:'今日の復習', fav:'お気に入り'};
+const MODE_COLOR = {learn:'var(--learn)', review:'var(--review)', fav:'var(--fav)', gate:'var(--gate)'};
+const MODE_NAME  = {learn:'今日の学習', review:'今日の復習', fav:'お気に入り', gate:'SNSゲート'};
 
 function startSession(mode, list){
   const q = list || (mode === 'review' ? buildReview()
                    : mode === 'fav' ? shuffle(favFiltered()).slice(0, 10)
+                   : mode === 'gate' ? buildGate()
                    : buildLearn());
   if(!q.length){ alert('出題できる問題がありません。'); return; }
   S = {mode, queue:q.slice(), idx:0, correct:0, done:0, wrongs:[], answered:false, startedAt:Date.now(), qStart:0};
@@ -1177,7 +1364,7 @@ function saveOpen(){
 function quitSession(){
   const left = S.queue.length - S.idx;
   if(!confirm(`ここでやめます。解いた ${S.done}問はすでに記録ずみです。\n残り ${left}問はホームの「続きから」に残ります。`)) return;
-  saveOpen(); stopAudio(); pushGate(); S = null; showHome();
+  saveOpen(); stopAudio(); S = null; showHome();
 }
 
 async function renderQ(){
@@ -1199,7 +1386,7 @@ async function renderQ(){
     <span class="backlink" onclick="quitSession()">← 中断する${S.done ? `（ここまでの ${S.done}問は記録ずみ）` : ''}</span>
     <div class="qmeta">
       <span>${MODE_NAME[S.mode]}${it.again ? '・おかわり' : ''}</span>
-      <span>📵 ${getGate().n % GATE_N}/${GATE_N}${gateUnlocks() ? `（+${gateUnlocks()}回）` : ''}　Q ${S.idx+1} / ${total}</span>
+      <span>📵 ${SNSGate.part()}/${SNSGate.N}${SNSGate.unlocks() ? `（+${SNSGate.unlocks()}回）` : ''}　Q ${S.idx+1} / ${total}</span>
     </div>
     <div class="prog" style="--c:${c}"><i style="width:${pct}%"></i></div>
     <div class="card">
@@ -1390,7 +1577,7 @@ function record(it, q, correct){
     return;
   }
   markSeen(it);
-  gateCount();
+  SNSGate.count();
   updateSrs(it.uid, correct);
   const ht = histText(it, q);
   S.histT = Date.now();   /* 点を付け直したとき、同じ1件を書き換えるための目印 */
@@ -1516,7 +1703,6 @@ function nextQ(){
 function showResult(){
   stopAudio();
   hsFlush();   /* この回の履歴をクラウドへ送る（結果画面が区切り） */
-  pushGate();
   const n = S.done, ok = Math.min(S.correct, n), rate = n ? ok/n : 0;
   const fresh = checkBadges({acc90: n >= 10 && rate >= 0.9});
   let stars, msg;
@@ -1538,8 +1724,8 @@ function showResult(){
         <span>＋${S.gain||0} XP</span><span>🔥 ${streakDays()}日</span><span>Lv.${L.lv}</span>
       </div>
       ${fresh.length ? `<div class="newbadge">🎉 バッジ獲得！ ${fresh.map(b => b.ic + ' ' + esc(b.nm)).join(' / ')}</div>` : ''}
-      ${gateUnlocks() ? `<div class="gate-open center" style="margin-top:12px">📵 SNSを${GATE_MIN}分使えます（${gateUnlocks()}回ぶん）。ホームの「SNSゲート」から使えます。</div>`
-        : `<div class="muted center" style="margin-top:12px">📵 SNSゲートまで あと ${GATE_N - getGate().n % GATE_N}問</div>`}
+      ${SNSGate.unlocks() ? `<div class="gate-open center" style="margin-top:12px">📵 SNSを${SNSGate.MIN}分使えます（${SNSGate.unlocks()}回ぶん）。ホームの「SNSゲート」から使えます。</div>`
+        : `<div class="muted center" style="margin-top:12px">📵 SNSゲートまで あと ${gateNeed()}問</div>`}
       <div class="muted center" style="margin-top:14px">まちがえた ${S.wrongs.length}問は、明日また「今日の復習」に出ます。</div>
       <div class="btnrow" style="margin-top:16px">
         <button class="btn" style="--c:${MODE_COLOR[mode]}" onclick="startSession('${mode}')">もう1セット</button>
