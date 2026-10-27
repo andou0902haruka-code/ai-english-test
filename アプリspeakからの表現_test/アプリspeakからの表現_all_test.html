@@ -1174,7 +1174,24 @@ function rvLimit() {
   if (!(tc >= 0)) tc = Infinity;
   return Math.min(c.cap, Math.max(1, Math.round(tc)));
 }
-function rvLeft() { return Math.max(0, rvLimit() - rvDone()); }
+/* ノルマ（30問）の残り。画面の「◯／30問」はこちらで出す */
+function rvQuotaLeft() { return Math.max(0, rvLimit() - rvDone()); }
+/* ---- 自由復習（2026-10-27） ----
+   ノルマの30問を終えたあと、本人が選んだ日だけ期限の来た問題を続けて解ける。ノルマは30問のまま。
+   答えはふだんの復習と同じに記録する（箱も動く・回数は31, 32…と数える）。この端末の、その日だけ */
+var RV_FREE_ROUND = 30;   /* 自由復習の1回の出題数 */
+function rvFreeKey() { return rvKey() + '_free'; }
+function rvFree() { var v = null; try { v = localStorage.getItem(rvFreeKey()); } catch (e) {} return Number(v) === rvToday(); }
+function rvSetFree(on) { try { if (on) localStorage.setItem(rvFreeKey(), String(rvToday())); else localStorage.removeItem(rvFreeKey()); } catch (e) {} }
+/* 枠を使い切って出題できなかったときに呼ぶ。期限の来た問題が残っていれば自由復習に進むか聞く */
+function rvAskFree(ids) {
+  if (rvFree() || rvQuotaLeft() > 0 || !rvDueIds(ids).length || typeof confirm === 'undefined') return false;
+  if (!confirm('今日のノルマ（' + rvLimit() + rvUnit() + '）は達成ずみです。\nこのあとも自由に復習を続けますか？（ノルマは' + rvLimit() + rvUnit() + 'のまま。答えはふだんどおり記録されます）')) return false;
+  rvSetFree(true);
+  return true;
+}
+/* 出題に使う残り枠。自由復習中は上限なし */
+function rvLeft() { return rvFree() ? 1e6 : rvQuotaLeft(); }
 function rvRetryDone() { return rvTodayEv().filter(function (e) { return e.k === 'a'; }).length; }
 function rvEnrolledToday() { return rvTodayEv().filter(function (e) { return (e.k === 'n' && e.en) || e.k === 'e'; }).length; }
 
@@ -1341,7 +1358,7 @@ function rvLate(id) {
 function rvIsWeak(s) { return s.g === 3 || s.g === 2 || (s.box | 0) <= 1; }
 function rvPick(ids, n) {
   var c = rvCfg(), due = rvDueIds(ids), it = rvItems();
-  if (n == null) n = rvLeft();
+  if (n == null) n = rvFree() ? Math.max(RV_FREE_ROUND, rvQuotaLeft()) : rvLeft();
   n = Math.max(0, Math.min(n, due.length));
   if (!n) return [];
   var weak = [], rest = [];
@@ -1562,10 +1579,14 @@ function rvEsc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, functi
 function rvLabel(id) { var f = rvEnv().label; try { return f ? (f(id) || String(id)) : String(id); } catch (e) { return String(id); } }
 /* 「このアプリの今日の復習：12／30問」。未消化の総数は大きく出さない（詳細の中だけ） */
 function rvBarHtml(ids) {
-  var c = rvCfg(), done = rvDone(), lim = rvLimit(), left = rvLeft(), u = rvUnit();
+  var c = rvCfg(), done = rvDone(), lim = rvLimit(), left = rvQuotaLeft(), u = rvUnit();
   var due = rvDueIds(ids).length, pct = Math.min(100, Math.round(done / Math.max(1, lim) * 100));
-  var msg;
-  if (left <= 0) msg = '<b>このアプリの今日の復習はここまでです。</b>おつかれさまでした。解説・一覧・履歴はこのまま見られます。';
+  var msg, free = rvFree();
+  if (left <= 0 && free) msg = '<b>今日のノルマは達成ずみ。いまは自由復習中です</b>（+' + (done - lim) + u + '）。期限の来た問題があと ' + due + u + '。'
+    + (due ? '' : 'もう残っていません。') + '<br><button type="button" class="rv-btn" onclick="rvUi(\'free\',false)">自由復習をやめる</button>';
+  else if (left <= 0) msg = '<b>今日のノルマ（' + lim + u + '）は達成です。</b>おつかれさまでした。'
+    + (due ? '<br><button type="button" class="rv-btn rv-on" onclick="rvUi(\'free\',true)">もっと復習する（期限の来た問題 あと' + due + u + '・ノルマは' + lim + u + 'のまま）</button>'
+      : '期限の来た問題はもう残っていません。');
   else if (!due) msg = done ? '期限が来ている問題はもうありません。<b>今日の復習は完了です</b>（' + c.cap + u + 'に届かなくても大丈夫です）。'
     : '今日は期限が来ている問題がありません。新しく覚える入口から進められます。';
   else msg = '今日はあと最大 <b>' + Math.min(left, due) + '</b>' + u + '。直近でまちがえた・弱い問題を最大' + c.weak + u + '、長く待っている問題を最大' + (c.cap - c.weak) + u + 'の割合で選びます。';
@@ -1574,6 +1595,16 @@ function rvBarHtml(ids) {
     + '<div class="rv-bar-top">このアプリの今日の復習：<b>' + done + '</b>／' + lim + u + tnote + '</div>'
     + '<div class="rv-meter"><i style="width:' + pct + '%"></i></div>'
     + '<div class="rv-bar-sub">' + msg + '</div></div>';
+}
+/* 結果画面などの「今日はここまで」の代わり。ノルマを終えていれば、自由復習へ進むボタンを出す。
+   start＝押したあとに実行するJS（そのアプリの「今日の復習を始める」）。ノルマが残っていれば空 */
+function rvDoneHtml(start, ids) {
+  if (rvQuotaLeft() > 0) return '';
+  var u = rvUnit(), lim = rvLimit(), due = rvDueIds(ids).length;
+  if (rvFree()) return '<div class="rv-note">今日のノルマ（' + lim + u + '）は達成ずみ。自由復習中です（+' + (rvDone() - lim) + u + '・期限の来た問題 あと' + due + u + '）。</div>';
+  return '<div class="rv-note"><b>今日のノルマ（' + lim + u + '）は達成です。</b>解説・一覧・履歴はこのまま見られます。'
+    + (due ? '<br><button type="button" class="rv-btn rv-on" onclick="rvSetFree(true);' + rvEsc(start || 'rvChanged()') + '">もっと復習する（期限の来た問題 あと' + due + u + '・ノルマは' + lim + u + 'のまま）</button>' : '')
+    + '</div>';
 }
 /* 3段階の自己採点ボタン。fn は押したときに呼ぶ関数名（点 100/60/0 を渡す）。
    opt.hint=true（ヒントを見た）なら①は押せない。opt.sel=いまの点（付け直し画面で印を付ける）
@@ -1668,6 +1699,7 @@ function rvUi(act, v) {
   else if (act === 'capAll') rvSetCfg('capAll', !!v);
   else if (act === 'newPerDay') rvSetCfg('newPerDay', v | 0);
   else if (act === 'enroll') rvEnrollWaiting();
+  else if (act === 'free') rvSetFree(!!v);
   else if (act === 'detail') return rvShowDetail(v);
   rvChanged();
 }
@@ -1769,11 +1801,15 @@ function rvbWrap() {
     if (typeof f !== 'function' || f._rvb) return;
     var g = function () {
       RVB_RUN++;                                  /* 新しい回が始まった（同じ問題の二重記録よけの区切り） */
+      RVB_PRAC = false; RVB_WRONG = [];           /* ふつうの回にもどる。まちがえた問題はこの回から数え直す */
+      rvbRetryBtn();
       var list = f.apply(this, arguments) || [];
       if (!rvbTest() || !list.length) return list;
       var keep = {}, r = rvGate(list.map(rvbUid));
+      if (!r.ids.length && rvAskFree(list.map(rvbUid))) r = rvGate(list.map(rvbUid));   /* ノルマ達成後の自由復習 */
       r.ids.forEach(function (u) { keep[u] = 1; });
       var out = list.filter(function (q) { return keep[rvbUid(q)]; });
+      rvbChip();
       if (!out.length) {
         alert(rvLeft() <= 0
           ? 'AIEnglishテスト集の今日の復習はここまでです（日替わり学習ページとあわせて1日' + rvCfg().cap + '問まで）。\n解説や復習リストはこのまま見られます。'
@@ -1794,14 +1830,21 @@ function rvbAnswer(correct, pct) {
   var key = RVB_RUN + '#' + rvbUid(q) + '#' + currentIndex;
   if (RVB_LAST.key === key) return;             /* 同じ問題を二重に記録しない（ボタンの連打など） */
   var p = pct == null ? (correct ? 100 : 0) : pct;
+  rvbMarkWrong(q, p);
+  if (RVB_PRAC) {                               /* 再挑戦＝練習。記録しない */
+    RVB_LAST = { key: key, eid: null, pct: p, res: null, q: q };
+    rvbRetryBtn();
+    return;
+  }
   var r = rvAnswer(rvbUid(q), p, { fmt: q.type === 'choice' ? 'c' : q.type === 'match' ? 'm' : rvbFmt() });
   if (r.enrolled && !r.dup) rvAienCount(rvbUid(q), p >= 80);
-  RVB_LAST = { key: key, eid: r.eid, pct: p, res: r };
+  RVB_LAST = { key: key, eid: r.eid, pct: p, res: r, q: q };
   rvbChip();
   if (rvbTest() !== 'toefl') setTimeout(rvbPanel, 0);   /* TOEFL和文英訳は自前の自己採点を付け直しに使う */
 }
 /* 採点の付け直し（同じ回答の修正。回数は増やさない） */
 function rvbFix(pct) {
+  if (RVB_LAST.q) rvbMarkWrong(RVB_LAST.q, pct);
   if (!RVB_LAST.eid) return;
   rvRegrade(RVB_LAST.eid, pct);
   RVB_LAST.pct = pct;
@@ -1820,9 +1863,50 @@ function rvbPanel() {
 }
 /* TOEFL和文英訳: 自己採点（20〜100%）を押したら同じ回答の付け直しにする。取り消し（null）は自動判定に戻す */
 function rvbSelf(v) {
-  if (!RVB_LAST.eid) return;
+  if (!RVB_LAST.eid && !RVB_PRAC) return;
   var e = (typeof answerLog !== 'undefined') ? answerLog[currentIndex] : null;
   rvbFix(v == null ? ((e && e.auto) ? 100 : 0) : v);
+}
+/* ---- まちがえた問題に再挑戦（2026-10-27） ----
+   いまの回（途中でも・結果画面でも）でまちがえた問題（①以外）を、画面左下のボタンからもう一度。
+   練習なので記録しない（箱・1日30問の回数は1回目のまま＝明日の復習にはふつうに出る）。
+   再挑戦でもまちがえたら、またそこから再挑戦できる。ページを開き直すと消える */
+var RVB_WRONG = [], RVB_PRAC = false;
+function rvbMarkWrong(q, p) {
+  var u = rvbUid(q), at = -1;
+  RVB_WRONG.forEach(function (x, i) { if (rvbUid(x) === u) at = i; });
+  if (p < 80 && at < 0) RVB_WRONG.push(q);
+  if (p >= 80 && at >= 0) RVB_WRONG.splice(at, 1);
+  rvbRetryBtn();
+}
+function rvbRetryBtn() {
+  var b = document.getElementById('rvbRetry');
+  if (!b) {
+    b = document.createElement('button');
+    b.id = 'rvbRetry'; b.type = 'button'; b.onclick = rvbRetry;
+    b.style.cssText = 'position:fixed;left:10px;bottom:10px;z-index:9997;border:1px solid #c4473d;background:#fff;color:#c4473d;border-radius:999px;padding:5px 12px;font-size:12px;box-shadow:0 2px 8px rgba(0,0,0,.12);cursor:pointer';
+    document.body.appendChild(b);
+  }
+  b.style.display = RVB_WRONG.length ? '' : 'none';
+  b.textContent = 'まちがえた' + RVB_WRONG.length + '問に再挑戦' + (RVB_PRAC ? '（練習中）' : '');
+}
+function rvbRetry() {
+  var n = RVB_WRONG.length;
+  if (!n) return;
+  if (!confirm('まちがえた' + n + '問に再挑戦します（練習なので記録はしません。明日の復習は1回目の採点どおりに出ます）。\nいま解いている回は、ここで終わります。')) return;
+  var list = RVB_WRONG.slice();
+  for (var i = list.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)), t = list[i]; list[i] = list[j]; list[j] = t; }
+  RVB_WRONG = []; RVB_PRAC = true; RVB_RUN++;
+  sessionQuestions = list; currentIndex = 0;
+  currentMode = 'rvb_retry';   /* 結果画面の「もう一度」はこの再挑戦をくり返す（ランダム10問の出題済みにも入れない） */
+  if (typeof score !== 'undefined') score = 0;
+  if (typeof answerLog !== 'undefined') answerLog = [];
+  rvbRetryBtn();
+  if (typeof screen === 'string' && typeof render === 'function') { screen = 'question'; render(); }
+  else if (typeof showQuestion === 'function' && typeof showScreen === 'function') { showQuestion(); showScreen('screen-quiz'); }
+  else if (typeof renderQuestion === 'function') renderQuestion();
+  else if (typeof renderQuestionScreen === 'function') renderQuestionScreen();   /* 駿台単語 */
+  if (typeof window.scrollTo === 'function') window.scrollTo(0, 0);
 }
 function rvbToast(msg) {
   var t = document.createElement('div');

@@ -1019,7 +1019,24 @@ function rvLimit() {
   if (!(tc >= 0)) tc = Infinity;
   return Math.min(c.cap, Math.max(1, Math.round(tc)));
 }
-function rvLeft() { return Math.max(0, rvLimit() - rvDone()); }
+/* ノルマ（30問）の残り。画面の「◯／30問」はこちらで出す */
+function rvQuotaLeft() { return Math.max(0, rvLimit() - rvDone()); }
+/* ---- 自由復習（2026-10-27） ----
+   ノルマの30問を終えたあと、本人が選んだ日だけ期限の来た問題を続けて解ける。ノルマは30問のまま。
+   答えはふだんの復習と同じに記録する（箱も動く・回数は31, 32…と数える）。この端末の、その日だけ */
+var RV_FREE_ROUND = 30;   /* 自由復習の1回の出題数 */
+function rvFreeKey() { return rvKey() + '_free'; }
+function rvFree() { var v = null; try { v = localStorage.getItem(rvFreeKey()); } catch (e) {} return Number(v) === rvToday(); }
+function rvSetFree(on) { try { if (on) localStorage.setItem(rvFreeKey(), String(rvToday())); else localStorage.removeItem(rvFreeKey()); } catch (e) {} }
+/* 枠を使い切って出題できなかったときに呼ぶ。期限の来た問題が残っていれば自由復習に進むか聞く */
+function rvAskFree(ids) {
+  if (rvFree() || rvQuotaLeft() > 0 || !rvDueIds(ids).length || typeof confirm === 'undefined') return false;
+  if (!confirm('今日のノルマ（' + rvLimit() + rvUnit() + '）は達成ずみです。\nこのあとも自由に復習を続けますか？（ノルマは' + rvLimit() + rvUnit() + 'のまま。答えはふだんどおり記録されます）')) return false;
+  rvSetFree(true);
+  return true;
+}
+/* 出題に使う残り枠。自由復習中は上限なし */
+function rvLeft() { return rvFree() ? 1e6 : rvQuotaLeft(); }
 function rvRetryDone() { return rvTodayEv().filter(function (e) { return e.k === 'a'; }).length; }
 function rvEnrolledToday() { return rvTodayEv().filter(function (e) { return (e.k === 'n' && e.en) || e.k === 'e'; }).length; }
 
@@ -1186,7 +1203,7 @@ function rvLate(id) {
 function rvIsWeak(s) { return s.g === 3 || s.g === 2 || (s.box | 0) <= 1; }
 function rvPick(ids, n) {
   var c = rvCfg(), due = rvDueIds(ids), it = rvItems();
-  if (n == null) n = rvLeft();
+  if (n == null) n = rvFree() ? Math.max(RV_FREE_ROUND, rvQuotaLeft()) : rvLeft();
   n = Math.max(0, Math.min(n, due.length));
   if (!n) return [];
   var weak = [], rest = [];
@@ -1407,10 +1424,14 @@ function rvEsc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, functi
 function rvLabel(id) { var f = rvEnv().label; try { return f ? (f(id) || String(id)) : String(id); } catch (e) { return String(id); } }
 /* 「このアプリの今日の復習：12／30問」。未消化の総数は大きく出さない（詳細の中だけ） */
 function rvBarHtml(ids) {
-  var c = rvCfg(), done = rvDone(), lim = rvLimit(), left = rvLeft(), u = rvUnit();
+  var c = rvCfg(), done = rvDone(), lim = rvLimit(), left = rvQuotaLeft(), u = rvUnit();
   var due = rvDueIds(ids).length, pct = Math.min(100, Math.round(done / Math.max(1, lim) * 100));
-  var msg;
-  if (left <= 0) msg = '<b>このアプリの今日の復習はここまでです。</b>おつかれさまでした。解説・一覧・履歴はこのまま見られます。';
+  var msg, free = rvFree();
+  if (left <= 0 && free) msg = '<b>今日のノルマは達成ずみ。いまは自由復習中です</b>（+' + (done - lim) + u + '）。期限の来た問題があと ' + due + u + '。'
+    + (due ? '' : 'もう残っていません。') + '<br><button type="button" class="rv-btn" onclick="rvUi(\'free\',false)">自由復習をやめる</button>';
+  else if (left <= 0) msg = '<b>今日のノルマ（' + lim + u + '）は達成です。</b>おつかれさまでした。'
+    + (due ? '<br><button type="button" class="rv-btn rv-on" onclick="rvUi(\'free\',true)">もっと復習する（期限の来た問題 あと' + due + u + '・ノルマは' + lim + u + 'のまま）</button>'
+      : '期限の来た問題はもう残っていません。');
   else if (!due) msg = done ? '期限が来ている問題はもうありません。<b>今日の復習は完了です</b>（' + c.cap + u + 'に届かなくても大丈夫です）。'
     : '今日は期限が来ている問題がありません。新しく覚える入口から進められます。';
   else msg = '今日はあと最大 <b>' + Math.min(left, due) + '</b>' + u + '。直近でまちがえた・弱い問題を最大' + c.weak + u + '、長く待っている問題を最大' + (c.cap - c.weak) + u + 'の割合で選びます。';
@@ -1419,6 +1440,16 @@ function rvBarHtml(ids) {
     + '<div class="rv-bar-top">このアプリの今日の復習：<b>' + done + '</b>／' + lim + u + tnote + '</div>'
     + '<div class="rv-meter"><i style="width:' + pct + '%"></i></div>'
     + '<div class="rv-bar-sub">' + msg + '</div></div>';
+}
+/* 結果画面などの「今日はここまで」の代わり。ノルマを終えていれば、自由復習へ進むボタンを出す。
+   start＝押したあとに実行するJS（そのアプリの「今日の復習を始める」）。ノルマが残っていれば空 */
+function rvDoneHtml(start, ids) {
+  if (rvQuotaLeft() > 0) return '';
+  var u = rvUnit(), lim = rvLimit(), due = rvDueIds(ids).length;
+  if (rvFree()) return '<div class="rv-note">今日のノルマ（' + lim + u + '）は達成ずみ。自由復習中です（+' + (rvDone() - lim) + u + '・期限の来た問題 あと' + due + u + '）。</div>';
+  return '<div class="rv-note"><b>今日のノルマ（' + lim + u + '）は達成です。</b>解説・一覧・履歴はこのまま見られます。'
+    + (due ? '<br><button type="button" class="rv-btn rv-on" onclick="rvSetFree(true);' + rvEsc(start || 'rvChanged()') + '">もっと復習する（期限の来た問題 あと' + due + u + '・ノルマは' + lim + u + 'のまま）</button>' : '')
+    + '</div>';
 }
 /* 3段階の自己採点ボタン。fn は押したときに呼ぶ関数名（点 100/60/0 を渡す）。
    opt.hint=true（ヒントを見た）なら①は押せない。opt.sel=いまの点（付け直し画面で印を付ける）
@@ -1513,6 +1544,7 @@ function rvUi(act, v) {
   else if (act === 'capAll') rvSetCfg('capAll', !!v);
   else if (act === 'newPerDay') rvSetCfg('newPerDay', v | 0);
   else if (act === 'enroll') rvEnrollWaiting();
+  else if (act === 'free') rvSetFree(!!v);
   else if (act === 'detail') return rvShowDetail(v);
   rvChanged();
 }
@@ -2369,6 +2401,7 @@ function startSession(mode, list){
                    : mode === 'gate' ? buildGate()
                    : buildLearn());
   const q = gateItems(raw);   /* どの入口でも、復習対象の問題は今日の残り枠のぶんまで（テスト本体と共通の30問） */
+  if(!q.length && raw.length && rvAskFree()) return startSession(mode, list);
   if(!q.length){ alert(raw.length && rvLeft() <= 0 ? 'AIEnglishテスト集の今日の復習はここまでです（7つのテストとあわせて1日' + rvCfg().cap + '問）。\n解説・お気に入り・履歴はこのまま見られます。'
                        : raw.length ? 'この範囲は、今日すでに答えた問題・休止中の問題だけです。' : '出題できる問題がありません。'); return; }
   S = {mode, queue:q.slice(), idx:0, correct:0, done:0, wrongs:[], answered:false, startedAt:Date.now(), qStart:0, cut:0};
@@ -2387,15 +2420,31 @@ function resumeSession(){
   renderQ();
 }
 function dropSession(){ ss(K_OPEN, null); showHome(); }
+/* ---- まちがえた問題に再挑戦（2026-10-27） ----
+   結果画面（途中でやめた回もふくむ）から、その回でまちがえた問題だけをもう一度。
+   練習なので記録しない（箱・1日30問の回数・成績・XP・履歴は1回目のまま＝明日の復習にはふつうに出る）。
+   再挑戦でもまちがえたら、またそこから再挑戦できる */
+let LAST_WRONGS = [], LAST_MODE = 'learn';
+function retryWrong(){
+  if(!LAST_WRONGS.length) return;
+  S = {mode:LAST_MODE, queue:shuffle(LAST_WRONGS.map(x => Object.assign({}, x, {again:false}))), idx:0, correct:0, done:0, wrongs:[], answered:false, startedAt:Date.now(), qStart:0, cut:0, prac:true};
+  prefetch(S.queue.slice(0, 4).map(x => x.uid));
+  renderQ();
+}
 function saveOpen(){
+  if(S && S.prac) return;   /* 再挑戦は「続きから」に残さない */
   if(!S){ ss(K_OPEN, null); return; }
   const rest = S.queue.slice(S.answered ? S.idx + 1 : S.idx).filter(it => !it.again).map(it => it.uid);   /* 答えた問題は「続きから」に残さない */
   ss(K_OPEN, rest.length ? {mode:S.mode, rest} : null);
 }
 function quitSession(){
   const left = S.queue.length - S.idx;
-  if(!confirm(`ここでやめます。解いた ${S.done}問はすでに記録ずみです。\n残り ${left}問はホームの「続きから」に残ります。`)) return;
-  saveOpen(); stopAudio(); S = null; showHome();
+  if(S.prac){
+    if(!confirm('再挑戦をやめますか？（練習なので記録は変わりません）')) return;
+  } else if(!confirm(`ここでやめます。解いた ${S.done}問はすでに記録ずみです。\n残り ${left}問はホームの「続きから」に残ります。`)) return;
+  saveOpen(); stopAudio();
+  if(S.done){ S.quit = true; showResult(); return; }   /* 結果画面へ（まちがえた問題に再挑戦 が押せる） */
+  S = null; showHome();
 }
 
 async function renderQ(){
@@ -2403,10 +2452,10 @@ async function renderQ(){
   S.answered = false; S.revealed = false;
   S.selfPct = null; S.fbExtra = ''; S.auto = false; S.eid = null; S.rv = null;
   /* 出す直前に確かめる（テスト本体・別の端末で今日の枠を使い切った／今日もう答えた問題は飛ばす） */
-  while(S.idx < S.queue.length && !rvServeOk(S.queue[S.idx].uid, !!S.queue[S.idx].again)){ S.queue.splice(S.idx, 1); S.cut++; }
-  if(S.idx >= S.queue.length){ ss(K_OPEN, null); return S.done ? showResult() : (alert('AIEnglishテスト集の今日の復習はここまでです。'), (S = null), showHome()); }
+  while(!S.prac && S.idx < S.queue.length && !rvServeOk(S.queue[S.idx].uid, !!S.queue[S.idx].again)){ S.queue.splice(S.idx, 1); S.cut++; }
+  if(S.idx >= S.queue.length){ if(!S.prac) ss(K_OPEN, null); return S.done ? showResult() : (alert('AIEnglishテスト集の今日の復習はここまでです。'), (S = null), showHome()); }
   const it = S.queue[S.idx];
-  if(!rvEnrolled(it.uid)) rvView(it.uid);   /* 閲覧した（答え合わせ前） */
+  if(!S.prac && !rvEnrolled(it.uid)) rvView(it.uid);   /* 閲覧した（答え合わせ前） */
   const c = MODE_COLOR[S.mode];
   app().innerHTML = `<div class="loading"><span class="spin"></span>問題を読み込んでいます…</div>`;
   const q = await getQ(it.uid);
@@ -2420,7 +2469,7 @@ async function renderQ(){
   app().innerHTML = `
     <span class="backlink" onclick="quitSession()">← 中断する${S.done ? `（ここまでの ${S.done}問は記録ずみ）` : ''}</span>
     <div class="qmeta">
-      <span>${MODE_NAME[S.mode]}${it.again ? '・解き直し（箱は動かしません）' : ''}　今日の復習 ${rvDone()}/${rvLimit()}</span>
+      <span>${MODE_NAME[S.mode]}${it.again ? '・解き直し（箱は動かしません）' : ''}${S.prac ? '・再挑戦（練習・記録しない）' : ''}　今日の復習 ${rvDone()}/${rvLimit()}</span>
       <span>📵 ${SNSGate.part()}/${SNSGate.N}${SNSGate.unlocks() ? `（+${SNSGate.unlocks()}回）` : ''}　Q ${S.idx+1} / ${total}</span>
     </div>
     <div class="prog" style="--c:${c}"><i style="width:${pct}%"></i></div>
@@ -2608,6 +2657,11 @@ function record(it, q, correct){
   S.answered = true;
   const sec = Math.min(600, (Date.now() - S.qStart)/1000);
   const pct = S.selfPct == null ? (correct ? 100 : 0) : S.selfPct;
+  if(S.prac){                         /* 再挑戦＝練習。この回の結果だけに残す */
+    S.done++;
+    if(correct) S.correct++; else S.wrongs.push(it);
+    return;
+  }
   const r = updateSrs(it.uid, correct, pct, { fmt: it.ty, retry: !!it.again });
   S.eid = r.eid; S.rv = r;
   if(it.again){                       /* 当日の解き直しは30問に数えるが、箱も成績も動かさない */
@@ -2697,7 +2751,7 @@ function pickSelf(pct, auto){
     /* 付け直し＝同じ回答の修正。回数は増やさず、回答前の状態から箱と期限を計算し直す（rv.js）。
        学習の履歴も付け直した点で書き換える */
     if(S.eid) S.rv = rvRegrade(S.eid, pct) || S.rv;
-    if(!it.again && prevOk !== ok){ const o = getSrs(), e = o[it.uid]; if(e){ e.correct = Math.max(0, (e.correct|0) + (ok ? 1 : -1)); e.wrong = Math.max(0, (e.wrong|0) + (ok ? -1 : 1)); ss(K_SRS, o); RVE_PUSH(); } }
+    if(!it.again && !S.prac && prevOk !== ok){ const o = getSrs(), e = o[it.uid]; if(e){ e.correct = Math.max(0, (e.correct|0) + (ok ? 1 : -1)); e.wrong = Math.max(0, (e.wrong|0) + (ok ? -1 : 1)); ss(K_SRS, o); RVE_PUSH(); } }
     if(!it.again && S.histT){
       const ht2 = histText(it, q);
       hsAdd({ t:S.histT, q:S.histQ, a:ht2.a, p:pct, k:histKind(it) });
@@ -2732,13 +2786,13 @@ function openTest(){
 function nextQ(){
   if(S.idx < S.queue.length - 1){ S.idx++; saveOpen(); renderQ(); return; }
   /* 当日の解き直し（標準オフ。オンでも1日3問まで・30問の内数・箱も成績も動かさない） */
-  const again = S.encore ? [] : rvRetryPick(S.wrongs.map(x => x.uid));
+  const again = S.encore || S.prac ? [] : rvRetryPick(S.wrongs.map(x => x.uid));
   if(again.length){
     S.encore = true;
     S.queue = S.queue.concat(S.wrongs.filter(x => again.indexOf(x.uid) >= 0).map(x => Object.assign({}, x, {again:true})));
     S.idx++; saveOpen(); renderQ(); return;
   }
-  ss(K_OPEN, null);
+  if(!S.prac) ss(K_OPEN, null);
   showResult();
 }
 
@@ -2747,7 +2801,9 @@ function showResult(){
   stopAudio();
   hsFlush();   /* この回の履歴をクラウドへ送る（結果画面が区切り） */
   const n = S.done, ok = Math.min(S.correct, n), rate = n ? ok/n : 0;
-  const fresh = checkBadges({acc90: n >= 10 && rate >= 0.9});
+  const prac = !!S.prac;
+  const fresh = prac ? [] : checkBadges({acc90: n >= 10 && rate >= 0.9});
+  LAST_WRONGS = S.wrongs.filter((x, i, a) => a.findIndex(y => y.uid === x.uid) === i); LAST_MODE = S.mode;
   let stars, msg;
   if(rate >= .9){ stars = '★★★'; msg = 'Excellent! この調子です'; }
   else if(rate >= .7){ stars = '★★'; msg = 'Good! あと少しで完璧です'; }
@@ -2769,9 +2825,11 @@ function showResult(){
       ${fresh.length ? `<div class="newbadge">🎉 バッジ獲得！ ${fresh.map(b => b.ic + ' ' + esc(b.nm)).join(' / ')}</div>` : ''}
       ${SNSGate.unlocks() ? `<div class="gate-open center" style="margin-top:12px">📵 SNSを1つ開けます（${SNSGate.unlocks()}回ぶん）。ホームの「SNSゲート」から使えます。</div>`
         : `<div class="muted center" style="margin-top:12px">📵 SNSゲートまで あと ${gateNeed()}問</div>`}
-      <div class="muted center" style="margin-top:14px">まちがえた ${S.wrongs.length}問は、明日また「今日の復習」に出ます（当日中にはくり返しません）。</div>
+      ${prac ? `<div class="muted center" style="margin-top:14px">再挑戦は練習なので記録していません（明日の復習は1回目の採点どおりに出ます）。</div>`
+        : `<div class="muted center" style="margin-top:14px">${S.quit ? '途中でやめました。' : ''}まちがえた ${LAST_WRONGS.length}問は、明日また「今日の復習」に出ます（当日中にはくり返しません）。</div>`}
       ${S.cut ? `<div class="muted center">今日の枠を使い切った・今日もう答えた問題 ${S.cut}問は出しませんでした。</div>` : ''}
-      ${rvLeft() <= 0 ? `<div class="muted center" style="margin-top:8px"><b>AIEnglishテスト集の今日の復習はここまでです。</b>解説・お気に入り・履歴はこのまま見られます。</div>` : ''}
+      ${rvDoneHtml("startSession('review')", pool().map(it => it.uid))}
+      ${LAST_WRONGS.length ? `<button class="btn" style="margin-top:14px;--c:${MODE_COLOR[mode]}" onclick="retryWrong()">まちがえた${LAST_WRONGS.length}問に再挑戦（練習・記録しない）</button>` : ''}
       <div class="btnrow" style="margin-top:16px">
         <button class="btn" style="--c:${MODE_COLOR[mode]}" onclick="startSession('${mode}')" ${mode === 'review' && rvLeft() <= 0 ? 'disabled' : ''}>もう1セット</button>
         <button class="btn ghost" onclick="showHome()">ホームへ</button>
