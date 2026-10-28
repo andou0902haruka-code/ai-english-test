@@ -1562,7 +1562,7 @@ function rvMerge(a, b) {
   o.cfg = (b.cfg.t || 0) > (a.cfg.t || 0) ? b.cfg : a.cfg;
   return o;
 }
-var RV_SYNC = { state: 'off', ref: null, timer: null, busy: false, again: false, ready: null };
+var RV_SYNC = { state: 'off', ref: null, timer: null, at: 0, busy: false, again: false, ready: null };
 var RV_FB = { apiKey: 'AIzaSyASWojYpZ3KJBYG9V30Y4BmplUFORYOelw', authDomain: 'ai-english-review.firebaseapp.com',
   projectId: 'ai-english-review', storageBucket: 'ai-english-review.firebasestorage.app',
   messagingSenderId: '146537476580', appId: '1:146537476580:web:4ef3dfdf9c0969f25b17f1' };
@@ -1625,11 +1625,19 @@ function rvPull() {
     return changed;
   }).catch(function () { RV_SYNC.state = 'error'; return false; });
 }
+/* 答えるたびには送らない（記録が増えるほど1回の送信が重くなり、iPhoneで答えた後がもたつくため・2026-10-28）。
+   端末には答えた瞬間に保存ずみ。クラウドへは RV_PUSH_MS ごとにまとめて送り、画面を離れるとき・結果画面ではすぐ送る。
+   すでに予約があれば、それより遅い予約で押し戻さない（解き続けても RV_PUSH_MS ごとには送られる） */
+var RV_PUSH_MS = 30000;
 function rvSchedulePush(ms) {
   if (!rvSid() || typeof setTimeout === 'undefined') return;
-  if (RV_SYNC.timer) clearTimeout(RV_SYNC.timer);
-  RV_SYNC.timer = setTimeout(rvPush, ms == null ? 1200 : ms);
+  var d = ms == null ? RV_PUSH_MS : ms, at = Date.now() + d;
+  if (RV_SYNC.timer) { if (RV_SYNC.at <= at) return; clearTimeout(RV_SYNC.timer); }
+  RV_SYNC.at = at;
+  RV_SYNC.timer = setTimeout(rvPush, d);
 }
+/* 予約している送信を今すぐ行う（結果画面・画面を離れるとき） */
+function rvFlush() { if (RV_SYNC.timer) { clearTimeout(RV_SYNC.timer); rvPush(); } }
 function rvPush() {
   RV_SYNC.timer = null;
   if (!RV_SYNC.ref) return;
@@ -1661,9 +1669,8 @@ function rvInit() {
   rvAbsorb();
   rvCompact();
   if (typeof document !== 'undefined' && document.addEventListener) {
-    document.addEventListener('visibilitychange', function () {
-      if (document.visibilityState === 'hidden' && RV_SYNC.timer) { clearTimeout(RV_SYNC.timer); rvPush(); }
-    });
+    document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'hidden') rvFlush(); });
+    if (typeof window !== 'undefined' && window.addEventListener) window.addEventListener('pagehide', rvFlush);
   }
   /* Firebase をまだ読んでいないページ（表現メモ）は、ほかの部品の読み込みが先に始まるよう少し待ってから合流する */
   var G = (typeof window !== 'undefined') ? window : {}, wait = (G.firebase && G.firebase.firestore) || !rvSid() ? 0 : 1500;

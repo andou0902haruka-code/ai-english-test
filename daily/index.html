@@ -1309,7 +1309,7 @@ function rvMerge(a, b) {
   o.cfg = (b.cfg.t || 0) > (a.cfg.t || 0) ? b.cfg : a.cfg;
   return o;
 }
-var RV_SYNC = { state: 'off', ref: null, timer: null, busy: false, again: false, ready: null };
+var RV_SYNC = { state: 'off', ref: null, timer: null, at: 0, busy: false, again: false, ready: null };
 var RV_FB = { apiKey: 'AIzaSyASWojYpZ3KJBYG9V30Y4BmplUFORYOelw', authDomain: 'ai-english-review.firebaseapp.com',
   projectId: 'ai-english-review', storageBucket: 'ai-english-review.firebasestorage.app',
   messagingSenderId: '146537476580', appId: '1:146537476580:web:4ef3dfdf9c0969f25b17f1' };
@@ -1372,11 +1372,19 @@ function rvPull() {
     return changed;
   }).catch(function () { RV_SYNC.state = 'error'; return false; });
 }
+/* 答えるたびには送らない（記録が増えるほど1回の送信が重くなり、iPhoneで答えた後がもたつくため・2026-10-28）。
+   端末には答えた瞬間に保存ずみ。クラウドへは RV_PUSH_MS ごとにまとめて送り、画面を離れるとき・結果画面ではすぐ送る。
+   すでに予約があれば、それより遅い予約で押し戻さない（解き続けても RV_PUSH_MS ごとには送られる） */
+var RV_PUSH_MS = 30000;
 function rvSchedulePush(ms) {
   if (!rvSid() || typeof setTimeout === 'undefined') return;
-  if (RV_SYNC.timer) clearTimeout(RV_SYNC.timer);
-  RV_SYNC.timer = setTimeout(rvPush, ms == null ? 1200 : ms);
+  var d = ms == null ? RV_PUSH_MS : ms, at = Date.now() + d;
+  if (RV_SYNC.timer) { if (RV_SYNC.at <= at) return; clearTimeout(RV_SYNC.timer); }
+  RV_SYNC.at = at;
+  RV_SYNC.timer = setTimeout(rvPush, d);
 }
+/* 予約している送信を今すぐ行う（結果画面・画面を離れるとき） */
+function rvFlush() { if (RV_SYNC.timer) { clearTimeout(RV_SYNC.timer); rvPush(); } }
 function rvPush() {
   RV_SYNC.timer = null;
   if (!RV_SYNC.ref) return;
@@ -1408,9 +1416,8 @@ function rvInit() {
   rvAbsorb();
   rvCompact();
   if (typeof document !== 'undefined' && document.addEventListener) {
-    document.addEventListener('visibilitychange', function () {
-      if (document.visibilityState === 'hidden' && RV_SYNC.timer) { clearTimeout(RV_SYNC.timer); rvPush(); }
-    });
+    document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'hidden') rvFlush(); });
+    if (typeof window !== 'undefined' && window.addEventListener) window.addEventListener('pagehide', rvFlush);
   }
   /* Firebase をまだ読んでいないページ（表現メモ）は、ほかの部品の読み込みが先に始まるよう少し待ってから合流する */
   var G = (typeof window !== 'undefined') ? window : {}, wait = (G.firebase && G.firebase.firestore) || !rvSid() ? 0 : 1500;
@@ -1814,12 +1821,37 @@ async function pullFavorites(id){
     }catch(e){ console.warn('お気に入りの同期に失敗しました: ' + t, e); }
   }));
 }
+/* 答えるたびには送らない（記録が増えるほど送信が重くなり、iPhoneで答えた後がもたつくため・2026-10-28）。
+   端末には保存ずみなので、送る項目だけ控えておき、MINE_PUSH_MS ごと・画面を離れるとき・結果画面でまとめて1回送る */
+const MINE_PUSH_MS = 30000;
+const _mineKeys = new Set();
+let _mineTimer = null;
 function pushMine(key){
   if(!_mineRef) return;
+  _mineKeys.add(key);
+  if(typeof document !== 'undefined' && document.visibilityState === 'hidden') return flushMine();
+  if(!_mineTimer) _mineTimer = setTimeout(flushMine, MINE_PUSH_MS);
+}
+function flushMine(){
+  if(_mineTimer){ clearTimeout(_mineTimer); _mineTimer = null; }
+  if(!_mineRef || !_mineKeys.size) return;
   try{
-    _mineRef.set({ [key]: ls(key, null), updatedAt: firebase.firestore.FieldValue.serverTimestamp() }, {merge:true})
-      .catch(e => console.warn('記録の送信に失敗しました', e));
+    const w = {};
+    _mineKeys.forEach(k => { w[k] = ls(k, null); });
+    _mineKeys.clear();
+    w.updatedAt = firebase.firestore.FieldValue.serverTimestamp();
+    _mineRef.set(w, {merge:true}).catch(e => console.warn('記録の送信に失敗しました', e));
   }catch(e){}
+}
+/* 結果画面・画面を離れるとき：控えている送信をすべて今すぐ送る */
+function flushAllSync(){
+  try{ hsFlush(); }catch(e){}
+  flushMine();
+  try{ rvFlush(); }catch(e){}
+}
+if(typeof window !== 'undefined' && window.addEventListener){
+  window.addEventListener('pagehide', flushAllSync);
+  document.addEventListener('visibilitychange', () => { if(document.visibilityState === 'hidden') flushAllSync(); });
 }
 /* ---------------- SNSゲート（数える・使う・同期は下の SNSGATE ブロック＝5サイト共通） ----------------
    このページでは右下の札を出さず、ホームのカードと「ゲートの問題を解く」（範囲を選べる）を出す。
@@ -1961,7 +1993,7 @@ function histKind(it){ return MAN.tests[it.t].short + '・' + TY_LABEL[it.ty]; }
 var HS_MAX = 800;          /* 残す件数。1件およそ150バイトなので最大でも約120KB */
 var HS_TEXT_MAX = 160;     /* 問題文・答えの保存する長さ */
 var HS_PAGE = 40;          /* 一覧を一度に出す件数 */
-var HS_PUSH_MS = 6000;     /* クラウドへ送るまでの待ち時間 */
+var HS_PUSH_MS = 30000;    /* クラウドへ送るまでの待ち時間。解き続けてもこの間隔でまとめて送る（2026-10-28 に6秒から変更） */
 
 /* 点数の帯。区切りは各アプリの「正解 / 惜しい / まだ」と揃えてある（80以上＝正解・40以上＝惜しい） */
 var HS_BANDS = [
@@ -1984,6 +2016,7 @@ var HS_BAND = 'all';       /* いま選んでいる点数の帯 */
 var HS_SHOWN = HS_PAGE;    /* いま出している件数 */
 var HS_TIMER = null;
 var HS_HOOKED = 0;
+var HS_DIRTY = 0;          /* まだクラウドへ送っていない記録がある */
 
 function hsEnv() { return (typeof HS_ENV !== 'undefined' && HS_ENV) ? HS_ENV : {}; }
 function hsUnit() { return hsEnv().unit || '件'; }
@@ -2067,8 +2100,8 @@ function hsSave(push) {
 }
 /* クラウドへは間を置いてまとめて送る。画面を離れるときは取りこぼさないよう必ず送る */
 function hsSchedulePush() {
-  if (HS_TIMER) clearTimeout(HS_TIMER);
-  HS_TIMER = setTimeout(hsFlush, HS_PUSH_MS);
+  HS_DIRTY = 1;
+  if (!HS_TIMER) HS_TIMER = setTimeout(hsFlush, HS_PUSH_MS);   /* 予約ずみなら押し戻さない */
   if (!HS_HOOKED && typeof window !== 'undefined' && window.addEventListener) {
     HS_HOOKED = 1;
     window.addEventListener('pagehide', hsFlush);
@@ -2079,7 +2112,7 @@ function hsSchedulePush() {
 }
 function hsFlush() {
   if (HS_TIMER) { clearTimeout(HS_TIMER); HS_TIMER = null; }
-  if (HS_LIST) hsSave(true);
+  if (HS_LIST && HS_DIRTY) { HS_DIRTY = 0; hsSave(true); }
 }
 
 /* --- 1件ぶん記録する（答え合わせが済んだ瞬間に呼ぶ） --- */
@@ -2799,7 +2832,7 @@ function nextQ(){
 /* =========================== 結果 =========================== */
 function showResult(){
   stopAudio();
-  hsFlush();   /* この回の履歴をクラウドへ送る（結果画面が区切り） */
+  flushAllSync();   /* この回の記録をクラウドへまとめて送る（結果画面が区切り） */
   const n = S.done, ok = Math.min(S.correct, n), rate = n ? ok/n : 0;
   const prac = !!S.prac;
   const fresh = prac ? [] : checkBadges({acc90: n >= 10 && rate >= 0.9});
