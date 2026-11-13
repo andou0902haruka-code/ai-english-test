@@ -1,0 +1,659 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="DETテンプレ">
+<meta name="theme-color" content="#1f3a5f">
+<title>DET テンプレ暗記</title>
+<style>
+:root{
+  --bg:#f5f6f8; --card:#ffffff; --ink:#1d2430; --sub:#5d6675; --line:#e2e5ea;
+  --blank:#d23c3c; --fill:#1e8a4c; --accent:#1f5fa8; --accent-weak:#e6eef8;
+  --ok:#1e8a4c; --mid:#c98a12; --ng:#d23c3c; --hide:#d9dde3; --shadow:0 1px 3px rgba(0,0,0,.08);
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#13161b; --card:#1d2128; --ink:#e7eaf0; --sub:#9aa3b2; --line:#2e343e;
+    --blank:#ff7676; --fill:#5fd394; --accent:#6aa8f0; --accent-weak:#22324a;
+    --ok:#5fd394; --mid:#f0b94a; --ng:#ff7676; --hide:#3a414d; --shadow:none;
+  }
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;font-size:16px;line-height:1.6;-webkit-text-size-adjust:100%}
+.wrap{max-width:760px;margin:0 auto;padding:0 16px 80px}
+header{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--line)}
+header .in{max-width:760px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;gap:10px}
+header h1{font-size:17px;margin:0;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+button{font:inherit;color:inherit;cursor:pointer;border:1px solid var(--line);background:var(--card);border-radius:10px;padding:8px 14px}
+button.pri{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+button.ghost{background:transparent}
+button:disabled{opacity:.45;cursor:default}
+.back{padding:6px 10px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin:12px 0;box-shadow:var(--shadow)}
+h2{font-size:18px;margin:20px 0 6px}
+h3{font-size:15px;margin:14px 0 6px;color:var(--sub)}
+.muted{color:var(--sub);font-size:13px}
+.bl{color:var(--blank);font-weight:700;white-space:nowrap}
+.fill{color:var(--fill);text-decoration:underline;text-underline-offset:3px;font-weight:600}
+.role{display:inline-block;font-size:12px;font-weight:700;color:var(--accent);background:var(--accent-weak);border-radius:6px;padding:1px 7px;margin-right:6px;white-space:nowrap}
+.tpl{font-size:17px;line-height:1.75}
+.ex{font-size:14.5px;color:var(--sub);margin-top:4px}
+.alt{font-size:13.5px;color:var(--sub);margin-top:2px}
+.skel{font-size:14px}
+.skel b{color:var(--accent)}
+/* home */
+.grid{display:grid;grid-template-columns:1fr;gap:10px}
+@media(min-width:560px){.grid{grid-template-columns:1fr 1fr}}
+.tcard{display:block;text-align:left;width:100%;padding:12px 14px;border-radius:14px}
+.tcard .nm{font-weight:700;font-size:15.5px}
+.tcard .meta{font-size:12.5px;color:var(--sub)}
+.bar{height:6px;background:var(--line);border-radius:4px;overflow:hidden;margin-top:8px}
+.bar i{display:block;height:100%;background:var(--ok);border-radius:4px}
+.sec{font-size:12px;font-weight:700;letter-spacing:.06em;color:var(--sub);margin:18px 0 4px}
+.hero{display:flex;gap:10px;flex-wrap:wrap}
+.hero button{flex:1;min-width:150px;padding:14px;font-size:15.5px}
+.stats{display:flex;gap:16px;flex-wrap:wrap;font-size:13px;color:var(--sub)}
+.stats b{color:var(--ink);font-size:16px}
+/* tabs */
+.tabs{display:flex;gap:6px;overflow-x:auto;margin:12px 0 4px;padding-bottom:2px}
+.tabs button{flex:1;white-space:nowrap;padding:8px 10px;font-size:14px}
+.tabs button.on{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:600}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.right{margin-left:auto}
+.ln{padding:10px 0;border-top:1px dashed var(--line)}
+.ln:first-child{border-top:none}
+.spk{border:none;background:transparent;padding:0 4px;font-size:16px}
+/* hidden words */
+.hw{display:inline-block;min-width:1.4em;border-radius:5px;background:var(--hide);color:transparent;cursor:pointer;line-height:1.35;padding:0 2px;user-select:none}
+.hw.hint{color:var(--sub)}
+.hw.open{background:transparent;color:var(--ink);cursor:default;text-decoration:underline dotted var(--sub)}
+.blur .fx{filter:blur(5px);cursor:pointer;transition:filter .2s}
+.blur .fx.open{filter:none}
+.rate{display:flex;gap:8px;margin-top:12px}
+.rate button{flex:1;padding:12px 6px;font-weight:600}
+.rate .r1{border-color:var(--ok);color:var(--ok)}
+.rate .r2{border-color:var(--mid);color:var(--mid)}
+.rate .r3{border-color:var(--ng);color:var(--ng)}
+.prog{font-size:13px;color:var(--sub)}
+.big{font-size:19px}
+/* order */
+.pool .opt{display:block;width:100%;text-align:left;margin:6px 0;padding:10px 12px;border-radius:10px;line-height:1.6}
+.opt.bad{animation:shake .35s;border-color:var(--ng)}
+@keyframes shake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.done .ln{animation:pop .25s}
+@keyframes pop{from{opacity:0;transform:translateY(4px)}}
+/* practice */
+.prompt{font-size:16.5px;line-height:1.7}
+.prompt ul{margin:6px 0 0 0;padding-left:20px}
+.photo{width:100%;aspect-ratio:3/2;object-fit:cover;border-radius:12px;background:var(--hide);display:block}
+.timer{font-variant-numeric:tabular-nums;font-size:34px;font-weight:700;text-align:center;letter-spacing:.02em}
+.phase{text-align:center;font-size:13px;color:var(--sub);font-weight:600}
+.timer.warn{color:var(--ng)}
+textarea{width:100%;min-height:180px;font:inherit;font-size:16px;line-height:1.6;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px}
+.wc{font-size:13px;color:var(--sub);text-align:right}
+.wc.ok{color:var(--ok);font-weight:600}
+details{margin:8px 0}
+summary{cursor:pointer;color:var(--accent);font-size:14px;font-weight:600}
+.chk label{display:flex;gap:8px;align-items:flex-start;padding:5px 0;font-size:14.5px}
+.chk input{margin-top:5px;width:18px;height:18px;flex:none}
+.tip{font-size:13.5px;color:var(--sub);margin:4px 0;padding-left:1em;text-indent:-1em}
+.tip::before{content:"・"}
+table.sw{width:100%;border-collapse:collapse;font-size:13.5px}
+table.sw td{border-top:1px solid var(--line);padding:6px 4px;vertical-align:top}
+table.sw td:first-child{white-space:nowrap;color:var(--sub);width:5.5em}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:8px 16px;border-radius:20px;font-size:14px;opacity:0;transition:opacity .25s;pointer-events:none;z-index:9}
+.toast.on{opacity:.92}
+.qa{font-size:14px;padding:8px 0;border-top:1px dashed var(--line)}
+.dlg{font-size:14.5px;margin:4px 0}
+.dlg b{color:var(--accent)}
+.sel{font:inherit;font-size:14px;padding:6px 8px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--ink)}
+</style>
+</head>
+<body>
+<header><div class="in">
+  <button class="back ghost" id="backBtn" style="display:none" aria-label="戻る">←</button>
+  <h1 id="title">DET テンプレ暗記</h1>
+  <button class="ghost" id="rateBtn" title="読み上げの速さ" style="font-size:13px;padding:5px 9px">🔊 1.0</button>
+</div></header>
+<main class="wrap" id="app"></main>
+<div class="toast" id="toast"></div>
+
+<script>
+/* =========================================================
+   データ：DET_110点_テンプレート集_第2版 のテンプレ早見表と例文
+   【…】=空欄（赤） / {{…}}=例文で埋めた部分（緑の下線）
+   seq:false = 並べ替えに入れない行
+   ========================================================= */
+const TASKS = [
+{ id:'summ', sec:'Listening', icon:'🎧', name:'Summarize the Conversation', jp:'会話の要約', time:'75秒', words:[40,60], skel:'状況 → 提案 → 結末',
+  lines:[
+    {r:'① 状況', t:'I talked with 【人】 about 【名】 because 【SV】.', e:'I talked with {{my professor}} about {{my history paper}} because {{I was sick last week and couldn\'t finish my research}}.'},
+    {r:'② 提案', t:'【He/She】 suggested that I 【動原】, and also explained that 【SV】.', e:'{{She}} suggested that I {{send her an outline by Friday}}, and also explained that {{she could then give me three extra days}}.'},
+    {r:'③ 結末', t:'Although 【SV】, I decided to 【動原】.', e:'Although {{I was worried about my other classes}}, I decided to {{accept her offer}}.'},
+  ],
+  extra:{h:'型B（三人称で書くとき）', lines:[
+    'In this conversation, a student asks 【人】 about 【名】.',
+    'The student is worried because 【SV】.',
+    '【人】 recommends 【~ing】, since 【SV】.',
+    'In the end, they agree to 【動原】.']},
+  swap:[['提案','suggested that I 【動原】 ／ advised me to 【動原】 ／ recommended 【~ing】'],['説明','explained that 【SV】 ／ pointed out that 【SV】 ／ mentioned that 【SV】'],['結末','In the end, I decided to 【動原】 ／ We agreed to 【動原】']],
+  tips:['箇条書きにせず完全な文で。状況・主な内容・最後どうなったかの3つを入れる。','一人称（I talked with…）でも三人称でもよい（公式）。','✗ suggested me to send → ✓ suggested that I send（that節＋原形）。'],
+  practice:{kind:'summ', prep:0, ans:75}
+},
+{ id:'wphoto', sec:'Writing', icon:'✍️', name:'Write About the Photo', jp:'写真を書く', time:'1分×3', words:[40,60], skel:'全体 → 主役 → 周り → 推測 → 雰囲気',
+  lines:[
+    {r:'① 全体', t:'The photo shows 【a 形＋名】.', a:'I can see 【名】 in this picture. ／ This image depicts 【名】.', e:'The photo shows {{a beautiful view of the coast}}.'},
+    {r:'② 主役', t:'There are 【形, 形＋名】 【~ing / that SV】.', e:'There are {{big, rocky cliffs}} {{that go down to the bright blue sea}}.'},
+    {r:'③ 周り', t:'In the distance, 【SV】.', a:'Behind 【名】, 【SV】. ／ On both sides, 【SV】.', e:'In the distance, {{you can see mountains and a clear sky}}.'},
+    {r:'④ 推測', t:'I also notice 【名】.', a:'【SV】, like 【SV：推測】. ／ Perhaps 【SV】.', e:'I also notice {{some buildings near the water}}.'},
+    {r:'⑤ 雰囲気', t:'The whole scene looks 【形 and 形】.', a:'The whole scene feels 【形】.', e:'The whole scene looks {{peaceful and calm}}.'},
+  ],
+  swap:[['位置','in the distance ／ in the background ／ closer up ／ on the left ／ in the middle of ／ on both sides ／ behind ／ next to'],['色・形','bright blue ／ sparkling ／ rocky ／ grassy ／ cobbled ／ wooden ／ narrow ／ colorful ／ crowded'],['後ろに足す','lit up by ／ covered in ／ filled with ／ surrounded by ／ coming from ／ walking along ／ whose 名 is'],['推測','Perhaps ／ Presumably ／ like they are ~ing ／ It looks like 【SV】'],['雰囲気','peaceful ／ calm ／ lively ／ busy ／ relaxed ／ cozy ／ the contrast between A and B']],
+  tips:['公式の模範解答は50〜65語・3〜5文。1分で4〜5文を目標に。','色・形を2つ重ねる（big, rocky cliffs）＋後ろから説明（lit up by…）で語彙と文法の幅を見せる。','3問で書き出しを変える。時間がないときは①②⑤だけでも成立する。'],
+  practice:{kind:'photo', prep:0, ans:60}
+},
+{ id:'iw1', sec:'Writing', icon:'✍️', name:'Interactive Writing Step 1', jp:'意見を書く（1回目）', time:'5分', words:[100,130], skel:'結論 → 理由＋例 → 理由2 → 譲歩 → まとめ',
+  lines:[
+    {r:'① 立場', t:'In my opinion, 【SV】.', e:'In my opinion, {{taking a class is a better way to learn a difficult skill than studying alone}}.'},
+    {r:'② 理由1＋例', t:'The main reason is that 【SV】. For example, when I 【過去形】, 【SV】.', e:'The main reason is that {{a teacher can point out mistakes that beginners cannot notice}}. For example, when I {{started learning 3D animation with free online videos}}, {{I practiced the same wrong movement for weeks}}.'},
+    {r:'③ 理由2', t:'In addition, 【SV】, which 【SV】.', e:'In addition, {{a class gives students a clear schedule}}, which {{helps them keep going even when they feel tired}}.'},
+    {r:'④ 譲歩', t:'Although some people argue that 【SV】, I believe 【SV】.', e:'Although some people argue that {{self-study is cheaper and more flexible}}, I believe {{the time a class saves is worth the cost}}.'},
+    {r:'⑤ まとめ', t:'For these reasons, 【SV】.', e:'For these reasons, {{I think classes are the best choice, especially for skills that need detailed feedback}}.'},
+  ],
+  swap:[['立場','I strongly believe that 【SV】 ／ I partly agree that 【SV】, but 【SV】'],['理由を足す','Another reason is that 【SV】 ／ On top of that, 【SV】'],['譲歩','It is true that 【SV】; however, 【SV】 ／ That said, 【SV】'],['まとめ','Overall, 【SV】 ／ That is why 【SV】']],
+  tips:['TOEFL Writing のディベート型から「人名に触れる文」を消した形。','譲歩→切り返し（Although…, I believe…）が得点源。'],
+  practice:{kind:'iw', prep:30, ans:300, ans2:180}
+},
+{ id:'iw2', sec:'Writing', icon:'✍️', name:'Interactive Writing Step 2', jp:'意見を書く（2回目）', time:'3分', words:[60,80], skel:'答え → 1回目とつなぐ → 例 → まとめ',
+  lines:[
+    {r:'① 答え', t:'Regarding 【名】, I think 【SV】.', e:'Regarding {{the role of AI in learning}}, I think {{it will make self-study much more effective}}.'},
+    {r:'② つなぐ', t:'This connects to my earlier point about 【名】, because 【SV】.', e:'This connects to my earlier point about {{feedback}}, because {{AI tools can already comment on a student\'s work instantly}}.'},
+    {r:'③ 例', t:'For instance, if 【SV】, 【SV：would＋動原】.', e:'For instance, if {{a beginner uploads a short animation clip}}, {{an AI could explain which movement looks unnatural}}.'},
+    {r:'④ まとめ', t:'Therefore, 【SV】, although 【SV】.', e:'Therefore, {{the gap between classes and self-study might become smaller}}, although {{human teachers will still be important}}.'},
+  ],
+  tips:['1回目で書いていない観点を聞かれる。2つはまとめて採点されるので②で必ず1回目につなぐ。','③の if 文（仮定）で文法の幅を見せる。'],
+  practice:{kind:'iw', prep:30, ans:300, ans2:180}
+},
+{ id:'wsamp', sec:'Writing', icon:'✍️', name:'Writing Sample', jp:'体験を書く（学校に送られる）', time:'5分', words:[130,160], skel:'場面 → 状況 → 行動 → 結果 → 学び',
+  lines:[
+    {r:'① 場面', t:'One experience I will never forget is when I 【過去形】.', e:'One experience I will never forget is when I {{had to analyze the data for my graduation research}}.'},
+    {r:'② 状況', t:'At that time, 【SV】, so I felt 【形】.', e:'At that time, {{I had never used statistical software before}}, so I felt {{completely lost}}.'},
+    {r:'③ 行動', t:'To solve this, I decided to 【動原】. First, I 【過去形】. Then, I 【過去形】.', e:'To solve this, I decided to {{learn R step by step}}. First, I {{copied simple examples from a textbook}}. Then, I {{asked my supervisor to check my code once a week}}.'},
+    {r:'④ 結果', t:'As a result, 【SV】.', e:'As a result, {{I was able to finish my analysis before the deadline}}.'},
+    {r:'⑤ 学び', t:'What I learned from this experience is that 【SV】. Since then, I have 【過去分詞】.', e:'What I learned from this experience is that {{a difficult skill becomes manageable when you break it into small steps}}. Since then, I have {{used the same approach when I practice animation in Maya}}.'},
+  ],
+  tips:['意見型のお題は Interactive Writing Step 1 の型を1文ずつ長くして130語以上に。','最後に少し時間を残して、つづり・文法を見直す。VFSの人が読む。'],
+  practice:{kind:'wsamp', prep:30, ans:300}
+},
+{ id:'sphoto', sec:'Speaking', icon:'🗣', name:'Speak About the Photo', jp:'写真を話す', time:'準備20秒・90秒', words:[130,170], skel:'全体 → 主役 → 左右・背景 → 推測 → 雰囲気＋自分',
+  lines:[
+    {r:'① 全体', t:'In this picture, I can see 【名】.', e:'In this picture, I can see {{an outdoor market on a busy street}}.'},
+    {r:'② 主役', t:'The first thing I notice is 【名】. 【He/She】 is 【~ing】, and 【SV】.', e:'The first thing I notice is {{a woman in the center}}. {{She}} is {{holding a basket full of vegetables}}, and {{she is smiling at the man behind the counter}}.'},
+    {r:'③ 周り', t:'On the left side, 【SV】, and on the right side, 【SV】. In the background, 【SV】.', e:'On the left side, {{there are wooden boxes filled with tomatoes}}, and on the right side, {{a few customers are looking at flowers}}. In the background, {{I can see tall buildings}}.'},
+    {r:'④ 推測', t:'Judging from 【名】, it seems that 【SV】. They might be 【~ing】.', e:'Judging from {{the bright sunlight}}, it seems that {{it is a warm morning}}. They might be {{shopping for the weekend}}.'},
+    {r:'⑤ 雰囲気＋自分', t:'The whole scene looks 【形】. This picture reminds me of 【名】, because 【SV】.', e:'The whole scene looks {{relaxed and friendly}}. This picture reminds me of {{the morning market in Takayama}}, because {{it had the same atmosphere}}.'},
+  ],
+  tips:['写真が見えない人に説明するつもりで、90秒いっぱい話す。','20秒の準備で「主役・周り2つ・推測1つ・自分の話1つ」だけ決める。','知らない単語は something that looks like a… で言い換える。'],
+  practice:{kind:'photo', prep:20, ans:90, speak:true}
+},
+{ id:'rts', sec:'Speaking', icon:'🗣', name:'Read, Then Speak', jp:'読んで話す', time:'準備20秒・90秒', words:[130,170], skel:'導入 → 箇条書き1 → 2＋例 → 3＋理由 → まとめ',
+  lines:[
+    {r:'① 導入', t:'I\'d like to talk about 【名】.', e:'I\'d like to talk about {{a small café near my university}}.'},
+    {r:'② 箇条書き1', t:'To begin with, 【SV】.', e:'To begin with, {{it is a quiet place with large windows and soft jazz music}}.'},
+    {r:'③ 箇条書き2', t:'As for 【名】, 【SV】. For example, 【SV】.', e:'As for {{what I do there}}, {{I usually study English}}. For example, {{last Sunday I finished a whole practice test there}}.'},
+    {r:'④ 箇条書き3', t:'Finally, 【SV】, because 【SV】.', e:'Finally, {{I like this place}}, because {{it helps me switch to working mode}}.'},
+    {r:'⑤ まとめ', t:'So, overall, 【SV】.', e:'So, overall, {{this café is not only a place to relax but also a place where I can be productive}}.'},
+  ],
+  tips:['箇条書きの順番どおりに答えるだけで、まとまりのある答えになる（公式）。','中身は TOEFL Speaking の5文フレームを箇条書きの順に並べ替えたもの。'],
+  practice:{kind:'rts', prep:20, ans:90, speak:true}
+},
+{ id:'ispk', sec:'Speaking', icon:'🗣', name:'Interactive Speaking', jp:'質問に答える（6〜8問）', time:'35秒×6〜8問', words:[50,70], skel:'直答 → 理由 → 例 →（まとめ）',
+  lines:[
+    {r:'① 直答', t:'Personally, I prefer 【名】.', a:'I usually 【動原】. ／ Yes, I think so.', e:'Personally, I prefer {{making short animations on my computer}}.'},
+    {r:'② 理由', t:'That\'s mainly because 【SV】.', e:'That\'s mainly because {{I want to become a 3D animator}}.'},
+    {r:'③ 例', t:'For example, 【SV：過去形】.', e:'For example, {{last weekend I animated a simple walk cycle for a cat character}}.'},
+    {r:'④ まとめ', t:'So, 【SV】.', e:'So, {{it\'s both a hobby and practice for me}}.'},
+    {r:'つなぎ', t:'That\'s an interesting question. Let me think about that for a second.', e:'That\'s an interesting question. Let me think about that for a second.', seq:false},
+    {r:'聞き取れない', t:'I\'m not completely sure, but if you mean 【名】, I\'d say 【SV】.', e:'I\'m not completely sure, but if you mean {{online classes}}, I\'d say {{they are useful but not enough}}.', seq:false},
+  ],
+  tips:['準備時間なし・質問は1回だけ。分からなくても、その話題について何か話す（黙らない）。','TOEFL の5文フレームを3〜4文に縮めたもの。理由2は省いてよい。'],
+  practice:{kind:'ispk', prep:0, ans:35, speak:true}
+},
+{ id:'ssamp', sec:'Speaking', icon:'🗣', name:'Speaking Sample', jp:'3分話す（学校に送られる）', time:'準備30秒・3分', words:[280,360], skel:'導入15秒 → 理由1＋体験60秒 → 理由2 50秒 → 譲歩30秒 → まとめ25秒',
+  lines:[
+    {r:'① 導入 15秒', t:'That\'s a question I\'ve thought about before. In my opinion, 【SV】.', e:'That\'s a question I\'ve thought about before. In my opinion, {{working in a team is better for most projects}}.'},
+    {r:'② 理由1＋体験 60秒', t:'The first reason is that 【SV】. Let me give you an example from my own life. 【過去形で3〜4文】', e:'The first reason is that {{a team can create something that one person could never make alone}}. Let me give you an example from my own life. {{When I was doing my graduation research, I worked with two classmates…}}'},
+    {r:'③ 理由2 50秒', t:'Another reason is that 【SV】. For instance, if 【SV】, 【SV】.', e:'Another reason is that {{teamwork helps me grow}}. For instance, if {{I show an animation to a friend}}, {{they can tell me right away that a movement looks strange}}.'},
+    {r:'④ 譲歩 30秒', t:'Of course, some people might say that 【SV】. That\'s a fair point, but 【SV】.', e:'Of course, some people might say that {{working alone is more efficient}}. That\'s a fair point, but {{good communication saves time in the long run}}.'},
+    {r:'⑤ まとめ 25秒', t:'So, to sum up, 【SV】. That\'s why 【SV】.', e:'So, to sum up, {{I prefer working in a team}}. That\'s why {{I\'m looking forward to group projects when I study abroad}}.'},
+  ],
+  tips:['3分は長いので時間配分を決めておくのが最大の対策。','録画がVFSに送られる。カメラを見て、落ち着いて話す。'],
+  practice:{kind:'ssamp', prep:30, ans:180, speak:true}
+},
+];
+
+/* ---------- 本番練習のお題（オリジナル） ---------- */
+const PROMPTS = {
+ iw:[
+  ['Some people think all students should be required to take art classes. Do you agree or disagree? Explain your reasons.','How could schools make art classes more useful for students who are not interested in art?'],
+  ['Is it better to live in a big city or in a small town? Explain your opinion.','What could small towns do to attract more young people?'],
+  ['Some people believe that social media does more harm than good. What is your opinion?','How should parents guide their children\'s use of social media?'],
+  ['Should university students work part-time while they study? Explain your view.','What kinds of part-time jobs are most valuable for students, and why?'],
+  ['Is it better to travel alone or with friends? Explain your reasons.','How has the internet changed the way people plan trips?'],
+  ['Some people say working from home is better than working in an office. Do you agree?','What skills do people need to work from home successfully?'],
+  ['Should governments spend more money on public transportation? Why or why not?','How might public transportation change in the next twenty years?'],
+  ['Is it important for young people to learn about history? Explain your opinion.','What is the most effective way to teach history to teenagers?'],
+ ],
+ wsamp:[
+  'Describe a time when you worked hard to reach a goal. What happened, and what did you learn?',
+  'Describe a teacher or mentor who influenced you. How did this person change you?',
+  'Describe a difficult decision you made. How did you make it, and was it the right choice?',
+  'Describe a time when you made a mistake. What did you learn from it?',
+  'Describe a time when you helped someone. What did you do, and how did you feel?',
+  'Describe a skill you learned outside of school. How did you learn it?',
+  'Some people think it is better to choose a job you love than a job that pays well. What do you think?',
+  'Do you think it is important to study abroad? Why or why not?',
+ ],
+ rts:[
+  ['Talk about a book, movie, or TV show that you enjoyed.',['What is it about?','Why did you like it?','Would you recommend it to others?']],
+  ['Describe a person you admire.',['Who is this person?','What has this person done?','Why do you admire them?']],
+  ['Talk about a skill you learned recently.',['What is the skill?','How did you learn it?','How has it helped you?']],
+  ['Describe a memorable trip.',['Where did you go?','What did you do there?','Why was it memorable?']],
+  ['Talk about a tradition in your country.',['What is it?','When do people do it?','How do you feel about it?']],
+  ['Describe a piece of technology you use every day.',['What is it?','How do you use it?','How would your life be different without it?']],
+  ['Talk about a goal you have for the next five years.',['What is it?','What are you doing to achieve it?','What challenges might you face?']],
+  ['Describe your favorite way to relax.',['What do you do?','How often do you do it?','Why does it help you relax?']],
+ ],
+ ispk:[
+  ['Food',['What kind of food do you usually eat for lunch?','Do you prefer cooking at home or eating out? Why?','Do you think fast food should be more strictly regulated?']],
+  ['Music',['What kind of music do you usually listen to?','When do you usually listen to music?','How has technology changed the way people enjoy music?']],
+  ['Sports',['Do you play any sports or do any exercise?','Is it important for children to play team sports?','Should professional athletes be paid so much money?']],
+  ['Learning',['What subject did you enjoy most at school?','Do you prefer studying alone or with other people?','Will online learning replace traditional classrooms?']],
+  ['Your area',['Describe the area where you live.','What would you change about your neighborhood?','Why do many young people move to big cities?']],
+  ['Free time',['How do you usually spend your weekends?','Do people today have less free time than in the past?','Should companies give employees more vacation days?']],
+  ['Movies',['What kind of movies do you like?','Do you prefer watching movies at home or in a theater?','Why do you think animated films are popular with adults?']],
+  ['Environment',['What do you do to protect the environment?','Should plastic bags be banned?','Who is more responsible for the environment, individuals or governments?']],
+ ],
+ ssamp:[
+  'Is it better to have a few close friends or many friends? Explain why, using examples.',
+  'Some people think young people should travel before starting a career. Do you agree? Explain why.',
+  'What is the most important invention of the last 100 years? Explain why, using examples.',
+  'Should people always follow their passion when choosing a career? Explain your opinion.',
+  'Is it better to learn from your own mistakes or from other people\'s advice? Explain why.',
+  'Do you think technology makes people more creative or less creative? Explain your opinion.',
+  'Some people prefer to plan everything, while others prefer to be spontaneous. Which do you prefer?',
+  'Should students be allowed to use AI tools to do their homework? Explain your opinion.',
+ ],
+ summ:[
+  {who:['Professor','Student'], lines:[
+   [0,'Hi, Maya. You wanted to talk about your term paper?'],
+   [1,'Yes. I chose renewable energy in small towns, but I\'m having trouble finding enough sources.'],
+   [0,'That topic is pretty narrow. Have you thought about focusing on one type of energy, like solar power?'],
+   [1,'Solar power? I guess there would be more research on that.'],
+   [0,'Definitely. And our library has a database of energy reports. The librarian can show you how to use it.'],
+   [1,'But I\'ve already written two pages about wind farms.'],
+   [0,'You can keep some of that as background. Just make solar power the main focus.'],
+   [1,'Okay, that makes sense. I\'ll visit the library tomorrow and change my outline.']],
+   model:'I talked with my professor about my term paper because I couldn\'t find enough sources for my topic. She suggested that I focus on solar power, and also explained that the library has a database of energy reports. Although I had already written two pages about wind farms, I decided to change my outline and visit the library tomorrow.'},
+  {who:['Student A','Student B'], lines:[
+   [0,'Hey, Ken. Are we still meeting for the biology study group on Thursday?'],
+   [1,'About that. Two people said they can\'t come on Thursday because of their part-time jobs.'],
+   [0,'Oh no. The exam is next Tuesday. When are they free?'],
+   [1,'Sunday afternoon works for everyone, but the library is closed on Sundays.'],
+   [0,'What about the student lounge? It\'s open all weekend.'],
+   [1,'It can be pretty noisy, though.'],
+   [0,'We could book one of the small meeting rooms there. They\'re quiet, and booking is free.'],
+   [1,'Great idea. I\'ll book a room for two o\'clock and send a message to the group.']],
+   model:'I talked with my classmate about our biology study group because two members couldn\'t come on Thursday. He explained that Sunday afternoon works for everyone, but the library is closed on Sundays. Although the student lounge can be noisy, we decided to book a small meeting room there for two o\'clock.'},
+  {who:['Advisor','Student'], lines:[
+   [0,'So, which elective are you thinking about for next semester?'],
+   [1,'I can\'t decide between Introduction to Film and Public Speaking.'],
+   [0,'What are your goals after graduation?'],
+   [1,'I want to work in animation, maybe abroad.'],
+   [0,'Then Public Speaking could really help. You\'ll need to present your work in interviews and team meetings.'],
+   [1,'That\'s true, but the film class sounds more fun, and it\'s related to my field.'],
+   [0,'The film class is also offered in the summer. You could take Public Speaking now and the film class later.'],
+   [1,'Oh, I didn\'t know that. Then I\'ll sign up for Public Speaking this semester.']],
+   model:'I talked with my advisor about which elective to take because I couldn\'t decide between a film class and Public Speaking. She suggested that I take Public Speaking, and also explained that the film class is offered in the summer. Although the film class sounded more fun, I decided to sign up for Public Speaking this semester.'},
+  {who:['Student A','Student B'], lines:[
+   [0,'You look stressed. What\'s going on?'],
+   [1,'I got an offer for a summer internship at a design company, but it\'s unpaid.'],
+   [0,'Wow, congratulations! But what about your job at the café?'],
+   [1,'That\'s the problem. I need money for rent, and I can\'t do both.'],
+   [0,'Could you ask the café to let you work only on weekends?'],
+   [1,'Maybe. The internship is only on weekdays.'],
+   [0,'Then talk to your manager this week. Experience at a design company would look great on your résumé.'],
+   [1,'You\'re right. I\'ll ask my manager tomorrow before I accept the offer.']],
+   model:'In this conversation, a student asks a friend for advice about an unpaid summer internship. The student is worried because she needs money for rent. The friend recommends asking the café manager for weekend shifts, since the internship is only on weekdays. In the end, the student decides to talk to her manager before accepting the offer.'},
+ ],
+};
+
+/* 写真（Unsplash・練習用） */
+const PHOTOS=["1506744038136-46273834b3fb", "1501785888041-af3ef285b470", "1469474968028-56623f02e42e", "1500530855697-b586d89ba3ee", "1441974231531-c6227db76b6e", "1517248135467-4c7edcad34c4", "1504674900247-0877df9cc836", "1522202176988-66273c2fd55f", "1521737604893-d14cc237f11d", "1513635269975-59663e0ac1ad", "1477959858617-67f85cf4f1df", "1449824913935-59a10b8d2000", "1533900298318-6b8da08a523e", "1488459716781-31db52582fe9", "1529156069898-49953e39b3ac", "1511632765486-a01980e01a18", "1503676260728-1c00da094a0b", "1497366216548-37526070297c", "1495474472287-4d71bcdd2085", "1517649763962-0c623066013b", "1461896836934-ffe607ba8211", "1505761671935-60b3a7427bad", "1481627834876-b7833e8f5570", "1519681393784-d120267933ba", "1534430480872-3498386e7856", "1480714378408-67cf0d13bc1b", "1514565131-fce0801e5785", "1528605248644-14dd04022da1", "1556761175-5973dc0f32e7", "1543269865-cbf427effbad", "1516321318423-f06f85e504b3", "1472214103451-9374bd1c798e", "1517849845537-4d257902454a", "1514888286974-6c03e2ca1dba", "1555396273-367ea4eb4db5", "1559339352-11d035aa65de", "1504384308090-c894fdcc538d", "1517245386807-bb43f82c33c4", "1436491865332-7a61a109cc05", "1544620347-c4fd4a3d5957", "1476514525535-07fb3b4ae5f1", "1490750967868-88aa4486c946", "1507525428034-b723cf961d3e", "1493976040374-85c8e12f0c0e", "1526481280693-3bfa7568e0f3", "1540959733332-eab4deabeeaf", "1552832230-c0197dd311b5", "1502602898657-3e91760cbb34", "1523906834658-6e24ef2386f9", "1499856871958-5b9627545d1a", "1528127269322-539801943592", "1542051841857-5f90071e7989", "1513407030348-c983a97b98d8"];
+const photoURL=id=>'https://images.unsplash.com/photo-'+id+'?w=900&h=600&fit=crop&auto=format&q=70';
+
+/* =========================================================
+   保存（この端末のブラウザだけ）
+   ========================================================= */
+const KEY='det_tpl_v1';
+let S={box:{},last:{},log:[],days:[]};
+try{const j=JSON.parse(localStorage.getItem(KEY)||'null'); if(j) S=Object.assign(S,j);}catch(e){}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
+const today=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};
+function markDay(){const t=today(); if(!S.days.includes(t)){S.days.push(t); if(S.days.length>400)S.days=S.days.slice(-400);} save();}
+function streak(){const key=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');const d=new Date();if(!S.days.includes(key(d)))d.setDate(d.getDate()-1);let n=0;while(S.days.includes(key(d))){n++;d.setDate(d.getDate()-1);}return n;}
+const lid=(t,i)=>t.id+':'+i;
+const boxOf=id=>S.box[id]||0;
+function taskPct(t){const n=t.lines.length;let s=0;t.lines.forEach((l,i)=>s+=Math.min(boxOf(lid(t,i)),3)/3);return Math.round(s/n*100);}
+function allLines(){const a=[];TASKS.forEach(t=>t.lines.forEach((l,i)=>a.push({t,l,i,id:lid(t,i)})));return a;}
+
+/* =========================================================
+   表示の部品
+   ========================================================= */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function tplHTML(t){return esc(t).replace(/【([^】]*)】/g,'<span class="bl">【$1】</span>');}
+function exHTML(e){return esc(e).replace(/\{\{(.*?)\}\}/g,'<span class="fill">$1</span>').replace(/【([^】]*)】/g,'<span class="bl">【$1】</span>');}
+const plain=e=>e.replace(/\{\{|\}\}/g,'').replace(/【[^】]*】/g,'');
+function toast(m){const el=$('#toast');el.textContent=m;el.classList.add('on');clearTimeout(toast._t);toast._t=setTimeout(()=>el.classList.remove('on'),1600);}
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const wc=s=>(s.trim().match(/[A-Za-z0-9'’-]+/g)||[]).length;
+
+/* 読み上げ（ブラウザの音声） */
+let RATE=1.0; try{RATE=parseFloat(localStorage.getItem(KEY+'_rate'))||1.0;}catch(e){}
+const rb=$('#rateBtn'); rb.textContent='🔊 '+RATE.toFixed(1);
+rb.onclick=()=>{const o=[0.8,0.9,1.0];RATE=o[(o.indexOf(RATE)+1)%o.length]||1.0;rb.textContent='🔊 '+RATE.toFixed(1);try{localStorage.setItem(KEY+'_rate',RATE);}catch(e){} toast('読み上げ速さ '+RATE.toFixed(1));};
+let VOICES=[];
+function loadVoices(){if(!window.speechSynthesis)return;VOICES=speechSynthesis.getVoices().filter(v=>/^en[-_](US|GB|AU|CA)/i.test(v.lang));}
+if(window.speechSynthesis){loadVoices();speechSynthesis.onvoiceschanged=loadVoices;}
+function voiceFor(n){if(!VOICES.length)return null;const pref=[/Samantha|Ava|Allison|Jenny|Aria|Google US English/i,/Daniel|Alex|Fred|Tom|Guy|Google UK English Male|Aaron/i];const v=VOICES.find(x=>pref[n%2].test(x.name));return v||VOICES[n%VOICES.length];}
+function speak(text,opt={}){return new Promise(res=>{if(!window.speechSynthesis){res();return;}const u=new SpeechSynthesisUtterance(text);u.lang='en-US';u.rate=RATE*(opt.rate||1);const v=voiceFor(opt.v||0);if(v)u.voice=v;if(opt.pitch)u.pitch=opt.pitch;u.onend=res;u.onerror=res;speechSynthesis.speak(u);});}
+function stopSpeak(){if(window.speechSynthesis)speechSynthesis.cancel();}
+
+/* 穴あけ：テンプレの黒字（空欄以外）の単語を隠す */
+function tokens(t){const out=[];t.split(/(【[^】]*】)/).forEach(seg=>{if(!seg)return;if(/^【/.test(seg)){out.push({b:seg});return;}seg.split(/(\s+)/).forEach(w=>{if(!w)return;if(/^\s+$/.test(w)){out.push({s:w});return;}const m=w.match(/^([^A-Za-z]*)([A-Za-z][A-Za-z'’-]*)([^A-Za-z]*)$/);if(m)out.push({pre:m[1],w:m[2],post:m[3]});else out.push({s:w});});});return out;}
+function makeHidden(toks,level){const idx=toks.map((x,i)=>x.w?i:-1).filter(i=>i>=0);const k=level>=3?idx.length:Math.max(1,Math.ceil(idx.length*(level===1?0.35:0.7)));const sorted=idx.slice().sort((a,b)=>(toks[b].w.length+Math.random()*3)-(toks[a].w.length+Math.random()*3));return new Set(sorted.slice(0,k));}
+function clozeHTML(toks,hidden,opened,level){return toks.map((x,i)=>{if(x.b)return '<span class="bl">'+esc(x.b)+'</span>';if(x.s!==undefined)return esc(x.s);if(!hidden.has(i)||opened.has(i))return esc(x.pre)+'<span'+(hidden.has(i)?' class="hw open"':'')+'>'+esc(x.w)+'</span>'+esc(x.post);const hint=level===1?x.w[0]+'·'.repeat(Math.max(0,x.w.length-1)):' '.repeat(Math.max(2,Math.round(x.w.length*1.1)));return esc(x.pre)+'<span class="hw'+(level===1?' hint':'')+'" data-i="'+i+'">'+esc(hint)+'</span>'+esc(x.post);}).join('');}
+const autoLevel=b=>b<=0?1:b<=2?2:3;
+const LVNAME={1:'Lv1 頭文字あり',2:'Lv2 半分以上かくす',3:'Lv3 全部かくす（役割だけ）'};
+
+/* =========================================================
+   画面
+   ========================================================= */
+let V={view:'home'};
+let timerH=null, rec=null;
+function cleanup(){clearInterval(timerH);timerH=null;stopSpeak();if(rec&&rec.state==='recording'){try{rec.stop();}catch(e){}}}
+function go(v){cleanup();V=v;render();window.scrollTo(0,0);}
+$('#backBtn').onclick=()=>{ if(V.view==='task'||V.view==='daily') go({view:'home'}); else go({view:'home'}); };
+
+function render(){
+  const app=$('#app');app.classList.remove('blur');app.onclick=null;
+  $('#backBtn').style.display=V.view==='home'?'none':'';
+  if(V.view==='home'){$('#title').textContent='DET テンプレ暗記';app.innerHTML=homeHTML();bindHome();return;}
+  if(V.view==='daily'){$('#title').textContent='今日の暗記';renderDaily();return;}
+  if(V.view==='task'){const t=TASKS.find(x=>x.id===V.id);$('#title').textContent=t.icon+' '+t.name;renderTask(t);return;}
+}
+
+/* ---------- ホーム ---------- */
+function homeHTML(){
+  const al=allLines();const mastered=al.filter(x=>boxOf(x.id)>=3).length;
+  const weak=al.filter(x=>boxOf(x.id)===0).length;
+  let h='<div class="card"><div class="stats"><span>連続 <b>'+streak()+'</b> 日</span><span>覚えた行 <b>'+mastered+'</b> / '+al.length+'</span><span>本番練習 <b>'+S.log.length+'</b> 回</span></div></div>';
+  h+='<div class="hero"><button class="pri" id="goDaily">今日の暗記 10行</button><button id="goSheet">早見表をぜんぶ見る</button></div>';
+  h+='<div class="card skel"><div class="muted" style="margin-bottom:4px">骨組みは2つだけ</div><div><b>写真系</b>　全体 → 主役 → 周り → 推測 → 雰囲気</div><div><b>意見・体験系</b>　結論 → 理由 → 例 → 譲歩 → まとめ</div></div>';
+  let sec='';
+  TASKS.forEach(t=>{ if(t.sec!==sec){ if(sec) h+='</div>'; sec=t.sec; h+='<div class="sec">'+sec.toUpperCase()+'</div><div class="grid">'; }
+    const p=taskPct(t);
+    h+='<button class="tcard" data-id="'+t.id+'"><div class="nm">'+t.icon+' '+esc(t.name)+'</div><div class="meta">'+esc(t.jp)+'　'+esc(t.time)+'・'+t.words[0]+'〜'+t.words[1]+'語</div><div class="bar"><i style="width:'+p+'%"></i></div><div class="meta" style="margin-top:3px">覚え度 '+p+'%</div></button>';});
+  h+='</div>';
+  h+='<p class="muted" style="margin-top:24px">記録はこの端末のブラウザに保存されます（ほかの端末とは共有されません）。まだ覚えていない行 '+weak+' 行。<br>出典：DET_110点_テンプレート集（第2版）。練習用の写真は Unsplash。</p>';
+  return h;
+}
+function bindHome(){
+  document.querySelectorAll('.tcard').forEach(b=>b.onclick=()=>go({view:'task',id:b.dataset.id,tab:'see'}));
+  $('#goDaily').onclick=()=>go({view:'daily'});
+  $('#goSheet').onclick=()=>{V={view:'sheet'};renderSheet();};
+}
+function renderSheet(){
+  $('#backBtn').style.display='';$('#title').textContent='テンプレ早見表';
+  let h='<div class="card row"><label class="row" style="gap:6px"><input type="checkbox" id="hideFx"> 黒字をかくす（タップで表示）</label></div>';
+  TASKS.forEach(t=>{h+='<div class="card"><div style="font-weight:700">'+t.icon+' '+esc(t.name)+'</div><div class="muted">'+esc(t.time)+'・'+t.words[0]+'〜'+t.words[1]+'語　｜　'+esc(t.skel)+'</div>';
+    t.lines.forEach(l=>{h+='<div class="ln"><span class="role">'+esc(l.r)+'</span><span class="tpl fx">'+tplHTML(l.t)+'</span></div>';});h+='</div>';});
+  $('#app').innerHTML=h;window.scrollTo(0,0);
+  $('#hideFx').onchange=e=>{$('#app').classList.toggle('blur',e.target.checked);document.querySelectorAll('.fx').forEach(x=>x.classList.remove('open'));};
+  $('#app').onclick=e=>{const f=e.target.closest('.fx');if(f&&$('#app').classList.contains('blur'))f.classList.toggle('open');};
+}
+
+/* ---------- 課題ページ ---------- */
+const TABS=[['see','見る'],['cloze','穴埋め'],['order','並べ替え'],['prac','本番練習']];
+function renderTask(t){
+  const app=$('#app');app.classList.remove('blur');app.onclick=null;
+  let h='<div class="tabs">'+TABS.map(([k,n])=>'<button data-k="'+k+'" class="'+(V.tab===k?'on':'')+'">'+n+'</button>').join('')+'</div><div id="tb"></div>';
+  app.innerHTML=h;
+  app.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{cleanup();V.tab=b.dataset.k;renderTask(t);});
+  ({see:tabSee,cloze:tabCloze,order:tabOrder,prac:tabPrac})[V.tab](t,$('#tb'));
+}
+
+function tabSee(t,el){
+  let h='<div class="card"><div class="muted">'+esc(t.jp)+'　'+esc(t.time)+'・目安 '+t.words[0]+'〜'+t.words[1]+'語</div><div class="skel"><b>流れ</b>　'+esc(t.skel)+'</div></div>';
+  h+='<div class="card"><div class="row"><label class="row" style="gap:6px;font-size:14px"><input type="checkbox" id="showEx" checked> 例文も出す</label><label class="row" style="gap:6px;font-size:14px"><input type="checkbox" id="hideFx"> 黒字をかくす</label><button class="right" id="playAll">▶ 例文を通して聞く</button></div></div>';
+  h+='<div class="card" id="lines">';
+  t.lines.forEach((l,i)=>{h+='<div class="ln"><div><span class="role">'+esc(l.r)+'</span><span class="tpl fx">'+tplHTML(l.t)+'</span></div>'+(l.a?'<div class="alt">言いかえ：'+tplHTML(l.a)+'</div>':'')+'<div class="ex exl"><button class="spk" data-i="'+i+'" aria-label="読み上げ">🔊</button>'+exHTML(l.e)+'</div></div>';});
+  h+='</div>';
+  if(t.extra){h+='<div class="card"><div style="font-weight:700;font-size:14.5px">'+esc(t.extra.h)+'</div>'+t.extra.lines.map(x=>'<div class="ln tpl" style="font-size:15px">'+tplHTML(x)+'</div>').join('')+'</div>';}
+  if(t.swap){h+='<div class="card"><div style="font-weight:700;font-size:14.5px;margin-bottom:4px">差し替えフレーズ</div><table class="sw">'+t.swap.map(r=>'<tr><td>'+esc(r[0])+'</td><td>'+tplHTML(r[1])+'</td></tr>').join('')+'</table></div>';}
+  h+='<div class="card"><div style="font-weight:700;font-size:14.5px">コツ</div>'+t.tips.map(x=>'<div class="tip">'+esc(x)+'</div>').join('')+'</div>';
+  el.innerHTML=h;
+  $('#showEx').onchange=e=>el.querySelectorAll('.exl').forEach(x=>x.style.display=e.target.checked?'':'none');
+  $('#hideFx').onchange=e=>{$('#lines').classList.toggle('blur',e.target.checked);el.querySelectorAll('.fx').forEach(x=>x.classList.remove('open'));};
+  $('#lines').onclick=e=>{const s=e.target.closest('.spk');if(s){stopSpeak();speak(plain(t.lines[+s.dataset.i].e));return;}const f=e.target.closest('.fx');if(f&&$('#lines').classList.contains('blur'))f.classList.toggle('open');};
+  $('#playAll').onclick=async()=>{stopSpeak();for(const l of t.lines){if(l.seq===false)continue;await speak(plain(l.e));if(V.view!=='task'||V.tab!=='see')break;}};
+}
+
+/* 穴埋め（1行ずつ・自己採点） */
+function clozeSession(el,items,opts){
+  // items: [{t,l,i,id}]
+  let q=items.slice(), n=0, total=items.length, again=[];
+  let lvSel=opts.level||0; // 0=おまかせ
+  function next(){
+    if(!q.length && again.length){q=again;again=[];}
+    if(!q.length){finish();return;}
+    const it=q.shift();n++;
+    const level=lvSel||autoLevel(boxOf(it.id));
+    const toks=tokens(it.l.t), hidden=makeHidden(toks,level), opened=new Set();
+    let shown=false;
+    const draw=()=>{
+      let h='<div class="row"><span class="prog">'+(n>total?'やり直し（×の行をもう一度）':n+' / '+total)+'</span>'+(opts.showLevelSel?'<select class="sel right" id="lv"><option value="0">おまかせ</option><option value="1">Lv1</option><option value="2">Lv2</option><option value="3">Lv3</option></select>':'')+'</div>';
+      h+='<div class="card"><div class="muted">'+esc(it.t.icon+' '+it.t.name)+'　'+LVNAME[level]+'</div><div style="margin:6px 0"><span class="role">'+esc(it.l.r)+'</span></div>';
+      h+='<div class="tpl big" id="cz">'+clozeHTML(toks,hidden,opened,level)+'</div>';
+      h+='<div class="muted" style="margin-top:8px">声に出して全文を言ってから、グレーをタップ（1語ずつ）か「答え」。</div>';
+      if(shown){h+='<div class="ex" style="margin-top:10px"><button class="spk" id="spk1">🔊</button>'+exHTML(it.l.e)+'</div><div class="rate"><button class="r1" data-r="1">◎ 言えた</button><button class="r2" data-r="2">△ あいまい</button><button class="r3" data-r="3">× まだ</button></div>';}
+      else h+='<div class="row" style="margin-top:12px"><button class="pri" id="ans" style="flex:1;padding:12px">答え</button></div>';
+      h+='</div>';
+      el.innerHTML=h;
+      if(opts.showLevelSel){$('#lv').value=String(lvSel);$('#lv').onchange=e=>{lvSel=+e.target.value;q.unshift(it);n--;next();};}
+      $('#cz').onclick=e=>{const w=e.target.closest('.hw[data-i]');if(!w)return;opened.add(+w.dataset.i);if(opened.size>=hidden.size)shown=true;draw();};
+      if(!shown){$('#ans').onclick=()=>{hidden.forEach(i=>opened.add(i));shown=true;draw();};}
+      else{
+        $('#spk1').onclick=()=>{stopSpeak();speak(plain(it.l.e));};
+        el.querySelectorAll('.rate button').forEach(b=>b.onclick=()=>{
+          const r=+b.dataset.r, b0=boxOf(it.id);
+          S.box[it.id]= r===1?Math.min(b0+1,5): r===2?Math.max(b0,0): 0;
+          S.last[it.id]=today(); markDay();
+          if(r===3) again.push(it);
+          next();
+        });
+      }
+    };
+    draw();
+  }
+  function finish(){
+    let h='<div class="card" style="text-align:center"><div class="big" style="font-weight:700">おわり</div><div class="muted">'+total+' 行を確認しました</div></div>';
+    h+='<div class="card">'+items.map(it=>{const b=boxOf(it.id);const c=b>=3?'var(--ok)':b>=1?'var(--mid)':'var(--ng)';return '<div class="ln"><span class="role" style="color:'+c+'">'+(b>=3?'覚えた':b>=1?'もう少し':'まだ')+'</span><span class="tpl" style="font-size:15px">'+tplHTML(it.l.t)+'</span></div>';}).join('')+'</div>';
+    h+='<div class="hero"><button class="pri" id="again">もう一回</button><button id="home">ホームへ</button></div>';
+    el.innerHTML=h;
+    $('#again').onclick=opts.restart;$('#home').onclick=()=>go({view:'home'});
+  }
+  next();
+}
+function tabCloze(t,el){
+  const items=t.lines.map((l,i)=>({t,l,i,id:lid(t,i)}));
+  const run=()=>clozeSession(el,items,{showLevelSel:true,restart:run});
+  run();
+}
+function renderDaily(){
+  const app=$('#app');app.classList.remove('blur');app.onclick=null;
+  const al=allLines();
+  const scored=shuffle(al).sort((a,b)=>boxOf(a.id)-boxOf(b.id)||String(S.last[a.id]||'').localeCompare(String(S.last[b.id]||'')));
+  const items=scored.slice(0,10);
+  app.innerHTML='<div id="tb"></div>';
+  const run=()=>{const al2=allLines();const s2=shuffle(al2).sort((a,b)=>boxOf(a.id)-boxOf(b.id)||String(S.last[a.id]||'').localeCompare(String(S.last[b.id]||'')));clozeSession($('#tb'),s2.slice(0,10),{showLevelSel:true,restart:run});};
+  clozeSession($('#tb'),items,{showLevelSel:true,restart:run});
+}
+
+/* 並べ替え */
+function tabOrder(t,el){
+  const seq=t.lines.map((l,i)=>({l,i})).filter(x=>x.l.seq!==false);
+  let pool=shuffle(seq), done=[], miss=0;
+  if(seq.length>2) while(pool.every((x,k)=>x.i===seq[k].i)) pool=shuffle(seq);
+  const draw=()=>{
+    let h='<div class="card"><div class="muted">テンプレの行を、答えの順番どおりにタップ。（'+esc(t.skel)+'）</div></div>';
+    h+='<div class="card done">'+(done.length?done.map(x=>'<div class="ln"><span class="role">'+esc(x.l.r)+'</span><span class="tpl" style="font-size:15.5px">'+tplHTML(x.l.t)+'</span></div>').join(''):'<div class="muted">ここに並びます</div>')+'</div>';
+    if(pool.length) h+='<div class="pool">'+pool.map((x,k)=>'<button class="opt" data-k="'+k+'">'+tplHTML(x.l.t)+'</button>').join('')+'</div>';
+    else h+='<div class="card" style="text-align:center"><div class="big" style="font-weight:700">'+(miss?'ミス '+miss+' 回':'全部正解！')+'</div></div><div class="hero"><button class="pri" id="re">もう一回</button><button id="toCloze">穴埋めへ</button></div>';
+    el.innerHTML=h;
+    el.querySelectorAll('.opt').forEach(b=>b.onclick=()=>{const x=pool[+b.dataset.k];const need=seq[done.length];if(x.i===need.i){done.push(x);pool.splice(+b.dataset.k,1);draw();if(!pool.length)markDay();}else{miss++;b.classList.remove('bad');void b.offsetWidth;b.classList.add('bad');}});
+    if(!pool.length){$('#re').onclick=()=>tabOrder(t,el);$('#toCloze').onclick=()=>{V.tab='cloze';renderTask(t);};}
+  };
+  draw();
+}
+
+/* ---------- 本番練習 ---------- */
+function fmt(s){s=Math.max(0,Math.ceil(s));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');}
+function runTimer(el,phases,onPhase,onDone){
+  // phases: [{name,sec}]
+  let k=0, end=0;
+  const start=()=>{const p=phases[k];end=Date.now()+p.sec*1000;onPhase&&onPhase(k,p);tick();};
+  const tick=()=>{const left=(end-Date.now())/1000;const p=phases[k];el.innerHTML='<div class="phase">'+esc(p.name)+'</div><div class="timer'+(left<=10?' warn':'')+'">'+fmt(left)+'</div>';if(left<=0){k++;if(k<phases.length)start();else{clearInterval(timerH);timerH=null;onDone&&onDone();}}};
+  clearInterval(timerH);timerH=setInterval(tick,250);start();
+  return {skip:()=>{end=Date.now();tick();}};
+}
+function tplHint(t){return '<details><summary>テンプレを見る（ヒント）</summary>'+t.lines.map(l=>'<div class="ln"><span class="role">'+esc(l.r)+'</span><span style="font-size:14.5px">'+tplHTML(l.t)+'</span></div>').join('')+'</details>';}
+function checkList(t){return '<div class="chk"><div class="muted">使えた型にチェック</div>'+t.lines.filter(l=>l.seq!==false).map(l=>'<label><input type="checkbox"><span><span class="role">'+esc(l.r)+'</span>'+tplHTML(l.t)+'</span></label>').join('')+'</div>';}
+function modelText(t){return t.lines.filter(l=>l.seq!==false).map(l=>exHTML(l.e)).join(' ');}
+async function startRec(){
+  if(!navigator.mediaDevices||!window.MediaRecorder){toast('この端末では録音できません');return null;}
+  try{const st=await navigator.mediaDevices.getUserMedia({audio:true});const chunks=[];const r=new MediaRecorder(st);r.ondataavailable=e=>chunks.push(e.data);r._done=new Promise(res=>r.onstop=()=>{st.getTracks().forEach(x=>x.stop());res(URL.createObjectURL(new Blob(chunks,{type:r.mimeType||'audio/mp4'})));});r.start();return r;}catch(e){toast('マイクが使えませんでした');return null;}
+}
+function logPractice(t,words){S.log.push({d:today(),t:t.id,w:words});if(S.log.length>500)S.log=S.log.slice(-500);markDay();}
+
+function tabPrac(t,el){
+  const P=t.practice, k=P.kind;
+  let prompt='', promptHTML='', photoId=pick(PHOTOS), dlg=null, iwPair=null, isSet=null;
+  const newPrompt=()=>{
+    {let x;do{x=pick(PHOTOS);}while(x===photoId&&PHOTOS.length>1);photoId=x;}
+    if(k==='iw'){iwPair=pick(PROMPTS.iw);}
+    if(k==='wsamp'){prompt=pick(PROMPTS.wsamp);}
+    if(k==='ssamp'){prompt=pick(PROMPTS.ssamp);}
+    if(k==='rts'){const r=pick(PROMPTS.rts);prompt=r[0];promptHTML='<div class="prompt">'+esc(r[0])+'<ul>'+r[1].map(b=>'<li>'+esc(b)+'</li>').join('')+'</ul></div>';}
+    if(k==='ispk'){isSet=pick(PROMPTS.ispk);}
+    if(k==='summ'){dlg=pick(PROMPTS.summ);}
+  };
+  newPrompt();
+  const useRec=()=>P.speak?'<label class="row" style="gap:6px;font-size:14px"><input type="checkbox" id="recOn"> 録音して聞き返す</label>':'';
+  function intro(){
+    let h='<div class="card"><div class="muted">本番と同じ時間で練習します。'+(P.prep?'準備 '+P.prep+'秒 → ':'')+'解答 '+fmt(P.ans)+(P.ans2?' → Step 2 '+fmt(P.ans2):'')+'　｜　目安 '+t.words[0]+'〜'+t.words[1]+'語</div></div>';
+    h+='<div class="card">';
+    if(k==='photo') h+='<img class="photo" id="ph" alt="練習用の写真" src="'+photoURL(photoId)+'">';
+    if(k==='iw') h+='<div class="muted">Step 1</div><div class="prompt">'+esc(iwPair[0])+'</div>';
+    if(k==='wsamp'||k==='ssamp') h+='<div class="prompt">'+esc(prompt)+'</div>';
+    if(k==='rts') h+=promptHTML;
+    if(k==='ispk') h+='<div class="prompt">話題：<b>'+esc(isSet[0])+'</b>（3問）</div><div class="muted">質問は音声で1回だけ流れます。読み終わると35秒スタート。</div><label class="row" style="gap:6px;font-size:14px;margin-top:6px"><input type="checkbox" id="showQ"> 質問の文字も出す（慣れるまで）</label>';
+    if(k==='summ') h+='<div class="prompt">会話を聞いて、75秒で要約を書きます。</div><div class="muted">'+esc(dlg.who.join(' と '))+' の会話。本番と同じく、まず1回だけ聞いてください。</div>';
+    h+='</div>';
+    h+='<div class="card row">'+useRec()+'<button class="right" id="newP">別のお題</button></div>';
+    h+='<div class="hero"><button class="pri" id="go">'+(k==='summ'?'▶ 会話を聞く':'スタート')+'</button></div>';
+    h+='<div class="card">'+tplHint(t)+'</div>';
+    el.innerHTML=h;
+    $('#newP').onclick=()=>{newPrompt();intro();};
+    $('#go').onclick=()=>{const ro=$('#recOn');run(ro&&ro.checked);};
+    const ph=$('#ph'); if(ph) ph.onerror=()=>{ph.replaceWith(Object.assign(document.createElement('div'),{className:'muted',textContent:'写真を読み込めませんでした（オフライン？）。「別のお題」で再読み込み。'}));};
+  }
+  async function run(recOn){
+    const writing=!P.speak;
+    let area='', h='<div class="card" id="pr"></div><div class="card"><div id="tm"></div><div class="row" style="justify-content:center;margin-top:6px"><button id="skip">次へ ▶</button></div></div>';
+    if(writing) h+='<div class="card"><textarea id="ta" placeholder="ここに英語で書く" autocapitalize="sentences" spellcheck="false"></textarea><div class="wc" id="wc">0 語</div></div>';
+    h+='<div class="card">'+tplHint(t)+'</div>';
+    el.innerHTML=h;
+    const pr=$('#pr');
+    if(k==='photo') pr.innerHTML='<img class="photo" alt="練習用の写真" src="'+photoURL(photoId)+'">';
+    if(k==='iw') pr.innerHTML='<div class="muted">Step 1</div><div class="prompt">'+esc(iwPair[0])+'</div>';
+    if(k==='wsamp'||k==='ssamp') pr.innerHTML='<div class="prompt">'+esc(prompt)+'</div>';
+    if(k==='rts') pr.innerHTML=promptHTML;
+    const ta=$('#ta'), wcEl=$('#wc');
+    if(ta) ta.oninput=()=>{const n=wc(ta.value);wcEl.textContent=n+' 語（目安 '+t.words[0]+'〜'+t.words[1]+'）';wcEl.classList.toggle('ok',n>=t.words[0]);};
+    let step1Text='';
+    if(k==='summ'){
+      pr.innerHTML='<div class="muted">会話を再生中…</div>';$('#tm').innerHTML='';$('#skip').style.display='none';
+      for(let i=0;i<dlg.lines.length;i++){const [w,s]=dlg.lines[i];pr.innerHTML='<div class="muted">会話を再生中… '+(i+1)+' / '+dlg.lines.length+'</div><div class="dlg"><b>'+esc(dlg.who[w])+'</b></div>';await speak(s,{v:w,pitch:w?1.0:0.9});if(V.view!=='task'||V.tab!=='prac')return;}
+      pr.innerHTML='<div class="prompt">今の会話を要約してください（75秒）。</div>';$('#skip').style.display='';
+    }
+    if(k==='ispk'){ await runIS(recOn); return; }
+    let phases=[];
+    if(P.prep) phases.push({name:'準備',sec:P.prep});
+    phases.push({name:k==='iw'?'Step 1 解答':'解答',sec:P.ans});
+    if(k==='iw') phases.push({name:'Step 2 解答',sec:P.ans2});
+    let r=null;
+    const T=runTimer($('#tm'),phases,async(i,p)=>{
+      if(/解答/.test(p.name)&&ta){ta.disabled=false;ta.focus();}
+      if(p.name==='準備'&&ta) ta.disabled=true;
+      if(p.name==='Step 2 解答'){step1Text=ta.value;ta.value='';ta.oninput();pr.innerHTML='<div class="muted">Step 2（1回目の内容につなげる）</div><div class="prompt">'+esc(iwPair[1])+'</div><details><summary>Step 1 の自分の答え</summary><div class="ex">'+esc(step1Text)+'</div></details>';}
+      if(p.name==='解答'&&recOn&&P.speak){r=await startRec();rec=r;}
+    },()=>finish(r,step1Text));
+    $('#skip').onclick=()=>T.skip();
+  }
+  async function runIS(recOn){
+    const pr=$('#pr'); let r=null; if(recOn){r=await startRec();rec=r;}
+    for(let qi=0;qi<isSet[1].length;qi++){
+      const q=isSet[1][qi], showQ=$('#showQ')?$('#showQ').checked:false;
+      pr.innerHTML='<div class="muted">質問 '+(qi+1)+' / '+isSet[1].length+'（話題：'+esc(isSet[0])+'）</div><div class="prompt" style="'+(showQ?'':'filter:blur(6px)')+'" id="qtx">'+esc(q)+'</div><div class="muted">質問の文字は答えのあとで見られます。</div>';
+      $('#tm').innerHTML='<div class="phase">質問を再生中…</div><div class="timer">0:35</div>';
+      await speak(q);
+      if(V.view!=='task'||V.tab!=='prac')return;
+      await new Promise(res=>{const T=runTimer($('#tm'),[{name:'解答',sec:P.ans}],null,res);$('#skip').onclick=()=>T.skip();});
+      if(V.view!=='task'||V.tab!=='prac')return;
+    }
+    finish(r,'');
+  }
+  async function finish(r,step1Text){
+    clearInterval(timerH);timerH=null;
+    const ta=$('#ta'); const txt=ta?ta.value:'';
+    const n=wc(txt)+wc(step1Text||'');
+    let h='<div class="card" style="text-align:center"><div class="big" style="font-weight:700">おつかれさま</div>';
+    if(!P.speak){const n1=k==='iw'?wc(step1Text):wc(txt);h+='<div class="muted">'+(k==='iw'?'Step 1：'+wc(step1Text)+' 語 ／ Step 2：'+wc(txt)+' 語':'書いた語数：'+n1+' 語（目安 '+t.words[0]+'〜'+t.words[1]+'）')+'</div>';}
+    h+='</div>';
+    if(r){const url=await r._done;h+='<div class="card"><div class="muted">録音</div><audio controls src="'+url+'" style="width:100%"></audio></div>';}
+    if(k==='iw'&&step1Text) h+='<div class="card"><div class="muted">Step 1 の答え</div><div style="white-space:pre-wrap;font-size:15px">'+esc(step1Text)+'</div><div class="muted" style="margin-top:8px">Step 2 の答え</div><div style="white-space:pre-wrap;font-size:15px">'+esc(txt)+'</div></div>';
+    else if(txt) h+='<div class="card"><div class="muted">自分の答え</div><div style="white-space:pre-wrap;font-size:15px">'+esc(txt)+'</div></div>';
+    if(k==='ispk') h+='<div class="card"><div class="muted">質問</div>'+isSet[1].map((q,i)=>'<div class="qa">Q'+(i+1)+'. '+esc(q)+' <button class="spk" data-q="'+i+'">🔊</button></div>').join('')+'</div>';
+    if(k==='summ') h+='<div class="card"><details><summary>会話のスクリプト</summary>'+dlg.lines.map(([w,s])=>'<div class="dlg"><b>'+esc(dlg.who[w])+'：</b>'+esc(s)+'</div>').join('')+'</details><details><summary>要約の例</summary><div class="ex">'+esc(dlg.model)+'</div></details></div>';
+    h+='<div class="card">'+checkList(t)+'</div>';
+    h+='<div class="card"><details><summary>テンプレで書いた例（型の確認用）</summary><div class="ex">'+modelText(t)+'</div></details></div>';
+    h+='<div class="hero"><button class="pri" id="again2">別のお題で</button><button id="toSee">テンプレを見直す</button></div>';
+    el.innerHTML=h;
+    logPractice(t,n);
+    el.querySelectorAll('[data-q]').forEach(b=>b.onclick=()=>{stopSpeak();speak(isSet[1][+b.dataset.q]);});
+    $('#again2').onclick=()=>{newPrompt();intro();};
+    $('#toSee').onclick=()=>{V.tab='see';renderTask(t);};
+  }
+  intro();
+}
+
+render();
+</script>
+</body>
+</html>
