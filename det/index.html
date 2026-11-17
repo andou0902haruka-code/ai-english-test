@@ -599,7 +599,7 @@ function homeHTML(){
   let h='<div class="card"><div class="stats"><span>連続 <b>'+streak()+'</b> 日</span><span>覚えた行 <b>'+mastered+'</b> / '+al.length+'</span><span>本番練習 <b>'+S.log.length+'</b> 回</span></div></div>';
   const rl=revLeftNow();
   h+='<div class="hero"><button class="pri" id="goRev">📅 今日の復習　'+(rl?'あと <b>'+rl+'</b> 問':'<span style="font-weight:400">完了</span>')+'</button></div><div style="height:10px"></div>';
-  h+='<div class="hero"><button class="pri" id="goDaily">今日の暗記 10行</button><button id="goSheet">早見表をぜんぶ見る</button></div>';
+  h+='<div class="hero"><button id="goSheet">早見表をぜんぶ見る</button></div>';
   h+='<div class="hero" style="margin-top:10px"><button id="goFav">⭐ お気に入り表現 <b>'+Object.keys(S.fav).length+'</b></button></div>';
   h+='<div class="card skel"><div class="muted" style="margin-bottom:4px">骨組みは2つだけ</div><div><b>写真系</b>　全体 → 主役 → 周り → 推測 → 雰囲気</div><div><b>意見・体験系</b>　結論 → 理由 → 例 → 譲歩 → まとめ</div></div>';
   h+='<div class="sec">READING（単語を完成）</div><div class="grid">'+['fib','rc'].map(id=>{const t=LITS[id],st=litStats(id);return '<button class="tcard" data-lit="'+id+'"><div class="nm">'+t.icon+' '+t.name+'</div><div class="meta">'+t.jp+'　'+t.time+'</div><div class="meta" style="margin-top:3px">解いた '+st.done+' / '+st.total+(id==='fib'?' 文':' 本')+(st.pct!=null?'　正答率 '+st.pct+'%':'')+'</div></button>';}).join('')+'</div>';
@@ -613,7 +613,6 @@ function homeHTML(){
 }
 function bindHome(){
   document.querySelectorAll('.tcard').forEach(b=>b.onclick=()=>b.dataset.lit?go({view:'lit',lid:b.dataset.lit,ltab:'run'}):go({view:'task',id:b.dataset.id,tab:'see'}));
-  $('#goDaily').onclick=()=>go({view:'daily'});
   $('#goRev').onclick=()=>go({view:'rev'});
   $('#goFav').onclick=()=>go({view:'fav',ftab:'list'});
   $('#goSheet').onclick=()=>{V={view:'sheet'};renderSheet();};
@@ -852,7 +851,8 @@ function record(it,ok,mode){
   const L=Lit();
   if(it.fi!=null){const r=L.fib[it.fi]||{b:0,n:0,ok:0};r.b=ok?Math.min(r.b+1,5):0;r.n++;if(ok)r.ok++;r.d=today();L.fib[it.fi]=r;}
   if(mode==='miss'){const m=L.miss[it.key];if(m){if(ok){m.b=(m.b||0)+1;if(m.b>=2)delete L.miss[it.key];}else m.b=0;}}
-  else if(!ok){addMiss(it.key,{w:it.w,before:it.before,after:it.after,ja:it.ja,au:it.au||'',src:it.src});detFirst('W:'+it.key,0,'type');}
+  else{detFirst('W:'+it.key,ok?100:0,'type');   /* 本番形式で答えた文は正解・不正解とも復習リストへ */
+    if(!ok)addMiss(it.key,{w:it.w,before:it.before,after:it.after,ja:it.ja,au:it.au||'',src:it.src});}
   markDay();
 }
 
@@ -881,7 +881,7 @@ function rcList(el){
   el.innerHTML='<div class="card"><ul class="kl ml">'+LIT.rc.map((p,i)=>{const r=L.rc[i];return '<li><span class="role" style="color:'+(!r?'var(--sub)':r.last>=80?'var(--ok)':r.last>=60?'var(--mid)':'var(--ng)')+'">'+(r?r.last+'%':'未')+'</span><div class="kb"><div class="ken">'+(i+1)+'. '+esc(p.t)+'</div>'+(r?'<div class="muted">'+r.n+'回・最高 '+r.best+'%・'+esc(r.d)+'</div>':'')+'</div><button data-i="'+i+'">解く</button></li>';}).join('')+'</ul></div>';
   el.querySelectorAll('button[data-i]').forEach(b=>b.onclick=()=>{rcRun(el,+b.dataset.i);window.scrollTo(0,0);});
 }
-function rcRun(el,i){
+function rcRun(el,i,opt){opt=opt||{};
   const P=LIT.rc[i];let n=0;
   let h='<div class="stick" id="tm"></div><div class="card"><div class="muted">'+(i+1)+'. '+esc(P.t)+'　｜　Type the missing letters to complete the text below.</div><div class="rcp">';
   P.segs.forEach(g=>{if(typeof g==='string')h+=esc(g);else h+=ciHTML(g[0].length,n++);});
@@ -908,14 +908,18 @@ function rcRun(el,i){
       else{out[out.length-1]=esc(prev.slice(0,prev.length-kept.length))+'<span class="ngw">'+esc(w)+'</span>';
         const s=P.sents[g[1]],j=s.search(new RegExp('\\b'+w+'\\b'));
         r.w=w;r.kept=kept;
-        if(j>=0){addMiss('r'+i+':'+w.toLowerCase(),{w,before:s.slice(0,j),after:s.slice(j+w.length),ja:g[2]||'',au:'',src:'Read and Complete・'+P.t});detFirst('W:r'+i+':'+w.toLowerCase(),0,'type');}}
+        if(j>=0)addMiss('r'+i+':'+w.toLowerCase(),{w,before:s.slice(0,j),after:s.slice(j+w.length),ja:g[2]||'',au:'',src:'Read and Complete・'+P.t});}
     });
     markDay();
+    let rr=null;
+    if(opt.review)rr=opt.review(pct);else detFirst('P:r'+i,pct,'rc');   /* 本番形式で解いた文章は復習リストへ */
     const miss=res.filter(r=>!r.ok);
     let h='<div class="card" style="text-align:center"><div class="big" style="font-weight:700">'+okN+' / '+res.length+' 語（'+pct+'%）</div><div class="muted">'+(pct>=80?'よくできました。':pct>=60?'あと少し。赤い語を見直そう。':'赤い語を「まちがえた単語」で復習しよう。')+'</div></div>';
     h+='<div class="card"><div class="row"><span class="mh">'+esc(P.t)+'</span><button class="right" id="sp">🔊 聞く</button></div><div class="rcp" style="line-height:1.9;margin-top:6px">'+out.join('')+'</div><div class="note"><span class="okw">緑</span>＝正解　<span class="ngw">赤</span>＝まちがい</div></div>';
     if(miss.length) h+='<div class="card"><div class="kh" style="font-weight:700">まちがえた単語（復習リストに入りました）</div><ul class="kl ml">'+miss.map(r=>'<li><div class="kb"><div class="ken">'+esc(r.w)+'</div><div class="muted">あなたの答え：'+esc(r.kept)+'<s>'+esc(r.typed||'（空欄）')+'</s>'+(r.g[2]?'　｜　'+esc(r.g[2]):'')+'</div></div></li>').join('')+'</ul></div>';
     h+='<div class="card"><details open><summary>日本語訳</summary><div style="font-size:14.5px;margin-top:6px">'+esc(P.ja)+'</div></details><details><summary>この文章の重要単語</summary><ul class="kl ml">'+P.g.map(([w,ja])=>'<li><div class="kb"><span class="ken">'+esc(w)+'</span>　<span class="kja">'+esc(ja)+'</span></div></li>').join('')+'</ul></details></div>';
+    if(opt.review){h+='<div class="card note">復習の記録：'+rvGradeLabel(rvGradeOf(pct))+'（'+pct+'%・80%以上で①、40%以上で②）　次は '+rvMd(rvSt('P:r'+i).due)+'</div><div class="hero"><button class="pri" id="rnext">'+(opt.last?'結果を見る':'次へ')+'</button></div>';
+      el.innerHTML=h;window.scrollTo(0,0);$('#sp').onclick=()=>play(P.au,P.sents.join(' '));$('#rnext').onclick=opt.next;return;}
     h+='<div class="hero"><button class="pri" id="again">もう一度</button><button id="next">次の文章へ</button></div>';
     if(miss.length) h+='<div class="hero" style="margin-top:10px"><button id="toMiss">まちがえた単語を復習 '+missList().length+'</button></div>';
     el.innerHTML=h;window.scrollTo(0,0);
@@ -930,9 +934,57 @@ function rcRun(el,i){
   setTimeout(()=>{try{ins[0].focus({preventScroll:true});}catch(e){}},60);
 }
 
+/* ---------- 本番練習のお題（答え合わせ画面と今日の復習で共用） ----------
+   key: wphoto / sphoto（写真は書く・話すを分ける）/ iw / wsamp / rts / ispk / ssamp / summ、idx: お題の番号（写真は PHOTOS の番号） */
+const QTASK={wphoto:'wphoto',sphoto:'sphoto',iw:'iw1',wsamp:'wsamp',rts:'rts',ispk:'ispk',ssamp:'ssamp',summ:'summ'};
+const QNAME={wphoto:'Write About the Photo',sphoto:'Speak About the Photo',iw:'Interactive Writing',wsamp:'Writing Sample',rts:'Read, Then Speak',ispk:'Interactive Speaking',ssamp:'Speaking Sample',summ:'Summarize the Conversation'};
+const qKeyOf=t=>t.practice.kind==='photo'?t.id:t.practice.kind;
+function qCount(key){return key==='wphoto'||key==='sphoto'?PHOTOS.length:(PROMPTS[key]||[]).length;}
+function qIds(){const a=[];Object.keys(QTASK).forEach(k=>{for(let i=0;i<qCount(k);i++)a.push('Q:'+k+':'+i);});return a;}
+function qOf(id){const m=/^Q:(\w+):(\d+)$/.exec(id);if(!m||!QTASK[m[1]]||+m[2]>=qCount(m[1]))return null;return {key:m[1],idx:+m[2]};}
+function qLabel(key,idx){return QNAME[key]+'・'+(key==='ispk'?PROMPTS.ispk[idx][0]:key==='wphoto'||key==='sphoto'?'写真'+(idx+1):key==='summ'?'会話'+(idx+1):'お題'+(idx+1));}
+function promptFor(key,idx){
+  if(key==='wphoto'||key==='sphoto')return '<img class="photo" alt="お題の写真" src="'+photoURL(PHOTOS[idx])+'">';
+  if(key==='iw'){const p=PROMPTS.iw[idx];return '<div class="muted">Step 1</div><div class="prompt">'+esc(p[0])+'</div><div class="muted" style="margin-top:6px">Step 2</div><div class="prompt">'+esc(p[1])+'</div>';}
+  if(key==='rts'){const r=PROMPTS.rts[idx];return '<div class="prompt">'+esc(r[0])+'<ul>'+r[1].map(b=>'<li>'+esc(b)+'</li>').join('')+'</ul></div>';}
+  if(key==='ispk'){const s=PROMPTS.ispk[idx];return '<div class="prompt">話題：<b>'+esc(s[0])+'</b></div>'+s[1].map((q,qi)=>'<div class="qa">Q'+(qi+1)+'. '+esc(q)+' <button class="spk" data-au="is_'+idx+'_'+qi+'" data-tx="'+esc(q)+'" aria-label="質問を聞く">🔊</button></div>').join('');}
+  if(key==='summ'){const d=PROMPTS.summ[idx];return '<div class="prompt">会話を聞いて要約する</div><div class="muted">'+esc(d.who.join(' と '))+' の会話</div><div class="row" style="margin-top:8px"><button id="dlgPlay">▶ 会話を聞く</button></div>';}
+  return '<div class="prompt">'+esc(PROMPTS[key][idx])+'</div>';
+}
+/* 模範解答（テンプレの役割つき）＋重要表現 */
+function answerCardFor(key,idx){
+  const note='<div class="note">緑の下線＝お題ごとに入れかえる部分、黒字＝テンプレのまま、<span class="key">黄色</span>＝使い回せる重要表現。</div>';
+  const card=x=>'<div class="card">'+x+'</div>';
+  if(key==='wphoto'||key==='sphoto'){
+    const pi=idx, img='<img class="photo" alt="今回の写真" src="'+photoURL(PHOTOS[pi])+'" style="margin-bottom:10px">';
+    if(key==='sphoto'){const m=(MODELS.sphoto||[])[pi];if(!m)return '';
+      const A=PHOTO_ANS[pi], wk=(MODELS.wphoto||[])[pi]||[];
+      return card(img+modelHTML('模範解答（話す・テンプレどおり）',m.a,rolesOf('sphoto'),m.keys,m.au)+note+keysHTML(m.keys)
+        +(A?'<details style="margin-top:12px"><summary>書くとき（Write About the Photo）の短い版</summary>'+modelHTML('5文・書く版',A,rolesOf('wphoto'),wk,'ans_'+pi)+keysHTML(wk)+'</details>':''));}
+    const A=PHOTO_ANS[pi];if(!A)return '';const wk=(MODELS.wphoto||[])[pi]||[];
+    return card(img+modelHTML('模範解答（テンプレどおり）',A,rolesOf('wphoto'),wk,'ans_'+pi)+note+keysHTML(wk));
+  }
+  if(key==='iw'){const m=(MODELS.iw||[])[idx],p=PROMPTS.iw[idx];if(!m)return '';
+    return card('<div class="mq">Step 1：'+esc(p[0])+'</div>'+modelHTML('模範解答 Step 1',m.s1,rolesOf('iw1'),m.keys,m.au1)
+      +'<div class="mq">Step 2：'+esc(p[1])+'</div>'+modelHTML('模範解答 Step 2',m.s2,rolesOf('iw2'),m.keys,m.au2)+note+keysHTML(m.keys));}
+  if(key==='wsamp'||key==='rts'||key==='ssamp'){const m=(MODELS[key]||[])[idx];if(!m)return '';
+    const prompt=key==='rts'?PROMPTS.rts[idx][0]:PROMPTS[key][idx], tid=m.tpl||key;
+    return card('<div class="mq">'+esc(prompt)+'</div>'+modelHTML('模範解答（テンプレどおり）',m.a,rolesOf(tid),m.keys,m.au)+note
+      +(m.tpl?'<div class="note">意見型のお題なので、Interactive Writing Step 1 の型を1文ずつ長くして書いています。</div>':'')+keysHTML(m.keys));}
+  if(key==='ispk'){const m=(MODELS.ispk||[])[idx],isSet=PROMPTS.ispk[idx];if(!m)return '';
+    return card(isSet[1].map((q,qi)=>'<div class="mq">Q'+(qi+1)+'. '+esc(q)+' <button class="spk" data-au="is_'+idx+'_'+qi+'" data-tx="'+esc(q)+'" aria-label="質問を聞く">🔊</button></div>'
+      +(m.a[qi]?modelHTML('模範解答',m.a[qi],rolesOf('ispk'),m.keys,m.au[qi]):'')).join('')+note+keysHTML(m.keys));}
+  if(key==='summ'){const m=(MODELS.summ||[])[idx],dlg=PROMPTS.summ[idx];
+    const scr='<details><summary>会話のスクリプト</summary>'+dlg.lines.map(([w,s])=>'<div class="dlg"><b>'+esc(dlg.who[w])+'：</b>'+esc(s)+'</div>').join('')+'</details>';
+    if(!m)return card(scr+'<details><summary>要約の例</summary><div class="ex">'+esc(dlg.model)+'</div></details>');
+    return card(modelHTML('要約の模範解答（テンプレどおり）',m.a,rolesOf('summ'),m.keys,m.au)+note+keysHTML(m.keys)+'<div style="margin-top:10px">'+scr+'</div>');}
+  return '';
+}
+async function playDlg(idx,alive){const d=PROMPTS.summ[idx];for(let i=0;i<d.lines.length;i++){await play('dlg_'+idx+'_'+i,d.lines[i][1]);if(!alive())return;await new Promise(r=>setTimeout(r,400));}}
+
 /* ---------- 今日の復習（復習のきまり＝5アプリ共通。rv.js の中身は inject.py が配る） ----------
    id: L:<課題>:<行>（テンプレの行）／F:<表現id>（お気に入り表現）／W:f<番号>（Fill in the Blanks）／W:r<文章>:<単語>（Read and Complete）
-   入るとき: 行＝穴埋め・今日の暗記で初めて答えた／表現＝☆を付けた／単語＝練習でまちがえた（1日5件まで、超えたら登録待ち）
+   入るとき: 行＝穴埋めで初めて答えた／文章・お題＝本番形式・本番練習で答えた／表現＝☆を付けた／単語＝練習でまちがえた（1日5件まで、超えたら登録待ち）
    復習コーナー以外の練習（穴埋め・お気に入りの復習10問・まちがえた単語など）は、初回の登録だけで回数・箱には数えない */
 let _rcW=null;
 function rcWords(){if(_rcW)return _rcW;_rcW={};
@@ -950,8 +1002,8 @@ var RV_ENV={app:'det',name:'DETテンプレ暗記',unit:'問',intervals:[1,3,7,1
     Object.keys((S.lit&&S.lit.miss)||{}).forEach(k=>out.push({id:'W:'+k,box:0,last:S.lit.miss[k].t}));
     return out;},
   put(){},
-  ids(){return allLines().map(x=>'L:'+x.id).concat(Object.keys(S.fav||{}).map(k=>'F:'+k),LIT.fib.map((x,i)=>'W:f'+i),Object.keys(rcWords()));},
-  label(id){if(id[0]==='L'){const x=lineOf(id);return x?x.t.name+'・'+x.l.r:id;}if(id[0]==='F'){const k=S.fav[id.slice(2)];return k?(k.g||k.m):id;}const w=wordOf(id);return w?w.w:id;},
+  ids(){return allLines().map(x=>'L:'+x.id).concat(Object.keys(S.fav||{}).map(k=>'F:'+k),LIT.fib.map((x,i)=>'W:f'+i),Object.keys(rcWords()),LIT.rc.map((x,i)=>'P:r'+i),qIds());},
+  label(id){if(id[0]==='P'){const x=LIT.rc[+id.slice(3)];return x?'Read and Complete・'+x.t:id;}if(id[0]==='Q'){const q=qOf(id);return q?qLabel(q.key,q.idx):id;}if(id[0]==='L'){const x=lineOf(id);return x?x.t.name+'・'+x.l.r:id;}if(id[0]==='F'){const k=S.fav[id.slice(2)];return k?(k.g||k.m):id;}const w=wordOf(id);return w?w.w:id;},
   onChange(){if(V.view==='home'||(V.view==='rev'&&!REV))render();}
 };
 /* RV:JS:BEGIN */
@@ -1784,25 +1836,31 @@ function detEnroll(id){try{rvLoad();id=String(id);if(rvEnrolled(id))return;
 function revLeftNow(){try{return Math.min(rvQuotaLeft(),rvDueIds(RV_ENV.ids()).length);}catch(e){return 0;}}
 
 let REV=null;
+const RG=[['all','すべて'],['L','📝 テンプレの行'],['F','⭐ お気に入り表現'],['W','🔤 単語（Fill in the Blanks）'],['P','📄 Read and Complete'],['Q','🎯 本番練習のお題']];
+const RG_NOTE={L:'穴埋めで答えた行。役割を見て全文を言う',F:'☆を付けた表現。日本語を見て、文の中の表現を言う',W:'Fill in the Blanks の本番形式で答えた文（とまちがえた単語）。残りの文字を打つ',P:'本番形式で解いた文章。もう一度3分で解く（点数で自動採点）',Q:'本番練習で答えたお題。テンプレの流れで答えてから模範解答と比べる'};
+const rgIds=g=>{const a=RV_ENV.ids();return !g||g==='all'?a:a.filter(id=>id[0]===g);};
 function renderRev(){
   const app=$('#app');app.classList.remove('blur');app.onclick=null;$('#title').textContent='📅 今日の復習';
   if(REV)return revShow();
-  const ids=RV_ENV.ids(),n=rvPick(ids).length;
-  let h=rvBarHtml(ids);
-  if(n)h+='<div class="hero"><button class="pri" id="rvGo">復習を始める（'+n+'問）</button></div>';
-  else h+=rvDoneHtml('revStart()',ids);
-  h+='<div class="card"><div style="font-weight:700;margin-bottom:4px">復習に入るもの</div>'
-    +'<div class="tip"><b>テンプレの行</b>：穴埋め・今日の暗記で一度答えた行 → 役割を見て全文を言う</div>'
-    +'<div class="tip"><b>⭐ お気に入り表現</b>：☆を付けた表現 → 日本語を見て、文の中の表現を言う</div>'
-    +'<div class="tip"><b>まちがえた単語</b>：Fill in the Blanks・Read and Complete でまちがえた単語 → 残りの文字を打つ</div>'
-    +'<div class="muted" style="margin-top:6px">新しく入るのは1日5件まで（超えたぶんは「登録待ち」）。決まりはほかの学習アプリと同じで、1日30問まで・①②③で採点・③は翌日にもう一度。ほかの練習は何回やっても数えません。</div></div>';
-  h+=rvPanelHtml(ids);
+  const g=V.rg||'all',ids=rgIds(g),n=rvPick(ids).length,left=rvQuotaLeft();
+  let h=rvBarHtml(RV_ENV.ids());
+  h+='<div class="card"><div style="font-weight:700;margin-bottom:6px">ジャンルを選ぶ</div><ul class="kl ml">'+RG.map(([k,nm])=>{
+      const a=rgIds(k),due=rvDueIds(a).length,en=a.filter(rvEnrolled).length;
+      return '<li style="align-items:center"><label class="kb" style="display:flex;gap:10px;align-items:flex-start;cursor:pointer"><input type="radio" name="rg" value="'+k+'"'+(k===g?' checked':'')+' style="width:18px;height:18px;flex:none;margin-top:4px"><span style="min-width:0"><span class="ken" style="font-size:15px">'+nm+'</span><br><span class="muted">'+(k==='all'?'全ジャンルから選ぶ':esc(RG_NOTE[k]))+'</span></span></label>'
+        +'<span class="right" style="text-align:right;white-space:nowrap"><b style="font-size:17px;color:'+(due?'var(--accent)':'var(--sub)')+'">'+due+'</b><span class="muted"> 問</span><br><span class="muted">登録 '+en+'</span></span></li>';}).join('')+'</ul>'
+    +'<div class="note">数字＝期限が来ている問題。1日30問の枠はジャンル共通です。</div></div>';
+  if(n)h+='<div class="hero"><button class="pri" id="rvGo">'+esc(RG.find(x=>x[0]===g)[1])+'を復習（'+n+'問）</button></div>';
+  else if(left>0)h+='<div class="card muted">このジャンルで今日やる復習はありません。'+(rgIds('all').length&&rvPick(rgIds('all')).length?'ほかのジャンルを選んでください。':'')+'</div>';
+  else h+=rvDoneHtml('revStart()',RV_ENV.ids());
+  h+='<div class="card muted">新しく入るのは1日5件まで（超えたぶんは「登録待ち」→下の「くわしい状況・設定」から入れられます）。決まりはほかの学習アプリと同じで、1日30問まで・①②③で採点・③は翌日にもう一度。ほかの練習は、初めて答えたときに登録されるだけで回数には数えません。</div>';
+  h+=rvPanelHtml(RV_ENV.ids());
   app.innerHTML=h;
-  const g=$('#rvGo');if(g)g.onclick=revStart;
+  app.querySelectorAll('input[name=rg]').forEach(r=>r.onchange=()=>{V.rg=r.value;renderRev();});
+  const b=$('#rvGo');if(b)b.onclick=()=>revStart();
 }
-function revStart(){V={view:'rev'};REV={q:rvPick(RV_ENV.ids()),k:0,res:[]};render();window.scrollTo(0,0);}
+function revStart(g){g=g||V.rg||'all';V={view:'rev',rg:g};REV={q:rvPick(rgIds(g)),k:0,res:[]};render();window.scrollTo(0,0);}
 function revHead(){return '<div class="row"><span class="prog">'+(REV.k+1)+' / '+REV.q.length+'</span><button class="right ghost" id="rvQuit" style="font-size:13px;padding:4px 10px">やめる</button></div>';}
-function revBindQuit(){const b=$('#rvQuit');if(b)b.onclick=()=>{if(REV.res.length&&!confirm('ここでやめますか？（答えた '+REV.res.length+' 問は記録ずみ）'))return;REV=null;stopSpeak();render();};}
+function revBindQuit(){const b=$('#rvQuit');if(b)b.onclick=()=>{if(REV.res.length&&!confirm('ここでやめますか？（答えた '+REV.res.length+' 問は記録ずみ）'))return;cleanup();REV=null;render();};}
 function revShow(){
   const el=$('#app');
   while(REV.k<REV.q.length&&(!rvServeOk(REV.q[REV.k])||!revItemOk(REV.q[REV.k])))REV.k++;
@@ -1821,6 +1879,17 @@ function revShow(){
       if(!shown)$('#ans').onclick=()=>{shown=true;draw();};else $('#sp').onclick=()=>play(au,plain(x.l.e));
     };draw();return;
   }
+  if(ty==='P'){const i=+id.slice(3);el.innerHTML=revHead()+'<div id="rcw"></div>';revBindQuit();
+    rcRun($('#rcw'),i,{last:REV.k+1>=REV.q.length,review:p=>{const r=rvAnswer(id,p,{fmt:'rc'});REV.res.push({id,p});return r;},next:()=>{REV.k++;revShow();window.scrollTo(0,0);}});return;}
+  if(ty==='Q'){const q=qOf(id),alive=()=>REV&&REV.q[REV.k]===id;
+    const draw=()=>{
+      let h=revHead()+'<div class="card"><div class="muted">🎯 '+esc(qLabel(q.key,q.idx))+'</div>'+promptFor(q.key,q.idx)+'</div>';
+      if(!shown)h+='<div class="card"><div class="muted">テンプレの流れ（'+esc(TASKS.find(x=>x.id===QTASK[q.key]).skel)+'）で、声に出して答えてから「模範解答」。</div><div class="row" style="margin-top:10px"><button class="pri" id="ans" style="flex:1;padding:12px">模範解答を見る</button></div></div>';
+      else h+=answerCardFor(q.key,q.idx)+'<div class="card">'+rvGradeHtml('revGrade',{q:'模範解答を見る前に、テンプレの流れで答えられましたか？'})+'</div>';
+      el.innerHTML=h;revBindQuit();bindModel(el);
+      const dp=$('#dlgPlay');if(dp)dp.onclick=()=>playDlg(q.idx,alive);
+      if(!shown)$('#ans').onclick=()=>{shown=true;stopSpeak();draw();window.scrollTo(0,0);};
+    };draw();return;}
   if(ty==='F'){
     const k=Object.assign({id:id.slice(2)},S.fav[id.slice(2)]);
     const draw=()=>{
@@ -1857,9 +1926,9 @@ function revShow(){
   $('#chk').onclick=check;
 }
 /* 消した（☆を外した）など、いま出せない問題は飛ばす */
-function revItemOk(id){return id[0]==='L'?!!lineOf(id):id[0]==='F'?!!S.fav[id.slice(2)]:!!wordOf(id);}
+function revItemOk(id){return id[0]==='L'?!!lineOf(id):id[0]==='F'?!!S.fav[id.slice(2)]:id[0]==='P'?!!LIT.rc[+id.slice(3)]:id[0]==='Q'?!!qOf(id):!!wordOf(id);}
 function revEnd(){
-  const res=REV.res;REV=null;markDay();
+  const res=REV.res,rg=V.rg;REV=null;markDay();
   const c=[0,0,0];res.forEach(r=>c[rvGradeOf(r.p)-1]++);
   let h='<div class="card" style="text-align:center"><div class="big" style="font-weight:700">おわり</div><div class="muted">'+res.length+' 問を復習しました　① '+c[0]+'　② '+c[1]+'　③ '+c[2]+'</div></div>';
   if(res.length)h+='<div class="card"><ul class="kl ml">'+res.map(r=>{const g=rvGradeOf(r.p);const s=rvSt(r.id);
@@ -1867,7 +1936,7 @@ function revEnd(){
   h+=rvBarHtml(RV_ENV.ids())+rvDoneHtml('revStart()');
   h+='<div class="hero"><button class="pri" id="toRev">復習のトップへ</button><button id="home">ホームへ</button></div>';
   $('#app').innerHTML=h;window.scrollTo(0,0);
-  $('#toRev').onclick=()=>go({view:'rev'});$('#home').onclick=()=>go({view:'home'});
+  $('#toRev').onclick=()=>go({view:'rev',rg});$('#home').onclick=()=>go({view:'home'});
 }
 
 /* 並べ替え */
@@ -1985,35 +2054,8 @@ function tabPrac(t,el){
     }
     finish(r,'');
   }
-  /* 答え合わせ：模範解答（テンプレの役割つき）＋重要表現 */
-  function answerCard(){
-    const note='<div class="note">緑の下線＝お題ごとに入れかえる部分、黒字＝テンプレのまま、<span class="key">黄色</span>＝使い回せる重要表現。</div>';
-    const card=x=>'<div class="card">'+x+'</div>';
-    if(k==='photo'){
-      const pi=PHOTOS.indexOf(photoId), img='<img class="photo" alt="今回の写真" src="'+photoURL(photoId)+'" style="margin-bottom:10px">';
-      if(P.speak){const m=(MODELS.sphoto||[])[pi];if(!m)return '';
-        const A=PHOTO_ANS[pi], wk=(MODELS.wphoto||[])[pi]||[];
-        return card(img+modelHTML('模範解答（話す・テンプレどおり）',m.a,rolesOf('sphoto'),m.keys,m.au)+note+keysHTML(m.keys)
-          +(A?'<details style="margin-top:12px"><summary>書くとき（Write About the Photo）の短い版</summary>'+modelHTML('5文・書く版',A,rolesOf('wphoto'),wk,'ans_'+pi)+keysHTML(wk)+'</details>':''));}
-      const A=PHOTO_ANS[pi];if(!A)return '';const wk=(MODELS.wphoto||[])[pi]||[];
-      return card(img+modelHTML('模範解答（テンプレどおり）',A,rolesOf('wphoto'),wk,'ans_'+pi)+note+keysHTML(wk));
-    }
-    if(k==='iw'){const m=(MODELS.iw||[])[pI];if(!m)return '';
-      return card('<div class="mq">Step 1：'+esc(iwPair[0])+'</div>'+modelHTML('模範解答 Step 1',m.s1,rolesOf('iw1'),m.keys,m.au1)
-        +'<div class="mq">Step 2：'+esc(iwPair[1])+'</div>'+modelHTML('模範解答 Step 2',m.s2,rolesOf('iw2'),m.keys,m.au2)+note+keysHTML(m.keys));}
-    if(k==='wsamp'||k==='rts'||k==='ssamp'){const m=(MODELS[k]||[])[pI];if(!m)return '';
-      const tid=m.tpl||t.id;
-      return card('<div class="mq">'+esc(prompt)+'</div>'+modelHTML('模範解答（テンプレどおり）',m.a,rolesOf(tid),m.keys,m.au)+note
-        +(m.tpl?'<div class="note">意見型のお題なので、Interactive Writing Step 1 の型を1文ずつ長くして書いています。</div>':'')+keysHTML(m.keys));}
-    if(k==='ispk'){const m=(MODELS.ispk||[])[isI];if(!m)return '';
-      return card(isSet[1].map((q,qi)=>'<div class="mq">Q'+(qi+1)+'. '+esc(q)+' <button class="spk" data-au="is_'+isI+'_'+qi+'" data-tx="'+esc(q)+'" aria-label="質問を聞く">🔊</button></div>'
-        +(m.a[qi]?modelHTML('模範解答',m.a[qi],rolesOf('ispk'),m.keys,m.au[qi]):'')).join('')+note+keysHTML(m.keys));}
-    if(k==='summ'){const m=(MODELS.summ||[])[dlgI];
-      const scr='<details><summary>会話のスクリプト</summary>'+dlg.lines.map(([w,s])=>'<div class="dlg"><b>'+esc(dlg.who[w])+'：</b>'+esc(s)+'</div>').join('')+'</details>';
-      if(!m)return card(scr+'<details><summary>要約の例</summary><div class="ex">'+esc(dlg.model)+'</div></details>');
-      return card(modelHTML('要約の模範解答（テンプレどおり）',m.a,rolesOf('summ'),m.keys,m.au)+note+keysHTML(m.keys)+'<div style="margin-top:10px">'+scr+'</div>');}
-    return '';
-  }
+  const qIdx=()=>k==='photo'?PHOTOS.indexOf(photoId):k==='ispk'?isI:k==='summ'?dlgI:pI;
+  function answerCard(){return answerCardFor(qKeyOf(t),qIdx());}
   async function finish(r,step1Text){
     clearInterval(timerH);timerH=null;
     const ta=$('#ta'); const txt=ta?ta.value:'';
@@ -2025,11 +2067,18 @@ function tabPrac(t,el){
     if(k==='iw'&&step1Text) h+='<div class="card"><div class="muted">Step 1 の答え</div><div style="white-space:pre-wrap;font-size:15px">'+esc(step1Text)+'</div><div class="muted" style="margin-top:8px">Step 2 の答え</div><div style="white-space:pre-wrap;font-size:15px">'+esc(txt)+'</div></div>';
     else if(txt) h+='<div class="card"><div class="muted">自分の答え</div><div style="white-space:pre-wrap;font-size:15px">'+esc(txt)+'</div></div>';
     h+=answerCard();
+    /* 本番練習で答えたお題を復習リストへ（初回だけ。2回目からは練習扱い） */
+    const qid='Q:'+qKeyOf(t)+':'+qIdx();let qr=null;
+    try{rvLoad();if(!rvEnrolled(qid)&&!rvWaiting(qid))qr=rvAnswer(qid,60,{fmt:'prac'});}catch(e){}
+    const qg=sel=>'<div style="font-weight:700">📅 復習リスト（本番練習のお題）</div>'+rvNoteHtml(qr)+rvGradeHtml('pracFix',{sel,fix:true,q:'模範解答とくらべて自己採点してください（押さなければ ② 惜しい で記録・次の復習は明日）。'});
+    if(qr)h+='<div class="card" id="qg">'+qg(null)+'</div>';
+    else{try{const st=rvSt(qid);h+='<div class="card note">'+(st.en?'このお題は復習リストに入っています（次の復習 '+rvMd(st.due)+'）。本番練習は何回やっても復習の回数には数えません。':'このお題は復習の登録待ちです（今日の新規登録の枠を使い切りました）。')+'</div>';}catch(e){}}
     h+='<div class="card">'+checkList(t)+'</div>';
     h+='<div class="hero"><button class="pri" id="again2">別のお題で</button><button id="toSee">テンプレを見直す</button></div>';
     el.innerHTML=h;
     logPractice(t,n);
     bindModel(el);
+    window.pracFix=p=>{if(!qr)return;rvRegrade(qr.eid,p);$('#qg').innerHTML=qg(p);};
     $('#again2').onclick=()=>{newPrompt();intro();};
     $('#toSee').onclick=()=>{V.tab='see';renderTask(t);};
   }
