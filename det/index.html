@@ -366,13 +366,19 @@ const wc=s=>(s.trim().match(/[A-Za-z0-9'’-]+/g)||[]).length;
 /* 読み上げ（ブラウザの音声） */
 let RATE=1.0; try{RATE=parseFloat(localStorage.getItem(KEY+'_rate'))||1.0;}catch(e){}
 const rb=$('#rateBtn'); rb.textContent='🔊 '+RATE.toFixed(1);
-rb.onclick=()=>{const o=[0.8,0.9,1.0];RATE=o[(o.indexOf(RATE)+1)%o.length]||1.0;rb.textContent='🔊 '+RATE.toFixed(1);try{localStorage.setItem(KEY+'_rate',RATE);}catch(e){} toast('読み上げ速さ '+RATE.toFixed(1));};
-let VOICES=[];
-function loadVoices(){if(!window.speechSynthesis)return;VOICES=speechSynthesis.getVoices().filter(v=>/^en[-_](US|GB|AU|CA)/i.test(v.lang));}
-if(window.speechSynthesis){loadVoices();speechSynthesis.onvoiceschanged=loadVoices;}
-function voiceFor(n){if(!VOICES.length)return null;const pref=[/Samantha|Ava|Allison|Jenny|Aria|Google US English/i,/Daniel|Alex|Fred|Tom|Guy|Google UK English Male|Aaron/i];const v=VOICES.find(x=>pref[n%2].test(x.name));return v||VOICES[n%VOICES.length];}
-function speak(text,opt={}){return new Promise(res=>{if(!window.speechSynthesis){res();return;}const u=new SpeechSynthesisUtterance(text);u.lang='en-US';u.rate=RATE*(opt.rate||1);const v=voiceFor(opt.v||0);if(v)u.voice=v;if(opt.pitch)u.pitch=opt.pitch;u.onend=res;u.onerror=res;speechSynthesis.speak(u);});}
-function stopSpeak(){if(window.speechSynthesis)speechSynthesis.cancel();}
+rb.onclick=()=>{const o=[0.8,0.9,1.0];RATE=o[(o.indexOf(RATE)+1)%o.length]||1.0;rb.textContent='🔊 '+RATE.toFixed(1);try{localStorage.setItem(KEY+'_rate',RATE);}catch(e){} AUD.playbackRate=RATE;toast('読み上げ速さ '+RATE.toFixed(1));};
+/* 音声：edge-tts で事前に作った mp3（例文=Andrew・質問=Ava・会話=話者ごと）を1つの <audio> で鳴らす */
+const AUD=new Audio(); AUD.preload='auto';
+let audDone=null, audOK=false;
+function unlockAud(){if(audOK)return;audOK=true;try{const p=AUD.play();if(p&&p.catch)p.catch(()=>{});}catch(e){}}
+document.addEventListener('touchend',unlockAud,{capture:true,once:true});
+document.addEventListener('click',unlockAud,{capture:true,once:true});
+function ttsFallback(text,res){if(!text||!window.speechSynthesis){res();return;}const u=new SpeechSynthesisUtterance(text);u.lang='en-US';u.rate=RATE;u.onend=res;u.onerror=res;speechSynthesis.speak(u);}
+function play(key,text){stopSpeak();return new Promise(res=>{let fin=false;const done=()=>{if(fin)return;fin=true;audDone=null;res();};audDone=done;
+  AUD.onended=done;AUD.onerror=()=>{if(fin)return;ttsFallback(text,done);};
+  AUD.src='audio/'+key+'.mp3';AUD.playbackRate=RATE;try{AUD.defaultPlaybackRate=RATE;}catch(e){}
+  const p=AUD.play();if(p&&p.catch)p.catch(()=>{if(!fin)ttsFallback(text,done);});});}
+function stopSpeak(){try{AUD.pause();}catch(e){}if(window.speechSynthesis)speechSynthesis.cancel();if(audDone){const d=audDone;audDone=null;d();}}
 
 /* 穴あけ：テンプレの黒字（空欄以外）の単語を隠す */
 function tokens(t){const out=[];t.split(/(【[^】]*】)/).forEach(seg=>{if(!seg)return;if(/^【/.test(seg)){out.push({b:seg});return;}seg.split(/(\s+)/).forEach(w=>{if(!w)return;if(/^\s+$/.test(w)){out.push({s:w});return;}const m=w.match(/^([^A-Za-z]*)([A-Za-z][A-Za-z'’-]*)([^A-Za-z]*)$/);if(m)out.push({pre:m[1],w:m[2],post:m[3]});else out.push({s:w});});});return out;}
@@ -450,8 +456,8 @@ function tabSee(t,el){
   el.innerHTML=h;
   $('#showEx').onchange=e=>el.querySelectorAll('.exl').forEach(x=>x.style.display=e.target.checked?'':'none');
   $('#hideFx').onchange=e=>{$('#lines').classList.toggle('blur',e.target.checked);el.querySelectorAll('.fx').forEach(x=>x.classList.remove('open'));};
-  $('#lines').onclick=e=>{const s=e.target.closest('.spk');if(s){stopSpeak();speak(plain(t.lines[+s.dataset.i].e));return;}const f=e.target.closest('.fx');if(f&&$('#lines').classList.contains('blur'))f.classList.toggle('open');};
-  $('#playAll').onclick=async()=>{stopSpeak();for(const l of t.lines){if(l.seq===false)continue;await speak(plain(l.e));if(V.view!=='task'||V.tab!=='see')break;}};
+  $('#lines').onclick=e=>{const s=e.target.closest('.spk');if(s){const i=+s.dataset.i;play('ex_'+t.id+'_'+i,plain(t.lines[i].e));return;}const f=e.target.closest('.fx');if(f&&$('#lines').classList.contains('blur'))f.classList.toggle('open');};
+  $('#playAll').onclick=async()=>{const run=Symbol();tabSee._run=run;for(let i=0;i<t.lines.length;i++){const l=t.lines[i];if(l.seq===false)continue;await play('ex_'+t.id+'_'+i,plain(l.e));if(tabSee._run!==run||V.view!=='task'||V.tab!=='see')break;await new Promise(r=>setTimeout(r,350));}};
 }
 
 /* 穴埋め（1行ずつ・自己採点） */
@@ -479,7 +485,7 @@ function clozeSession(el,items,opts){
       $('#cz').onclick=e=>{const w=e.target.closest('.hw[data-i]');if(!w)return;opened.add(+w.dataset.i);if(opened.size>=hidden.size)shown=true;draw();};
       if(!shown){$('#ans').onclick=()=>{hidden.forEach(i=>opened.add(i));shown=true;draw();};}
       else{
-        $('#spk1').onclick=()=>{stopSpeak();speak(plain(it.l.e));};
+        $('#spk1').onclick=()=>play('ex_'+it.t.id+'_'+it.i,plain(it.l.e));
         el.querySelectorAll('.rate button').forEach(b=>b.onclick=()=>{
           const r=+b.dataset.r, b0=boxOf(it.id);
           S.box[it.id]= r===1?Math.min(b0+1,5): r===2?Math.max(b0,0): 0;
@@ -553,15 +559,15 @@ function logPractice(t,words){S.log.push({d:today(),t:t.id,w:words});if(S.log.le
 
 function tabPrac(t,el){
   const P=t.practice, k=P.kind;
-  let prompt='', promptHTML='', photoId=pick(PHOTOS), dlg=null, iwPair=null, isSet=null;
+  let prompt='', promptHTML='', photoId=pick(PHOTOS), dlg=null, dlgI=0, iwPair=null, isSet=null, isI=0;
   const newPrompt=()=>{
     {let x;do{x=pick(PHOTOS);}while(x===photoId&&PHOTOS.length>1);photoId=x;}
     if(k==='iw'){iwPair=pick(PROMPTS.iw);}
     if(k==='wsamp'){prompt=pick(PROMPTS.wsamp);}
     if(k==='ssamp'){prompt=pick(PROMPTS.ssamp);}
     if(k==='rts'){const r=pick(PROMPTS.rts);prompt=r[0];promptHTML='<div class="prompt">'+esc(r[0])+'<ul>'+r[1].map(b=>'<li>'+esc(b)+'</li>').join('')+'</ul></div>';}
-    if(k==='ispk'){isSet=pick(PROMPTS.ispk);}
-    if(k==='summ'){dlg=pick(PROMPTS.summ);}
+    if(k==='ispk'){isI=Math.floor(Math.random()*PROMPTS.ispk.length);isSet=PROMPTS.ispk[isI];}
+    if(k==='summ'){dlgI=Math.floor(Math.random()*PROMPTS.summ.length);dlg=PROMPTS.summ[dlgI];}
   };
   newPrompt();
   const useRec=()=>P.speak?'<label class="row" style="gap:6px;font-size:14px"><input type="checkbox" id="recOn"> 録音して聞き返す</label>':'';
@@ -599,7 +605,7 @@ function tabPrac(t,el){
     let step1Text='';
     if(k==='summ'){
       pr.innerHTML='<div class="muted">会話を再生中…</div>';$('#tm').innerHTML='';$('#skip').style.display='none';
-      for(let i=0;i<dlg.lines.length;i++){const [w,s]=dlg.lines[i];pr.innerHTML='<div class="muted">会話を再生中… '+(i+1)+' / '+dlg.lines.length+'</div><div class="dlg"><b>'+esc(dlg.who[w])+'</b></div>';await speak(s,{v:w,pitch:w?1.0:0.9});if(V.view!=='task'||V.tab!=='prac')return;}
+      for(let i=0;i<dlg.lines.length;i++){const [w,s]=dlg.lines[i];pr.innerHTML='<div class="muted">会話を再生中… '+(i+1)+' / '+dlg.lines.length+'</div><div class="dlg"><b>'+esc(dlg.who[w])+'</b></div>';await play('dlg_'+dlgI+'_'+i,s);if(V.view!=='task'||V.tab!=='prac')return;await new Promise(r=>setTimeout(r,400));}
       pr.innerHTML='<div class="prompt">今の会話を要約してください（75秒）。</div>';$('#skip').style.display='';
     }
     if(k==='ispk'){ await runIS(recOn); return; }
@@ -622,7 +628,7 @@ function tabPrac(t,el){
       const q=isSet[1][qi], showQ=$('#showQ')?$('#showQ').checked:false;
       pr.innerHTML='<div class="muted">質問 '+(qi+1)+' / '+isSet[1].length+'（話題：'+esc(isSet[0])+'）</div><div class="prompt" style="'+(showQ?'':'filter:blur(6px)')+'" id="qtx">'+esc(q)+'</div><div class="muted">質問の文字は答えのあとで見られます。</div>';
       $('#tm').innerHTML='<div class="phase">質問を再生中…</div><div class="timer">0:35</div>';
-      await speak(q);
+      await play('is_'+isI+'_'+qi,q);
       if(V.view!=='task'||V.tab!=='prac')return;
       await new Promise(res=>{const T=runTimer($('#tm'),[{name:'解答',sec:P.ans}],null,res);$('#skip').onclick=()=>T.skip();});
       if(V.view!=='task'||V.tab!=='prac')return;
@@ -646,7 +652,7 @@ function tabPrac(t,el){
     h+='<div class="hero"><button class="pri" id="again2">別のお題で</button><button id="toSee">テンプレを見直す</button></div>';
     el.innerHTML=h;
     logPractice(t,n);
-    el.querySelectorAll('[data-q]').forEach(b=>b.onclick=()=>{stopSpeak();speak(isSet[1][+b.dataset.q]);});
+    el.querySelectorAll('[data-q]').forEach(b=>b.onclick=()=>{const qi=+b.dataset.q;play('is_'+isI+'_'+qi,isSet[1][qi]);});
     $('#again2').onclick=()=>{newPrompt();intro();};
     $('#toSee').onclick=()=>{V.tab='see';renderTask(t);};
   }
