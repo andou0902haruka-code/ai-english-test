@@ -1836,20 +1836,24 @@ function detEnroll(id){try{rvLoad();id=String(id);if(rvEnrolled(id))return;
 function revLeftNow(){try{return Math.min(rvQuotaLeft(),rvDueIds(RV_ENV.ids()).length);}catch(e){return 0;}}
 
 let REV=null;
-const RG=[['all','すべて'],['L','📝 テンプレの行'],['F','⭐ お気に入り表現'],['W','🔤 単語（Fill in the Blanks）'],['P','📄 Read and Complete'],['Q','🎯 本番練習のお題']];
-const RG_NOTE={L:'穴埋めで答えた行。役割を見て全文を言う',F:'☆を付けた表現。日本語を見て、文の中の表現を言う',W:'Fill in the Blanks の本番形式で答えた文（とまちがえた単語）。残りの文字を打つ',P:'本番形式で解いた文章。もう一度3分で解く（点数で自動採点）',Q:'本番練習で答えたお題。テンプレの流れで答えてから模範解答と比べる'};
-const rgIds=g=>{const a=RV_ENV.ids();return !g||g==='all'?a:a.filter(id=>id[0]===g);};
+const QORDER=[['summ','🎧'],['wphoto','✍️'],['iw','✍️'],['wsamp','✍️'],['sphoto','🗣'],['rts','🗣'],['ispk','🗣'],['ssamp','🗣']];
+const RG=[['all','すべて'],['L','📝 テンプレの行'],['F','⭐ お気に入り表現'],['W','🔤 単語（Fill in the Blanks）'],['P','📄 Read and Complete']].concat(QORDER.map(([k,ic])=>['Q:'+k,ic+' '+QNAME[k]]));
+const RG_NOTE={L:'穴埋めで答えた行。役割を見て全文を言う',F:'☆を付けた表現。日本語を見て、文の中の表現を言う',W:'Fill in the Blanks の本番形式で答えた文（とまちがえた単語）。残りの文字を打つ',P:'本番形式で解いた文章。もう一度3分で解く（点数で自動採点）',
+  'Q:summ':'会話を聞いて、要約の型で言う','Q:wphoto':'写真を見て、5文の型で書く内容を言う','Q:iw':'Step 1・2 の質問に、意見の型で答える','Q:wsamp':'お題に、体験の型で答える',
+  'Q:sphoto':'写真を見て、話す型で90秒ぶん言う','Q:rts':'お題と箇条書きを見て、型で答える','Q:ispk':'3つの質問に、直答→理由→例で答える','Q:ssamp':'お題に、3分の型で答える'};
+const rgIds=g=>{const a=RV_ENV.ids();if(!g||g==='all')return a;return g.startsWith('Q:')?a.filter(id=>id.startsWith(g+':')):a.filter(id=>id[0]===g);};
 function renderRev(){
   const app=$('#app');app.classList.remove('blur');app.onclick=null;$('#title').textContent='📅 今日の復習';
   if(REV)return revShow();
-  const g=V.rg||'all',ids=rgIds(g),n=rvPick(ids).length,left=rvQuotaLeft();
+  const g=RG.some(x=>x[0]===V.rg)?V.rg:'all',ids=rgIds(g),n=rvPick(ids).length,left=rvQuotaLeft();
   let h=rvBarHtml(RV_ENV.ids());
   h+='<div class="card"><div style="font-weight:700;margin-bottom:6px">ジャンルを選ぶ</div><ul class="kl ml">'+RG.map(([k,nm])=>{
+      const hd=k==='Q:summ'?'<li style="display:block;border-top:1px solid var(--line);margin-top:4px;padding-top:10px"><b>🎯 本番練習のお題</b> <span class="muted">本番練習で答えたお題。テンプレの流れで答えてから模範解答と比べる</span></li>':'';
       const a=rgIds(k),due=rvDueIds(a).length,en=a.filter(rvEnrolled).length;
-      return '<li style="align-items:center"><label class="kb" style="display:flex;gap:10px;align-items:flex-start;cursor:pointer"><input type="radio" name="rg" value="'+k+'"'+(k===g?' checked':'')+' style="width:18px;height:18px;flex:none;margin-top:4px"><span style="min-width:0"><span class="ken" style="font-size:15px">'+nm+'</span><br><span class="muted">'+(k==='all'?'全ジャンルから選ぶ':esc(RG_NOTE[k]))+'</span></span></label>'
+      return hd+'<li style="align-items:center"><label class="kb" style="display:flex;gap:10px;align-items:flex-start;cursor:pointer"><input type="radio" name="rg" value="'+k+'"'+(k===g?' checked':'')+' style="width:18px;height:18px;flex:none;margin-top:4px"><span style="min-width:0"><span class="ken" style="font-size:15px">'+nm+'</span><br><span class="muted">'+(k==='all'?'全ジャンルから選ぶ':esc(RG_NOTE[k]))+'</span></span></label>'
         +'<span class="right" style="text-align:right;white-space:nowrap"><b style="font-size:17px;color:'+(due?'var(--accent)':'var(--sub)')+'">'+due+'</b><span class="muted"> 問</span><br><span class="muted">登録 '+en+'</span></span></li>';}).join('')+'</ul>'
     +'<div class="note">数字＝期限が来ている問題。1日30問の枠はジャンル共通です。</div></div>';
-  if(n)h+='<div class="hero"><button class="pri" id="rvGo">'+esc(RG.find(x=>x[0]===g)[1])+'を復習（'+n+'問）</button></div>';
+  if(n)h+='<div class="hero"><button class="pri" id="rvGo">'+(nm=>esc(nm)+(/[A-Za-z]$/.test(nm)?' ':''))(RG.find(x=>x[0]===g)[1])+'を復習（'+n+'問）</button></div>';
   else if(left>0)h+='<div class="card muted">このジャンルで今日やる復習はありません。'+(rgIds('all').length&&rvPick(rgIds('all')).length?'ほかのジャンルを選んでください。':'')+'</div>';
   else h+=rvDoneHtml('revStart()',RV_ENV.ids());
   h+='<div class="card muted">新しく入るのは1日5件まで（超えたぶんは「登録待ち」→下の「くわしい状況・設定」から入れられます）。決まりはほかの学習アプリと同じで、1日30問まで・①②③で採点・③は翌日にもう一度。ほかの練習は、初めて答えたときに登録されるだけで回数には数えません。</div>';
@@ -1858,7 +1862,7 @@ function renderRev(){
   app.querySelectorAll('input[name=rg]').forEach(r=>r.onchange=()=>{V.rg=r.value;renderRev();});
   const b=$('#rvGo');if(b)b.onclick=()=>revStart();
 }
-function revStart(g){g=g||V.rg||'all';V={view:'rev',rg:g};REV={q:rvPick(rgIds(g)),k:0,res:[]};render();window.scrollTo(0,0);}
+function revStart(g){g=g||V.rg||'all';if(!RG.some(x=>x[0]===g))g='all';V={view:'rev',rg:g};REV={q:rvPick(rgIds(g)),k:0,res:[]};render();window.scrollTo(0,0);}
 function revHead(){return '<div class="row"><span class="prog">'+(REV.k+1)+' / '+REV.q.length+'</span><button class="right ghost" id="rvQuit" style="font-size:13px;padding:4px 10px">やめる</button></div>';}
 function revBindQuit(){const b=$('#rvQuit');if(b)b.onclick=()=>{if(REV.res.length&&!confirm('ここでやめますか？（答えた '+REV.res.length+' 問は記録ずみ）'))return;cleanup();REV=null;render();};}
 function revShow(){
