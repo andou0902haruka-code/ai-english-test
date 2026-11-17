@@ -1002,7 +1002,7 @@ var RV_ENV={app:'det',name:'DETテンプレ暗記',unit:'問',intervals:[1,3,7,1
     Object.keys((S.lit&&S.lit.miss)||{}).forEach(k=>out.push({id:'W:'+k,box:0,last:S.lit.miss[k].t}));
     return out;},
   put(){},
-  ids(){return allLines().map(x=>'L:'+x.id).concat(Object.keys(S.fav||{}).map(k=>'F:'+k),LIT.fib.map((x,i)=>'W:f'+i),Object.keys(rcWords()),LIT.rc.map((x,i)=>'P:r'+i),qIds());},
+  ids(){return allLines().map(x=>'L:'+x.id).concat(Object.keys(S.fav||{}).map(k=>'F:'+k),LIT.fib.map((x,i)=>'W:f'+i),LIT.rc.map((x,i)=>'P:r'+i),qIds());},
   label(id){if(id[0]==='P'){const x=LIT.rc[+id.slice(3)];return x?'Read and Complete・'+x.t:id;}if(id[0]==='Q'){const q=qOf(id);return q?qLabel(q.key,q.idx):id;}if(id[0]==='L'){const x=lineOf(id);return x?x.t.name+'・'+x.l.r:id;}if(id[0]==='F'){const k=S.fav[id.slice(2)];return k?(k.g||k.m):id;}const w=wordOf(id);return w?w.w:id;},
   onChange(){if(V.view==='home'||(V.view==='rev'&&!REV))render();}
 };
@@ -1837,8 +1837,8 @@ function revLeftNow(){try{return Math.min(rvQuotaLeft(),rvDueIds(RV_ENV.ids()).l
 
 let REV=null;
 const QORDER=[['summ','🎧'],['wphoto','✍️'],['iw','✍️'],['wsamp','✍️'],['sphoto','🗣'],['rts','🗣'],['ispk','🗣'],['ssamp','🗣']];
-const RG=[['all','すべて'],['L','📝 テンプレの行'],['F','⭐ お気に入り表現'],['W','🔤 単語（Fill in the Blanks）'],['P','📄 Read and Complete']].concat(QORDER.map(([k,ic])=>['Q:'+k,ic+' '+QNAME[k]]));
-const RG_NOTE={L:'穴埋めで答えた行。役割を見て全文を言う',F:'☆を付けた表現。日本語を見て、文の中の表現を言う',W:'Fill in the Blanks の本番形式で答えた文（とまちがえた単語）。残りの文字を打つ',P:'本番形式で解いた文章。もう一度3分で解く（点数で自動採点）',
+const RG=[['all','すべて'],['L','📝 テンプレの行'],['F','⭐ お気に入り表現'],['W','🔤 Fill in the Blanks'],['P','📄 Read and Complete']].concat(QORDER.map(([k,ic])=>['Q:'+k,ic+' '+QNAME[k]]));
+const RG_NOTE={L:'穴埋めで答えた行。役割を見て全文を言う',F:'☆を付けた表現。日本語を見て、文の中の表現を言う',W:'本番形式で答えた文。残りの文字を打つ',P:'本番形式で解いた文章。もう一度3分で解く（点数で自動採点）',
   'Q:summ':'会話を聞いて、要約の型で言う','Q:wphoto':'写真を見て、5文の型で書く内容を言う','Q:iw':'Step 1・2 の質問に、意見の型で答える','Q:wsamp':'お題に、体験の型で答える',
   'Q:sphoto':'写真を見て、話す型で90秒ぶん言う','Q:rts':'お題と箇条書きを見て、型で答える','Q:ispk':'3つの質問に、直答→理由→例で答える','Q:ssamp':'お題に、3分の型で答える'};
 const rgIds=g=>{const a=RV_ENV.ids();if(!g||g==='all')return a;return g.startsWith('Q:')?a.filter(id=>id.startsWith(g+':')):a.filter(id=>id[0]===g);};
@@ -1848,7 +1848,7 @@ function renderRev(){
   const g=RG.some(x=>x[0]===V.rg)?V.rg:'all',ids=rgIds(g),n=rvPick(ids).length,left=rvQuotaLeft();
   let h=rvBarHtml(RV_ENV.ids());
   h+='<div class="card"><div style="font-weight:700;margin-bottom:6px">ジャンルを選ぶ</div><ul class="kl ml">'+RG.map(([k,nm])=>{
-      const hd=k==='Q:summ'?'<li style="display:block;border-top:1px solid var(--line);margin-top:4px;padding-top:10px"><b>🎯 本番練習のお題</b> <span class="muted">本番練習で答えたお題。テンプレの流れで答えてから模範解答と比べる</span></li>':'';
+      const hd=k==='W'?'<li style="display:block;border-top:1px solid var(--line);margin-top:4px;padding-top:10px"><b>🎯 本番練習のお題</b> <span class="muted">本番練習で答えたお題。テンプレの流れで答えてから模範解答と比べる</span></li>':'';
       const a=rgIds(k),due=rvDueIds(a).length,en=a.filter(rvEnrolled).length;
       return hd+'<li style="align-items:center"><label class="kb" style="display:flex;gap:10px;align-items:flex-start;cursor:pointer"><input type="radio" name="rg" value="'+k+'"'+(k===g?' checked':'')+' style="width:18px;height:18px;flex:none;margin-top:4px"><span style="min-width:0"><span class="ken" style="font-size:15px">'+nm+'</span><br><span class="muted">'+(k==='all'?'全ジャンルから選ぶ':esc(RG_NOTE[k]))+'</span></span></label>'
         +'<span class="right" style="text-align:right;white-space:nowrap"><b style="font-size:17px;color:'+(due?'var(--accent)':'var(--sub)')+'">'+due+'</b><span class="muted"> 問</span><br><span class="muted">登録 '+en+'</span></span></li>';}).join('')+'</ul>'
@@ -1907,7 +1907,7 @@ function revShow(){
   }
   /* 単語：打って自動で判定 → つづりの小さなミスなどは付け直せる */
   const w=wordOf(id),kp=fibKeep(w.w.length),ms=w.w.slice(kp);
-  el.innerHTML=revHead()+'<div class="card"><div class="muted">まちがえた単語　'+esc(w.src)+'</div><div class="fibs">'+esc(w.before)+'<span class="cw">'+esc(w.w.slice(0,kp))+ciHTML(ms.length)+'</span>'+esc(w.after)+'</div><div class="muted">あと '+ms.length+' 文字'+(w.ja?'　｜　ヒントなし':'')+'</div></div><div class="hero"><button class="pri" id="chk">答え合わせ</button></div>';
+  el.innerHTML=revHead()+'<div class="card"><div class="muted">🔤 Fill in the Blanks</div><div class="fibs">'+esc(w.before)+'<span class="cw">'+esc(w.w.slice(0,kp))+ciHTML(ms.length)+'</span>'+esc(w.after)+'</div><div class="muted">あと '+ms.length+' 文字'+(w.ja?'　｜　ヒントなし':'')+'</div></div><div class="hero"><button class="pri" id="chk">答え合わせ</button></div>';
   revBindQuit();
   const inp=$('#ci');setTimeout(()=>{try{inp.focus();}catch(e){}},60);
   const check=()=>{const typed=inp.value.trim().toLowerCase(),ok=typed===ms.toLowerCase();
