@@ -131,6 +131,9 @@ table.sw td:first-child{white-space:nowrap;color:var(--sub);width:5.5em}
 .chips{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 2px}
 .chips button{padding:6px 11px;font-size:13.5px;border-radius:18px}
 .chips button.on{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:600}
+.cpy{margin-top:12px;padding-top:10px;border-top:1px solid var(--line)}
+.cbad{color:var(--ng);text-decoration:line-through;font-weight:600}
+.cmiss{color:var(--ok);text-decoration:underline;font-weight:700}
 .xr{display:flex;flex-direction:column;align-items:center;gap:4px;flex:none}
 .xth{width:76px;height:52px;object-fit:cover;border-radius:6px;background:var(--hide)}
 .xh .ken,.xh .ex .key{filter:blur(5px);cursor:pointer;transition:filter .2s}
@@ -702,8 +705,32 @@ function wpxAns(k){
   const x=wpxOf(k.id);
   return '<img class="photo" alt="お題の写真" src="'+photoURL(PHOTOS[x.p])+'" style="margin-bottom:10px">'
     +(wpxTyped.trim()?'<div class="muted">あなたの文</div><div style="font-size:15.5px;margin-bottom:8px">'+esc(wpxTyped.trim())+'</div>':'')
-    +'<div class="muted">模範の1文</div><div style="font-size:16.5px;line-height:1.8">'+keyHTML(x.s,[x])+'</div>'
-    +'<div class="row" style="margin-top:8px"><span class="role">'+esc(x.r)+'</span><span class="ken">'+tplHTML(x.g||x.m)+'</span><span class="kja">'+esc(x.ja)+'</span></div>';
+    +'<div id="wpxBox"><div class="muted">模範の1文</div><div style="font-size:16.5px;line-height:1.8">'+keyHTML(x.s,[x])+'</div>'
+    +'<div class="row" style="margin-top:8px"><span class="role">'+esc(x.r)+'</span><span class="ken">'+tplHTML(x.g||x.m)+'</span><span class="kja">'+esc(x.ja)+'</span></div></div>'
+    +'<div id="wpxHid" class="muted" style="display:none;padding:10px 0">（答えはかくしています）</div>'
+    +'<div class="cpy"><div class="row"><b style="font-size:14.5px">✍️ 書き写す</b><button class="right" id="wpxTg">答えをかくす</button></div>'
+    +'<textarea id="wpxCp" style="min-height:76px;margin-top:6px" placeholder="模範の1文を書き写す（答えをかくして、覚えて書くのもOK）" autocapitalize="sentences" spellcheck="false"></textarea>'
+    +'<div class="row" style="margin-top:6px"><button id="wpxCk">くらべる</button><span class="muted" style="font-size:12.5px">赤の取り消し線＝よけいな語・緑の下線＝足りない語</span></div><div id="wpxRes" style="margin-top:6px"></div></div>';
+}
+/* 書き写しを模範とくらべる（語の単位。大文字小文字・句読点は無視） */
+function wpxDiff(typed,model){
+  const tk=t=>(t.match(/[A-Za-z0-9'’-]+/g)||[]),norm=w=>w.toLowerCase().replace(/’/g,"'");
+  const a=tk(typed),b=tk(model),A=a.map(norm),B=b.map(norm),n=A.length,m=B.length;
+  const L=Array.from({length:n+1},()=>new Array(m+1).fill(0));
+  for(let i=n-1;i>=0;i--)for(let j=m-1;j>=0;j--)L[i][j]=A[i]===B[j]?L[i+1][j+1]+1:Math.max(L[i+1][j],L[i][j+1]);
+  const out=[];let i=0,j=0;
+  while(i<n||j<m){if(i<n&&j<m&&A[i]===B[j]){out.push(esc(a[i]));i++;j++;}
+    else if(j<m&&(i>=n||L[i][j+1]>=L[i+1][j])){out.push('<span class="cmiss">'+esc(b[j])+'</span>');j++;}
+    else{out.push('<span class="cbad">'+esc(a[i])+'</span>');i++;}}
+  return {same:n===m&&L[0][0]===m,html:out.join(' ')};
+}
+function wpxBindAns(k){
+  const x=wpxOf(k.id),box=$('#wpxBox'),hid=$('#wpxHid'),tg=$('#wpxTg');
+  const set=h=>{box.style.display=h?'none':'';hid.style.display=h?'':'none';tg.textContent=h?'答えを見せる':'答えをかくす';tg.classList.toggle('pri',h);};
+  let h=false;tg.onclick=()=>{h=!h;set(h);};
+  $('#wpxCk').onclick=()=>{const v=$('#wpxCp').value.trim(),r=$('#wpxRes');
+    if(!v){r.innerHTML='<span class="muted">まだ何も書いていません</span>';return;}
+    const d=wpxDiff(v,x.s);r.innerHTML=d.same?'<b style="color:var(--ok)">✓ 模範とぴったり同じ</b>':'<div style="font-size:15.5px;line-height:1.9">'+d.html+'</div>';};
 }
 /* クイズ：記録はしない（覚えたいものは☆で復習へ） */
 function exprQuiz(t,el,list){
@@ -720,7 +747,7 @@ function exprQuiz(t,el,list){
       el.innerHTML=h+'</div>';
       $('#xq').onclick=()=>tabExpr(t,el);
       if(!shown){wpxBindAsk(k);$('#ans').onclick=()=>{shown=true;draw();window.scrollTo(0,0);play(k.au,k.s);};}
-      else{bindStars(el);$('#sp').onclick=()=>play(k.au,k.s);el.querySelectorAll('.rate button').forEach(b=>b.onclick=()=>{if(b.dataset.r==='3')again.push(k);next();});}
+      else{wpxBindAns(k);bindStars(el);$('#sp').onclick=()=>play(k.au,k.s);el.querySelectorAll('.rate button').forEach(b=>b.onclick=()=>{if(b.dataset.r==='3')again.push(k);next();});}
     };draw();window.scrollTo(0,0);
   };next();
 }
@@ -841,10 +868,10 @@ function favReview(el){
       else{h+='<div class="big" style="font-weight:700;margin:6px 0 10px">'+esc(k.ja)+'</div>';
       h+='<div style="font-size:16.5px;line-height:1.8">'+(shown?keyHTML(k.s,[k]):maskHTML(k.s,k.m))+'</div>';}
       if(!shown) h+=(wp?'':'<div class="muted" style="margin-top:8px">グレーの部分を声に出して言ってから「答え」。</div>')+'<div class="row" style="margin-top:12px"><button class="pri" id="ans" style="flex:1;padding:12px">答え</button></div>';
-      else h+='<div class="row" style="margin-top:10px"><span class="ken">'+tplHTML(k.g||k.m)+'</span><button class="spk right" id="sp" aria-label="文を聞く">🔊</button></div><div class="rate"><button class="r1" data-r="1">◎ 言えた</button><button class="r2" data-r="2">△ あいまい</button><button class="r3" data-r="3">× まだ</button></div>';
+      else h+='<div class="row" style="margin-top:10px">'+(wp?'':'<span class="ken">'+tplHTML(k.g||k.m)+'</span>')+'<button class="spk right" id="sp" aria-label="文を聞く">🔊</button></div><div class="rate"><button class="r1" data-r="1">◎ 言えた</button><button class="r2" data-r="2">△ あいまい</button><button class="r3" data-r="3">× まだ</button></div>';
       h+='</div>';el.innerHTML=h;
       if(!shown){if(wp)wpxBindAsk(k);$('#ans').onclick=()=>{shown=true;draw();play(k.au,k.s);};}
-      else{$('#sp').onclick=()=>play(k.au,k.s);
+      else{if(wp)wpxBindAns(k);$('#sp').onclick=()=>play(k.au,k.s);
         el.querySelectorAll('.rate button').forEach(b=>b.onclick=()=>{const r=+b.dataset.r,b0=fbox(k.id);
           S.fbox[k.id]=r===1?Math.min(b0+1,5):r===2?b0:0;S.last['f:'+k.id]=today();markDay();
           if(r===3)again.push(k);next();});}
@@ -2026,9 +2053,9 @@ function revShow(){
       else{h+='<div class="big" style="font-weight:700;margin:6px 0 10px">'+esc(k.ja)+'</div>';
       h+='<div style="font-size:16.5px;line-height:1.8">'+(shown?keyHTML(k.s,[k]):maskHTML(k.s,k.m))+'</div>';}
       if(!shown)h+=(wp?'':'<div class="muted" style="margin-top:8px">グレーの部分を声に出して言ってから「答え」。</div>')+'<div class="row" style="margin-top:12px"><button class="pri" id="ans" style="flex:1;padding:12px">答え</button></div>';
-      else h+='<div class="row" style="margin-top:10px"><span class="ken">'+tplHTML(k.g||k.m)+'</span><button class="spk right" id="sp">🔊</button></div>'+rvGradeHtml('revGrade');
+      else h+='<div class="row" style="margin-top:10px">'+(wp?'':'<span class="ken">'+tplHTML(k.g||k.m)+'</span>')+'<button class="spk right" id="sp">🔊</button></div>'+rvGradeHtml('revGrade');
       h+='</div>';el.innerHTML=h;revBindQuit();
-      if(!shown){if(wp)wpxBindAsk(k);$('#ans').onclick=()=>{shown=true;draw();play(k.au,k.s);};}else $('#sp').onclick=()=>play(k.au,k.s);
+      if(!shown){if(wp)wpxBindAsk(k);$('#ans').onclick=()=>{shown=true;draw();play(k.au,k.s);};}else{if(wp)wpxBindAns(k);$('#sp').onclick=()=>play(k.au,k.s);}
     };draw();return;
   }
   /* 単語：打って自動で判定 → つづりの小さなミスなどは付け直せる */
