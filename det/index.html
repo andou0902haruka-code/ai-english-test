@@ -787,7 +787,8 @@ const ciHTML=(m,i)=>'<input class="ci"'+(i!=null?' data-i="'+i+'"':' id="ci"')+'
 function litStats(id){const L=Lit();
   if(id==='fib'){const v=Object.values(L.fib);const n=v.reduce((s,x)=>s+x.n,0),ok=v.reduce((s,x)=>s+x.ok,0);return {done:v.length,total:LIT.fib.length,pct:n?Math.round(ok/n*100):null};}
   const v=Object.values(L.rc);return {done:v.length,total:LIT.rc.length,pct:v.length?Math.round(v.reduce((s,x)=>s+x.last,0)/v.length):null};}
-function missList(){return Object.keys(Lit().miss).map(k=>Object.assign({key:k},Lit().miss[k]));}
+/* まちがえた単語は課題ごとに分ける（Fill in the Blanks＝f…／Read and Complete＝r…） */
+function missList(id){id=id||V.lid;const pre=id==='fib'?'f':id==='rc'?'r':'';return Object.keys(Lit().miss).filter(k=>!pre||k[0]===pre).map(k=>Object.assign({key:k},Lit().miss[k]));}
 function addMiss(key,o){const L=Lit();L.miss[key]=Object.assign({t:Date.now(),b:0},L.miss[key]||{},o,{b:0});}
 
 function renderLit(){
@@ -885,10 +886,10 @@ function record(it,ok,mode){
   markDay();
 }
 
-/* まちがえた単語（Fill in the Blanks と Read and Complete の両方から集まる） */
+/* まちがえた単語（課題ごと。Fill in the Blanks と Read and Complete は別々） */
 function missIntro(el){
   const M=missList();
-  if(!M.length){el.innerHTML='<div class="card"><div style="font-weight:700">まちがえた単語はありません</div><div class="muted" style="margin-top:4px">Fill in the Blanks・Read and Complete でまちがえた単語がここにたまります。2回続けて正解すると外れます。</div></div>';return;}
+  if(!M.length){el.innerHTML='<div class="card"><div style="font-weight:700">まちがえた単語はありません</div><div class="muted" style="margin-top:4px">'+(V.lid==='rc'?'Read and Complete':'Fill in the Blanks')+' でまちがえた単語がここにたまります。2回続けて正解すると外れます。</div></div>';return;}
   el.innerHTML='<div class="card"><div class="muted">まちがえた単語を、その単語が出てきた文で解き直します（1語20秒）。2回続けて正解するとリストから外れます。</div></div><div class="hero"><button class="pri" id="go">復習する（'+Math.min(10,M.length)+'問）</button></div>'
     +'<div class="card"><ul class="kl ml">'+M.sort((a,b)=>b.t-a.t).map(m=>'<li><span class="role">'+(m.b?'あと1回':'まだ')+'</span><div class="kb"><div class="ken">'+esc(m.w)+'</div><div class="kja">'+esc(m.ja||'')+'</div><div class="muted">'+esc(m.src||'')+'</div></div></li>').join('')+'</ul></div>';
   $('#go').onclick=()=>wordSession(el,shuffle(missList()).sort((a,b)=>(a.b||0)-(b.b||0)).slice(0,10).map(m=>({key:m.key,fi:/^f\d+$/.test(m.key)?+m.key.slice(1):null,lv:/^f\d+$/.test(m.key)&&LIT.fib[+m.key.slice(1)]?LIT.fib[+m.key.slice(1)][5]:undefined,before:m.before,w:m.w,after:m.after,ja:m.ja,au:m.au,src:m.src})),'miss');
@@ -955,7 +956,7 @@ function rcRun(el,i,opt){opt=opt||{};
     const miss=res.filter(r=>!r.ok);
     let h='<div class="card" style="text-align:center"><div class="big" style="font-weight:700">'+okN+' / '+res.length+' 語（'+pct+'%）</div><div class="muted">'+(pct>=80?'よくできました。':pct>=60?'あと少し。赤い語を見直そう。':'赤い語を「まちがえた単語」で復習しよう。')+'</div></div>';
     h+='<div class="card"><div class="row"><span class="mh">'+esc(P.t)+'</span><button class="right" id="sp">🔊 聞く</button></div><div class="rcp" style="line-height:1.9;margin-top:6px">'+out.join('')+'</div><div class="note"><span class="okw">緑</span>＝正解　<span class="ngw">赤</span>＝まちがい</div></div>';
-    if(miss.length) h+='<div class="card"><div class="kh" style="font-weight:700">まちがえた単語（Fill in the Blanks の「まちがえた単語」で練習できます）</div><ul class="kl ml">'+miss.map(r=>'<li><div class="kb"><div class="ken">'+esc(r.w)+'</div><div class="muted">あなたの答え：'+esc(r.kept)+'<s>'+esc(r.typed||'（空欄）')+'</s>'+(r.g[2]?'　｜　'+esc(r.g[2]):'')+'</div></div></li>').join('')+'</ul></div>';
+    if(miss.length) h+='<div class="card"><div class="kh" style="font-weight:700">まちがえた単語（「まちがえた単語」タブで練習できます）</div><ul class="kl ml">'+miss.map(r=>'<li><div class="kb"><div class="ken">'+esc(r.w)+'</div><div class="muted">あなたの答え：'+esc(r.kept)+'<s>'+esc(r.typed||'（空欄）')+'</s>'+(r.g[2]?'　｜　'+esc(r.g[2]):'')+'</div></div></li>').join('')+'</ul></div>';
     h+='<div class="card"><details open><summary>日本語訳</summary><div style="font-size:14.5px;margin-top:6px">'+esc(P.ja)+'</div></details><details><summary>この文章の重要単語</summary><ul class="kl ml">'+P.g.map(([w,ja,lv])=>'<li><div class="kb"><span class="ken">'+esc(w)+'</span> '+lvChip(lv)+'　<span class="kja">'+esc(ja)+'</span></div></li>').join('')+'</ul></details><details><summary>この文章のレベル（'+P.lv+'）とB2以上の単語</summary><div class="note">文章のレベルは、B2・C1以上（リスト外を含む）の単語の数で決めています：B2 '+P.cnt.B2+'語・C1 '+P.cnt.C1+'語・C2 '+P.cnt.C2+'語・リスト外 '+P.cnt.X+'語</div><div style="margin-top:6px;line-height:2">'+P.hw.map(([w,lv])=>'<span style="white-space:nowrap;margin-right:10px">'+esc(w)+lvChip(lv)+'</span>').join('')+'</div></details></div>';
     if(opt.review){h+='<div class="card note">復習の記録：'+rvGradeLabel(rvGradeOf(pct))+'（'+pct+'%・80%以上で①、40%以上で②）　次は '+rvMd(rvSt('P:r'+i).due)+'</div><div class="hero"><button class="pri" id="rnext">'+(opt.last?'結果を見る':'次へ')+'</button></div>';
       el.innerHTML=h;window.scrollTo(0,0);$('#sp').onclick=()=>play(P.au,P.sents.join(' '));$('#rnext').onclick=opt.next;return;}
