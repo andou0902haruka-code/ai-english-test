@@ -63,6 +63,8 @@ h3{font-size:15px;margin:14px 0 6px;color:var(--sub)}
 .tabs{display:flex;gap:6px;overflow-x:auto;margin:12px 0 4px;padding-bottom:2px}
 .tabs button{flex:1;white-space:nowrap;padding:8px 10px;font-size:14px}
 .tabs button.on{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:600}
+@media(max-width:480px){.tabs{flex-wrap:wrap;overflow-x:visible}.tabs button{flex:1 1 auto;padding:8px 5px;font-size:12.5px}}
+.xn{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:10px}.xn button{padding:6px 12px;font-size:13.5px;border-radius:18px}.xn button.on{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:600}
 .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .right{margin-left:auto}
 .ln{padding:10px 0;border-top:1px dashed var(--line)}
@@ -696,13 +698,17 @@ function tabExpr(t,el){
   const catOf=id=>C.find(c=>c.id===id.split(':')[1])||{};
   let h='<div class="card"><div class="muted">写真のどこにでも使い回せる表現。例文はそれぞれ右の写真のこと。①〜⑤は、テンプレのどの文に入れやすいか。☆でお気に入り → 復習・📅今日の復習に入ります。<br>クイズは写真だけを見て、英文を1から考えます。</div>';
   h+='<div class="chips">'+[['all','すべて']].concat(C.map(c=>[c.id,c.icon+' '+c.name])).map(([k,n])=>'<button data-c="'+k+'" class="'+(cat===k?'on':'')+'">'+esc(n)+'</button>').join('')+'</div>';
-  h+='<div class="row" style="margin-top:8px"><label class="row" style="gap:6px;font-size:14px"><input type="checkbox" id="xHide"'+(hide?' checked':'')+'> 英語をかくす（タップで表示）</label><button class="right pri" id="xQuiz">クイズ '+Math.min(10,items.length)+'問</button></div></div>';
+  const ns=[5,10,20,30].filter(n=>n<items.length).concat([0]), en=ns.includes(V.en)?V.en:(ns.includes(10)?10:0), qn=en||items.length;
+  h+='<div class="row" style="margin-top:8px"><label class="row" style="gap:6px;font-size:14px"><input type="checkbox" id="xHide"'+(hide?' checked':'')+'> 英語をかくす（タップで表示）</label></div>';
+  h+='<div class="xn"><span class="muted" style="font-size:13.5px">問題数</span>'+ns.map(n=>'<button data-n="'+n+'" class="'+(en===n?'on':'')+'">'+(n?n+'問':'全部（'+items.length+'）')+'</button>').join('')+'</div>';
+  h+='<div class="row" style="margin-top:10px"><button class="pri" id="xQuiz" style="flex:1;padding:12px">クイズ '+qn+'問</button></div></div>';
   h+='<div class="card"><ul class="kl'+(hide?' xh':'')+'" id="xl">'+items.map(k=>'<li data-id="'+esc(k.id)+'"><button class="star" data-kid="'+esc(k.id)+'" aria-label="お気に入り">'+(S.fav[k.id]?'★':'☆')+'</button><div class="kb"><div><span class="role">'+esc(k.r)+'</span>'+(cat==='all'?'<span class="muted" style="font-size:12px">'+esc(catOf(k.id).icon||'')+' '+esc(catOf(k.id).name||'')+'</span>':'')+'</div><div class="ken">'+tplHTML(k.g||k.m)+'</div><div class="kja">'+esc(k.ja)+'</div><div class="ex" style="margin-top:3px">'+keyHTML(k.s,[k])+'</div></div><div class="xr"><img class="xth" loading="lazy" alt="例文の写真" src="'+photoThumb(k.p)+'"><button class="spk" data-au="'+esc(k.au)+'" data-tx="'+esc(k.s)+'" aria-label="例文を聞く">🔊</button></div></li>').join('')+'</ul></div>';
   el.innerHTML=h;bindModel(el);
   el.querySelectorAll('.chips button').forEach(b=>b.onclick=()=>{V.ecat=b.dataset.c;tabExpr(t,el);});
   $('#xHide').onchange=e=>{V.ehide=e.target.checked;$('#xl').classList.toggle('xh',V.ehide);el.querySelectorAll('#xl li').forEach(x=>x.classList.remove('open'));};
   $('#xl').addEventListener('click',e=>{if(!$('#xl').classList.contains('xh')||e.target.closest('button'))return;const li=e.target.closest('li');if(li)li.classList.toggle('open');});
-  $('#xQuiz').onclick=()=>exprQuiz(t,el,shuffle(items).slice(0,10));
+  el.querySelectorAll('.xn button').forEach(b=>b.onclick=()=>{V.en=+b.dataset.n;tabExpr(t,el);});
+  $('#xQuiz').onclick=()=>exprQuiz(t,el,shuffle(items).slice(0,qn));
 }
 /* 写真の表現：写真を見て1から英文を作る（クイズ・お気に入りの復習・今日の復習で共通）
    wpxAsk=答える前（写真・お題・ヒント・書く欄）／wpxAns=答え（自分の文・模範の1文・表現） */
