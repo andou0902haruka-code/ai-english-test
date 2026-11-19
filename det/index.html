@@ -543,7 +543,102 @@ const KEYIDX={};(function(){const add=ks=>(ks||[]).forEach(k=>KEYIDX[k.id]=k);['
 const KEY='det_tpl_v1';
 let S={box:{},last:{},log:[],days:[],fav:{},fbox:{},lit:{fib:{},rc:{},miss:{}}};
 try{const j=JSON.parse(localStorage.getItem(KEY)||'null'); if(j) S=Object.assign(S,j);}catch(e){}
-function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}dsMark();}
+/* ---------- PCとスマホで記録を共有（2026-11-19） ----------
+   合言葉は7テストと同じ aien_sync_id（同じサイトなので、どちらで入れても共通）。
+   Firestore の reviewLists/<合言葉>__det_tpl に {s:記録, st:変えた時刻} を置く。
+   記録を「項目ごと」に分けて、あとで変えたほうを採る（☆を外したのも時刻つきで伝わる）。
+   days は和集合、log は同じ記録の数の多いほう。合流しても S の中の物は差し替えず中身だけ書き換える
+   （解いている途中の画面が持っている参照を切らないため）。今日の復習（rv_det）は rv.js が別に同期する */
+var DS_SEP='\u0001', DS_STKEY='det_tpl_stamp', DS_PREV=null, DS_ST={},
+    DS={ref:null,timer:null,at:0,busy:false,again:false,state:'off',lastOk:0};
+try{DS_ST=JSON.parse(localStorage.getItem(DS_STKEY)||'{}')||{};}catch(e){DS_ST={};}
+function dsPlain(v){return v&&typeof v==='object'&&!Array.isArray(v);}
+function dsFlat(o){const out={};(function walk(x,pre){for(const k in x){if(pre===''&&(k==='days'||k==='log'))continue;const v=x[k];
+  if(dsPlain(v)){if(Object.keys(v).length)walk(v,pre+k+DS_SEP);}else if(v!==undefined)out[pre+k]=JSON.stringify(v);}})(o,'');return out;}
+function dsMark(){const f=dsFlat(S);f.__days=JSON.stringify(S.days);f.__log=JSON.stringify(S.log);if(!DS_PREV){DS_PREV=f;return;}
+  const now=Date.now();let ch=false;
+  for(const k in f){if(DS_PREV[k]===f[k])continue;ch=true;if(k!=='__days'&&k!=='__log')DS_ST[k]=now;}
+  for(const k in DS_PREV)if(!(k in f)){DS_ST[k]=now;ch=true;}
+  DS_PREV=f;
+  if(ch){try{localStorage.setItem(DS_STKEY,JSON.stringify(DS_ST));}catch(e){}dsSchedule();}}
+(function(){DS_PREV=dsFlat(S);DS_PREV.__days=JSON.stringify(S.days);DS_PREV.__log=JSON.stringify(S.log);})();
+/* 2つの記録を合わせる（a=この端末, b=クラウド）。返り値 {s, st} */
+function dsMerge(a,sa,b,sb){
+  const fa=dsFlat(a),fb=dsFlat(b),st={},keys=new Set([...Object.keys(fa),...Object.keys(fb),...Object.keys(sa),...Object.keys(sb)]),flat={};
+  keys.forEach(k=>{const ta=sa[k]||0,tb=sb[k]||0;let v;
+    if(tb>ta)v=fb[k];else if(ta>tb)v=fa[k];else v=(k in fa)?fa[k]:fb[k];
+    if(v!==undefined)flat[k]=v;const t=Math.max(ta,tb);if(t)st[k]=t;});
+  const cut=Date.now()-120*864e5;for(const k in st)if(!(k in flat)&&st[k]<cut)delete st[k];   /* 古い「消した」印は片付ける */
+  const days=[...new Set([...(a.days||[]),...(b.days||[])])].sort().slice(-400);
+  const cnt=arr=>{const m=new Map();(arr||[]).forEach(x=>{const j=JSON.stringify(x);m.set(j,(m.get(j)||0)+1);});return m;};
+  const ca=cnt(a.log),cb=cnt(b.log),log=[];new Set([...ca.keys(),...cb.keys()]).forEach(j=>{const n=Math.max(ca.get(j)||0,cb.get(j)||0);for(let i=0;i<n;i++)log.push(JSON.parse(j));});
+  log.sort((x,y)=>String(x.d||'').localeCompare(String(y.d||'')));
+  return {flat,st,days,log:log.slice(-500)};
+}
+/* 合わせた結果を S に書き込む（物は差し替えず中身だけ）。変わったら true */
+function dsApply(m){
+  const cur=dsFlat(S);let ch=false;
+  const setP=(k,v)=>{const ps=k.split(DS_SEP);let o=S;for(let i=0;i<ps.length-1;i++){if(!dsPlain(o[ps[i]]))o[ps[i]]={};o=o[ps[i]];}o[ps[ps.length-1]]=JSON.parse(v);};
+  const delP=k=>{const ps=k.split(DS_SEP);let o=S;for(let i=0;i<ps.length-1;i++){o=o[ps[i]];if(!dsPlain(o))return;}delete o[ps[ps.length-1]];};
+  Object.keys(m.flat).sort((x,y)=>x.length-y.length).forEach(k=>{if(cur[k]!==m.flat[k]){setP(k,m.flat[k]);ch=true;}});
+  for(const k in cur)if(!(k in m.flat)){delP(k);ch=true;}
+  if(JSON.stringify(S.days)!==JSON.stringify(m.days)){S.days.length=0;m.days.forEach(x=>S.days.push(x));ch=true;}
+  if(JSON.stringify(S.log)!==JSON.stringify(m.log)){S.log.length=0;m.log.forEach(x=>S.log.push(x));ch=true;}
+  DS_ST=m.st;
+  try{localStorage.setItem(KEY,JSON.stringify(S));localStorage.setItem(DS_STKEY,JSON.stringify(DS_ST));}catch(e){}
+  DS_PREV=dsFlat(S);DS_PREV.__days=JSON.stringify(S.days);DS_PREV.__log=JSON.stringify(S.log);
+  return ch;
+}
+function dsRemote(snap){const d=snap&&snap.exists?snap.data():null;if(!d||typeof d.json!=='string')return null;try{const j=JSON.parse(d.json);return j&&j.s?j:null;}catch(e){return null;}}
+function dsAdopt(r){if(!r)return false;return dsApply(dsMerge(S,DS_ST,r.s,r.st||{}));}
+function dsPull(){
+  const sid=rvSid();if(!sid){DS.state='off';DS.ref=null;return Promise.resolve(false);}
+  DS.state='busy';
+  return rvTimeout(rvDb().then(db=>{DS.ref=db.collection('reviewLists').doc(sid+'__det_tpl');return DS.ref.get();}),8000)
+    .then(snap=>{const ch=dsAdopt(dsRemote(snap));DS.state='ok';DS.lastOk=Date.now();dsSchedule(300);return ch;})
+    .catch(()=>{DS.state='error';return false;});
+}
+function dsSchedule(ms){
+  if(!rvSid())return;const d=ms==null?30000:ms,at=Date.now()+d;
+  if(DS.timer){if(DS.at<=at)return;clearTimeout(DS.timer);}
+  DS.at=at;DS.timer=setTimeout(dsPush,d);
+}
+function dsFlush(){if(DS.timer){clearTimeout(DS.timer);dsPush();}}
+function dsPush(){
+  DS.timer=null;if(!DS.ref)return;
+  if(DS.busy){DS.again=true;return;}DS.busy=true;
+  const ref=DS.ref;let ch=false;
+  ref.firestore.runTransaction(tx=>tx.get(ref).then(snap=>{ch=dsAdopt(dsRemote(snap));tx.set(ref,{json:JSON.stringify({s:S,st:DS_ST}),at:Date.now()});}))
+    .then(()=>{DS.busy=false;DS.state='ok';DS.lastOk=Date.now();if(ch)dsChanged();if(DS.again){DS.again=false;dsSchedule(300);}})
+    .catch(()=>{DS.busy=false;DS.state='error';dsSchedule(15000);});
+}
+/* ほかの端末の記録が入ってきたら、操作中でない画面だけ描き直す */
+function dsChanged(){try{if(V.view==='home'||V.view==='fav'&&V.ftab==='list')render();}catch(e){}}
+function dsStart(){
+  if(typeof document!=='undefined'){
+    document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')dsFlush();else if(rvSid()&&Date.now()-DS.lastOk>20000)dsPull().then(ch=>{if(ch)dsChanged();});});
+    window.addEventListener('pagehide',dsFlush);}
+  return dsPull().then(ch=>{if(ch)dsChanged();return ch;});
+}
+/* 合言葉の設定（7テストと共通の aien_sync_id） */
+function setSyncWord(){
+  const cur=rvSid()||'';
+  const v=prompt('PCとスマホで記録を共有する「合言葉」を入れてください。\nもう片方の端末にも同じ合言葉を入れると、今日の復習・お気に入り・覚え度・まちがえた単語・練習の記録がそろいます。\n（AI English の7テストと同じ合言葉です。空欄でOKすると共有をやめます）',cur);
+  if(v===null)return;const w=v.trim();
+  try{localStorage.setItem('aien_sync_id',w?w:'__none__');}catch(e){}
+  if(!w){DS.ref=null;DS.state='off';toast('共有をやめました（この端末の記録はそのまま）');render();return;}
+  toast('合言葉を保存しました。記録をそろえています…');render();
+  Promise.all([dsPull(),(typeof rvPull==='function'?rvPull():Promise.resolve(false))]).then(r=>{
+    if(typeof rvChanged==='function'&&r[1])rvChanged();
+    toast(DS.state==='ok'?'記録をそろえました':'つながりませんでした。電波のよいところで開き直してください');render();});
+}
+function syncNoteHTML(){
+  const sid=rvSid();
+  if(!sid)return '<div class="card syncc"><div><b>🔗 PCとスマホで記録を共有</b></div><div class="muted" style="margin:4px 0 8px">いまは記録がこの端末だけに保存されています。両方の端末で同じ合言葉を入れると、今日の復習・お気に入り・覚え度・まちがえた単語・練習の記録がそろいます。</div><button class="pri" id="syncSet" style="width:100%;padding:11px">合言葉を入れて共有する</button></div>';
+  const st={ok:'✓ そろっています',busy:'そろえています…',error:'⚠ つながっていません（この端末には保存ずみ。次に開いたときにそろえます）',off:'—'}[DS.state]||'';
+  return '<div class="card syncc row"><div style="flex:1;min-width:0"><b>🔗 共有中</b>　<span class="muted">合言葉「'+esc(sid)+'」</span><div class="muted" style="font-size:12.5px;margin-top:2px">'+st+'</div></div><button id="syncSet">変更</button></div>';
+}
 const today=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};
 function markDay(){const t=today(); if(!S.days.includes(t)){S.days.push(t); if(S.days.length>400)S.days=S.days.slice(-400);} save();}
 function streak(){const key=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');const d=new Date();if(!S.days.includes(key(d)))d.setDate(d.getDate()-1);let n=0;while(S.days.includes(key(d))){n++;d.setDate(d.getDate()-1);}return n;}
@@ -649,7 +744,7 @@ function render(){
 function homeHTML(){
   const al=allLines();const mastered=al.filter(x=>boxOf(x.id)>=3).length;
   const weak=al.filter(x=>boxOf(x.id)===0).length;
-  let h='<div class="card"><div class="stats"><span>連続 <b>'+streak()+'</b> 日</span><span>覚えた行 <b>'+mastered+'</b> / '+al.length+'</span><span>本番練習 <b>'+S.log.length+'</b> 回</span></div></div>';
+  let h=syncNoteHTML()+'<div class="card"><div class="stats"><span>連続 <b>'+streak()+'</b> 日</span><span>覚えた行 <b>'+mastered+'</b> / '+al.length+'</span><span>本番練習 <b>'+S.log.length+'</b> 回</span></div></div>';
   const rl=revLeftNow();
   h+='<div class="hero"><button class="pri" id="goRev">📅 今日の復習　'+(rl?'あと <b>'+rl+'</b> 問':'<span style="font-weight:400">完了</span>')+'</button></div><div style="height:10px"></div>';
   h+='<div class="hero"><button id="goSheet">早見表をぜんぶ見る</button></div>';
@@ -661,12 +756,13 @@ function homeHTML(){
     const p=taskPct(t);
     h+='<button class="tcard" data-id="'+t.id+'"><div class="nm">'+t.icon+' '+esc(t.name)+'</div><div class="meta">'+esc(t.jp)+'　'+esc(t.time)+'・'+t.words[0]+'〜'+t.words[1]+'語</div><div class="bar"><i style="width:'+p+'%"></i></div><div class="meta" style="margin-top:3px">覚え度 '+p+'%</div></button>';});
   h+='</div>';
-  h+='<p class="muted" style="margin-top:24px">記録はこの端末のブラウザに保存されます（ほかの端末とは共有されません）。まだ覚えていない行 '+weak+' 行。<br>出典：DET_110点_テンプレート集（第2版）。練習用の写真は Unsplash。Fill in the Blanks・Read and Complete は自作の練習問題（形式は DET Question Guide 2026 に準拠）。単語のレベルは The Oxford 5000（OUP）・CEFR-J Wordlist ver1.5・Octanove C1/C2 Vocabulary Profile（CC BY-SA 4.0）で判定。</p>';
+  h+='<p class="muted" style="margin-top:24px">'+(rvSid()?'記録はこの端末に保存し、合言葉でほかの端末と共有しています。':'記録はこの端末のブラウザに保存されます（上の合言葉でPCとスマホを共有できます）。')+'まだ覚えていない行 '+weak+' 行。<br>出典：DET_110点_テンプレート集（第2版）。練習用の写真は Unsplash。Fill in the Blanks・Read and Complete は自作の練習問題（形式は DET Question Guide 2026 に準拠）。単語のレベルは The Oxford 5000（OUP）・CEFR-J Wordlist ver1.5・Octanove C1/C2 Vocabulary Profile（CC BY-SA 4.0）で判定。</p>';
   return h;
 }
 function bindHome(){
   document.querySelectorAll('.tcard').forEach(b=>b.onclick=()=>b.dataset.lit?go({view:'lit',lid:b.dataset.lit,ltab:'run'}):go({view:'task',id:b.dataset.id,tab:'see'}));
   $('#goRev').onclick=()=>go({view:'rev'});
+  $('#syncSet').onclick=setSyncWord;
   $('#goFav').onclick=()=>go({view:'fav',ftab:'list'});
   $('#goSheet').onclick=()=>{V={view:'sheet'};renderSheet();};
 }
@@ -2270,6 +2366,7 @@ function tabPrac(t,el){
 }
 
 try{rvInit();}catch(e){}
+try{setTimeout(()=>{dsStart().then(()=>{try{if(V.view==='home')render();}catch(e){}});},rvSid()?600:0);}catch(e){}
 /* 2026-11-18：Write About the Photo の重要表現（wphoto:写真:語句）を「使える表現」（wpx:…）へ移した。
    ☆・覚え度・今日の復習の箱を新しい id に付け替える。旧 id の復習記録は S.fav から消えるので出題されなくなる */
 (function migrateWphotoFav(){try{
