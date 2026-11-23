@@ -1192,7 +1192,7 @@ function record(it,ok,mode){
   const L=Lit();
   if(it.fi!=null){const r=L.fib[it.fi]||{b:0,n:0,ok:0};r.b=ok?Math.min(r.b+1,5):0;r.n++;if(ok)r.ok++;r.d=today();L.fib[it.fi]=r;}
   if(mode==='miss'){const m=L.miss[it.key];if(m){if(ok){m.b=(m.b||0)+1;if(m.b>=2)delete L.miss[it.key];}else m.b=0;}}
-  else{detFirst('W:'+it.key,ok?100:0,'type');   /* 本番形式で答えた文は正解・不正解とも復習リストへ */
+  else{detFirst('W:'+it.key,ok?100:0,'type');   /* 本番形式でまちがえた文だけ復習リストへ（最初に正解したものは入れない） */
     if(!ok)addMiss(it.key,{w:it.w,before:it.before,after:it.after,ja:it.ja,au:it.au||'',src:it.src});}
   markDay();
 }
@@ -1262,7 +1262,7 @@ function rcRun(el,i,opt){opt=opt||{};
     });
     markDay();
     let rr=null;
-    if(opt.review)rr=opt.review(pct);else{detFirst('P:r'+i,pct,'rc');   /* 本番形式で解いた文章は復習リストへ */
+    if(opt.review)rr=opt.review(pct);else{detFirst('P:r'+i,pct,'rc');   /* 本番形式で解いた文章は、最初が80%未満なら復習リストへ */
       const L2=Lit();if((L2.lvR||'auto')==='auto'){L2.tierR=stepTier(tierOf(P.lv)==='low'?0:tierOf(P.lv)==='mid'?1:2,pct>=80?1:pct<50?-1:0);save();}}
     const miss=res.filter(r=>!r.ok);
     let h='<div class="card" style="text-align:center"><div class="big" style="font-weight:700">'+okN+' / '+res.length+' 語（'+pct+'%）</div><div class="muted">'+(pct>=80?'よくできました。':pct>=60?'あと少し。赤い語を見直そう。':'赤い語を「まちがえた単語」で復習しよう。')+'</div></div>';
@@ -1352,7 +1352,7 @@ var RV_ENV={app:'det',name:'DETテンプレ暗記',unit:'問',intervals:[1,3,7,1
     Object.keys((S.lit&&S.lit.miss)||{}).forEach(k=>out.push({id:'W:'+k,box:0,last:S.lit.miss[k].t}));
     return out;},
   put(){},
-  ids(){return allLines().map(x=>'L:'+x.id).concat(LIT.fib.map((x,i)=>'W:f'+i),LIT.rc.map((x,i)=>'P:r'+i),qIds());},
+  ids(){return allLines().map(x=>'L:'+x.id).concat(LIT.fib.map((x,i)=>'W:f'+i),LIT.rc.map((x,i)=>'P:r'+i),qIds()).filter(id=>!isFok(id));},
   label(id){if(id[0]==='P'){const x=LIT.rc[+id.slice(3)];return x?'Read and Complete・'+x.t:id;}if(id[0]==='Q'){const q=qOf(id);return q?qLabel(q.key,q.idx):id;}if(id[0]==='L'){const x=lineOf(id);return x?x.t.name+'・'+x.l.r:id;}if(id[0]==='F'){const k=S.fav[id.slice(2)];return k?(k.g||k.m):id;}const w=wordOf(id);return w?w.w:id;},
   onChange(){if(V.view==='home'||(V.view==='rev'&&!REV))render();}
 };
@@ -2286,7 +2286,10 @@ function rvShowDetail(id) {
 function rvCloseDetail() { var m = document.getElementById('rv-modal'); if (m && m.parentNode) m.parentNode.removeChild(m); }
 /* RV:JS:END */
 /* 練習で初めて答えたときだけ復習に登録（登録ずみ・登録待ちなら何もしない） */
-function detFirst(id,pct,fmt){try{rvLoad();if(rvEnrolled(id)||rvWaiting(id))return;rvAnswer(id,pct,{fmt});}catch(e){}}
+/* 最初に正解（①＝80%以上）したものは復習に入れない＝S.fok に残し、RV_ENV.ids から外す（2026-11-23） */
+const isFok=id=>!!(S.fok&&S.fok[id]);
+function setFok(id,on){S.fok=S.fok||{};if(on)S.fok[id]=1;else delete S.fok[id];save();}
+function detFirst(id,pct,fmt){try{if(isFok(id))return;rvLoad();if(rvEnrolled(id)||rvWaiting(id))return;if(pct>=80){setFok(id,true);return;}rvAnswer(id,pct,{fmt});}catch(e){}}
 /* ☆を付けたとき：今日の新規登録の枠があれば登録、なければ登録待ち */
 function detEnroll(id){try{rvLoad();id=String(id);if(rvEnrolled(id))return;
   if(rvEnrollLeft()>0){const now=rvNow();RV.ev['e:'+id]={i:id,t:now,d:rvDayOf(now),k:'e',u:now};delete RV.wait[id];RV_ITEMS=null;}
@@ -2315,7 +2318,7 @@ function renderRev(){
   if(n)h+='<div class="hero"><button class="pri" id="rvGo">'+(nm=>esc(nm)+(/[A-Za-z]$/.test(nm)?' ':''))(RG.find(x=>x[0]===g)[1])+'を復習（'+n+'問）</button></div>';
   else if(left>0)h+='<div class="card muted">このジャンルで今日やる復習はありません。'+(rgIds('all').length&&rvPick(rgIds('all')).length?'ほかのジャンルを選んでください。':'')+'</div>';
   else h+=rvDoneHtml('revStart()',RV_ENV.ids());
-  h+='<div class="card muted">新しく入るのは1日5件まで（超えたぶんは「登録待ち」→下の「くわしい状況・設定」から入れられます）。決まりはほかの学習アプリと同じで、1日30問まで・①②③で採点・③は翌日にもう一度。ほかの練習は、初めて答えたときに登録されるだけで回数には数えません。</div>';
+  h+='<div class="card muted">新しく入るのは1日5件まで（超えたぶんは「登録待ち」→下の「くわしい状況・設定」から入れられます）。決まりはほかの学習アプリと同じで、1日30問まで・①②③で採点・③は翌日にもう一度。ほかの練習は、初めて答えたときに登録されるだけで回数には数えません。<b>最初に正解（①）したものは復習に入りません。</b></div>';
   h+=rvPanelHtml(RV_ENV.ids());
   app.innerHTML=h;
   app.querySelectorAll('input[name=rg]').forEach(r=>r.onchange=()=>{V.rg=r.value;renderRev();});
@@ -2533,16 +2536,18 @@ function tabPrac(t,el,opt){
     if(FX){if(!alive())return;h+=opt.tail?opt.tail():'';el.innerHTML=h;logPractice(t,n);bindModel(el);if(opt.bindTail)opt.bindTail(el);window.scrollTo(0,0);return;}
     /* 本番練習で答えたお題を復習リストへ（初回だけ。2回目からは練習扱い） */
     const qid='Q:'+qKeyOf(t)+':'+qIdx();let qr=null;
-    try{rvLoad();if(!rvEnrolled(qid)&&!rvWaiting(qid))qr=rvAnswer(qid,60,{fmt:'prac'});}catch(e){}
-    const qg=sel=>'<div style="font-weight:700">📅 復習リスト（本番練習のお題）</div>'+rvNoteHtml(qr)+rvGradeHtml('pracFix',{sel,fix:true,q:'模範解答とくらべて自己採点してください（押さなければ ② 惜しい で記録・次の復習は明日）。'});
+    const fok0=isFok(qid);
+    try{rvLoad();if(!fok0&&!rvEnrolled(qid)&&!rvWaiting(qid))qr=rvAnswer(qid,60,{fmt:'prac'});}catch(e){}
+    const qg=sel=>'<div style="font-weight:700">📅 復習リスト（本番練習のお題）</div>'+(sel!=null&&rvGradeOf(sel)===1?'<div class="muted" style="margin:4px 0">① なので、このお題は復習に入れません（最初に正解したものは復習しない）。</div>':rvNoteHtml(qr))+rvGradeHtml('pracFix',{sel,fix:true,q:'模範解答とくらべて自己採点してください（押さなければ ② 惜しい で記録・次の復習は明日。① なら復習に入りません）。'});
     if(qr)h+='<div class="card" id="qg">'+qg(null)+'</div>';
+    else if(fok0)h+='<div class="card note">このお題は最初に正解（①）したので、復習には入っていません。</div>';
     else{try{const st=rvSt(qid);h+='<div class="card note">'+(st.en?'このお題は復習リストに入っています（次の復習 '+rvMd(st.due)+'）。本番練習は何回やっても復習の回数には数えません。':'このお題は復習の登録待ちです（今日の新規登録の枠を使い切りました）。')+'</div>';}catch(e){}}
     h+='<div class="card">'+checkList(t)+'</div>';
     h+='<div class="hero"><button class="pri" id="again2">別のお題で</button><button id="toSee">テンプレを見直す</button></div>';
     el.innerHTML=h;
     logPractice(t,n);
     bindModel(el);
-    window.pracFix=p=>{if(!qr)return;rvRegrade(qr.eid,p);$('#qg').innerHTML=qg(p);};
+    window.pracFix=p=>{if(!qr)return;setFok(qid,rvGradeOf(p)===1);rvRegrade(qr.eid,p);$('#qg').innerHTML=qg(p);};
     $('#again2').onclick=()=>{newPrompt();intro();};
     $('#toSee').onclick=()=>{V.tab='see';renderTask(t);};
   }
@@ -2550,6 +2555,12 @@ function tabPrac(t,el,opt){
 }
 
 try{rvInit();}catch(e){}
+(function migrateFok(){try{if(S.fokv)return;rvLoad();const by={};
+  Object.keys(RV.ev).forEach(k=>{const e=RV.ev[k];if(!e||e.k==='e')return;(by[e.i]=by[e.i]||[]).push(e);});
+  S.fok=S.fok||{};let n=0;
+  Object.keys(by).forEach(id=>{const L=by[id].sort((a,b)=>a.t-b.t);if(L[0].k==='n'&&L.every(e=>rvGradeOf(e.p)===1)&&!RV.base[id]){S.fok[id]=1;n++;}});
+  S.fokv=1;save();if(n)RV_ITEMS=null;
+}catch(e){}})();
 try{setTimeout(()=>{dsStart().then(()=>{try{if(V.view==='home')render();}catch(e){}});},rvSid()?600:0);}catch(e){}
 /* 2026-11-18：Write About the Photo の重要表現（wphoto:写真:語句）を「使える表現」（wpx:…）へ移した。
    ☆・覚え度・今日の復習の箱を新しい id に付け替える。旧 id の復習記録は S.fav から消えるので出題されなくなる */
