@@ -156,6 +156,8 @@ table.sw td:first-child{white-space:nowrap;color:var(--sub);width:5.5em}
 .lvsel button{padding:6px 10px;font-size:13.5px}
 .lvsel button.on{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
 .lvsel small{opacity:.75}
+.pfav{font-size:13px;padding:5px 10px}
+.pfav.on{color:#9a6b00;border-color:#e0b400;background:rgba(255,200,0,.14);font-weight:600}
 .lvc{display:inline-block;font-size:11.5px;font-weight:700;line-height:1.5;border-radius:6px;padding:0 6px;margin:0 4px;vertical-align:1px;white-space:nowrap}
 .lv-low{background:#e3f4ea;color:#1e7a45}.lv-mid{background:#fff0d1;color:#8a5d00}.lv-high{background:#fde2e2;color:#b42f2f}
 @media (prefers-color-scheme: dark){.lv-low{background:rgba(95,211,148,.18);color:#7fe0ab}.lv-mid{background:rgba(240,185,74,.2);color:#f3c46a}.lv-high{background:rgba(255,118,118,.2);color:#ff9a9a}}
@@ -684,6 +686,26 @@ function keysHTML(keys,kind){
   return '<div class="keys"><div class="kh">'+hd+'</div><ul class="kl">'+keys.map(k=>
     '<li><button class="star" data-kid="'+esc(k.id)+'" aria-label="お気に入り">'+(S.fav[k.id]?'★':'☆')+'</button><div class="kb"><div class="ken">'+tplHTML(k.g||k.m)+'</div><div class="kja">'+esc(k.ja)+'</div></div><button class="spk" data-au="'+esc(k.au)+'" data-tx="'+esc(k.s)+'" aria-label="この表現の入った文を聞く">🔊</button></li>').join('')+'</ul></div>';
 }
+/* ---------- 問題そのもののお気に入り（S.pfav）と出題モード（すべて/解いた問題/未解答/お気に入り）2026-11-24 ----------
+   id は今日の復習と同じ形：L:<課題>:<行>／W:f<番号>／P:r<文章>／Q:<お題の種類>:<番号>。使える表現は表現の☆（S.fav）がそのまま問題のお気に入り */
+const PM=[['all','すべて'],['done','解いた問題'],['new','未解答'],['fav','☆ お気に入り']];
+const isPfav=id=>!!(S.pfav&&S.pfav[id]);
+function togglePfav(id){S.pfav=S.pfav||{};if(S.pfav[id])delete S.pfav[id];else S.pfav[id]=Date.now();save();toast(S.pfav[id]?'★ この問題をお気に入りに入れました':'問題のお気に入りから外しました');}
+const pfavBtn=id=>'<button class="pfav'+(isPfav(id)?' on':'')+'" data-pf="'+esc(id)+'">'+(isPfav(id)?'★ お気に入りの問題':'☆ この問題をお気に入り')+'</button>';
+function bindPfav(el){el.querySelectorAll('[data-pf]').forEach(b=>b.onclick=e=>{e.stopPropagation();const id=b.dataset.pf;togglePfav(id);el.querySelectorAll('[data-pf]').forEach(x=>{if(x.dataset.pf!==id)return;const on=isPfav(id);x.classList.toggle('on',on);x.textContent=on?'★ お気に入りの問題':'☆ この問題をお気に入り';});});}
+const pmGet=g=>(S.pm&&S.pm[g])||'all';
+function pmSet(g,m){S.pm=S.pm||{};S.pm[g]=m;save();}
+function pmFilter(ids,mode,solved,favFn){favFn=favFn||isPfav;return mode==='done'?ids.filter(solved):mode==='new'?ids.filter(i=>!solved(i)):mode==='fav'?ids.filter(favFn):ids;}
+const pmPool=(g,ids,solved,favFn)=>pmFilter(ids,pmGet(g),solved,favFn);
+function pmSelHTML(g,ids,solved,favFn){const m=pmGet(g);return '<div class="lvsel pmsel">'+PM.map(([k,n])=>'<button data-pm="'+k+'" class="'+(m===k?'on':'')+'">'+n+' <small>'+pmFilter(ids,k,solved,favFn).length+'</small></button>').join('')+'</div>';}
+const pmCard=(g,ids,solved,favFn)=>'<div class="card"><div style="font-weight:700;margin-bottom:6px">出題する問題</div>'+pmSelHTML(g,ids,solved,favFn)+'</div>';
+function bindPm(el,g,redraw){el.querySelectorAll('[data-pm]').forEach(b=>b.onclick=()=>{pmSet(g,b.dataset.pm);redraw();});}
+const pmEmptyMsg=m=>m==='fav'?'お気に入りの問題はまだありません。答えの画面の「☆ この問題をお気に入り」で登録できます。':m==='done'?'まだ解いた問題はありません。':m==='new'?'未解答の問題はもうありません。':'問題がありません。';
+const solvedRv=id=>{try{return rvSt(id).n>0||isFok(id);}catch(e){return false;}};
+const solvedFib=id=>!!Lit().fib[+id.slice(3)]||solvedRv(id);
+const solvedRc=id=>!!Lit().rc[+id.slice(3)]||solvedRv(id);
+const solvedQ=id=>!!(S.qdone&&S.qdone[id])||solvedRv(id);
+
 /* ☆＝お気に入り（今日の復習には入れない）。fr＝☆を付けた問題（'wphoto:3' など）。お気に入りの復習はその問題の形式で出す */
 function toggleFav(id,fr){
   if(S.fav[id]){delete S.fav[id];toast('お気に入りから外しました');}
@@ -796,17 +818,19 @@ function tabExpr(t,el){
   const catOf=id=>C.find(c=>c.id===id.split(':')[1])||{};
   let h='<div class="card"><div class="muted">写真のどこにでも使い回せる表現。例文はそれぞれ右の写真のこと。①〜⑤は、テンプレのどの文に入れやすいか。☆でお気に入り → お気に入りの復習（この写真を見て1文）に入ります。<br>クイズは写真だけを見て、英文を1から考えます。</div>';
   h+='<div class="chips">'+[['all','すべて']].concat(C.map(c=>[c.id,c.icon+' '+c.name])).map(([k,n])=>'<button data-c="'+k+'" class="'+(cat===k?'on':'')+'">'+esc(n)+'</button>').join('')+'</div>';
-  const ns=[5,10,20,30].filter(n=>n<items.length).concat([0]), en=ns.includes(V.en)?V.en:(ns.includes(10)?10:0), qn=en||items.length;
+  const xs=id=>!!(S.xdone&&S.xdone[id]),xf=id=>!!S.fav[id],xids=items.map(k=>k.id),xp=new Set(pmPool('wpx',xids,xs,xf)),pitems=items.filter(k=>xp.has(k.id));
+  const ns=[5,10,20,30].filter(n=>n<pitems.length).concat([0]), en=ns.includes(V.en)?V.en:(ns.includes(10)?10:0), qn=en||pitems.length;
   h+='<div class="row" style="margin-top:8px"><label class="row" style="gap:6px;font-size:14px"><input type="checkbox" id="xHide"'+(hide?' checked':'')+'> 英語をかくす（タップで表示）</label></div>';
-  h+='<div class="xn"><span class="muted" style="font-size:13.5px">問題数</span>'+ns.map(n=>'<button data-n="'+n+'" class="'+(en===n?'on':'')+'">'+(n?n+'問':'全部（'+items.length+'）')+'</button>').join('')+'</div>';
-  h+='<div class="row" style="margin-top:10px"><button class="pri" id="xQuiz" style="flex:1;padding:12px">クイズ '+qn+'問</button></div></div>';
+  h+='<div style="margin-top:10px"><div class="muted" style="font-size:13.5px;margin-bottom:4px">出題する問題（☆＝表現のお気に入り）</div>'+pmSelHTML('wpx',xids,xs,xf)+'</div>';
+  h+='<div class="xn"><span class="muted" style="font-size:13.5px">問題数</span>'+ns.map(n=>'<button data-n="'+n+'" class="'+(en===n?'on':'')+'">'+(n?n+'問':'全部（'+pitems.length+'）')+'</button>').join('')+'</div>';
+  h+=(qn?'<div class="row" style="margin-top:10px"><button class="pri" id="xQuiz" style="flex:1;padding:12px">クイズ '+qn+'問</button></div>':'<div class="muted" style="margin-top:10px">'+pmEmptyMsg(pmGet('wpx')).replace('答えの画面の「☆ この問題をお気に入り」','表現の ☆')+'</div>')+'</div>';
   h+='<div class="card"><ul class="kl'+(hide?' xh':'')+'" id="xl">'+items.map(k=>'<li data-id="'+esc(k.id)+'"><button class="star" data-kid="'+esc(k.id)+'" aria-label="お気に入り">'+(S.fav[k.id]?'★':'☆')+'</button><div class="kb"><div><span class="role">'+esc(k.r)+'</span>'+(cat==='all'?'<span class="muted" style="font-size:12px">'+esc(catOf(k.id).icon||'')+' '+esc(catOf(k.id).name||'')+'</span>':'')+'</div><div class="ken">'+tplHTML(k.g||k.m)+'</div><div class="kja">'+esc(k.ja)+'</div><div class="ex" style="margin-top:3px">'+keyHTML(k.s,[k])+'</div></div><div class="xr"><img class="xth" loading="lazy" alt="例文の写真" src="'+photoThumb(k.p)+'"><button class="spk" data-au="'+esc(k.au)+'" data-tx="'+esc(k.s)+'" aria-label="例文を聞く">🔊</button></div></li>').join('')+'</ul></div>';
-  el.innerHTML=h;bindModel(el);
+  el.innerHTML=h;bindModel(el);bindPm(el,'wpx',()=>tabExpr(t,el));
   el.querySelectorAll('.chips button').forEach(b=>b.onclick=()=>{V.ecat=b.dataset.c;tabExpr(t,el);});
   $('#xHide').onchange=e=>{V.ehide=e.target.checked;$('#xl').classList.toggle('xh',V.ehide);el.querySelectorAll('#xl li').forEach(x=>x.classList.remove('open'));};
   $('#xl').addEventListener('click',e=>{if(!$('#xl').classList.contains('xh')||e.target.closest('button'))return;const li=e.target.closest('li');if(li)li.classList.toggle('open');});
   el.querySelectorAll('.xn button').forEach(b=>b.onclick=()=>{V.en=+b.dataset.n;tabExpr(t,el);});
-  $('#xQuiz').onclick=()=>exprQuiz(t,el,shuffle(items).slice(0,qn));
+  if(qn)$('#xQuiz').onclick=()=>exprQuiz(t,el,shuffle(pitems).slice(0,qn));
 }
 /* 写真の表現：写真を見て1から英文を作る（クイズ・お気に入りの復習・今日の復習で共通）
    wpxAsk=答える前（写真・お題・ヒント・書く欄）／wpxAns=答え（自分の文・模範の1文・表現） */
@@ -850,6 +874,7 @@ function wpxDiff(typed,model){
   return {same:n===m&&L[0][0]===m,html:out.join(' ')};
 }
 function wpxBindAns(k){
+  S.xdone=S.xdone||{};if(!S.xdone[k.id]){S.xdone[k.id]=today();save();}
   const x=wpxOf(k.id),box=$('#wpxBox'),hid=$('#wpxHid'),tg=$('#wpxTg');
   const set=h=>{box.style.display=h?'none':'';hid.style.display=h?'':'none';tg.textContent=h?'答えを見せる':'答えをかくす';tg.classList.toggle('pri',h);};
   let h=false;tg.onclick=()=>{h=!h;set(h);};
@@ -910,10 +935,10 @@ function clozeSession(el,items,opts){
       h+='<div class="card"><div class="muted">'+esc(it.t.icon+' '+it.t.name)+'　'+LVNAME[level]+'</div><div style="margin:6px 0"><span class="role">'+esc(it.l.r)+'</span></div>';
       h+='<div class="tpl big" id="cz">'+clozeHTML(toks,hidden,opened,level)+'</div>';
       h+='<div class="muted" style="margin-top:8px">声に出して全文を言ってから、グレーをタップ（1語ずつ）か「答え」。</div>';
-      if(shown){h+='<div class="ex" style="margin-top:10px"><button class="spk" id="spk1">🔊</button>'+exHTML(it.l.e)+'</div><div class="rate"><button class="r1" data-r="1">◎ 言えた</button><button class="r2" data-r="2">△ あいまい</button><button class="r3" data-r="3">× まだ</button></div>';}
+      if(shown){h+='<div class="ex" style="margin-top:10px"><button class="spk" id="spk1">🔊</button>'+exHTML(it.l.e)+'</div><div class="rate"><button class="r1" data-r="1">◎ 言えた</button><button class="r2" data-r="2">△ あいまい</button><button class="r3" data-r="3">× まだ</button></div><div class="row" style="margin-top:8px">'+pfavBtn('L:'+it.id)+'</div>';}
       else h+='<div class="row" style="margin-top:12px"><button class="pri" id="ans" style="flex:1;padding:12px">答え</button></div>';
       h+='</div>';
-      el.innerHTML=h;
+      el.innerHTML=h;bindPfav(el);
       if(opts.showLevelSel){$('#lv').value=String(lvSel);$('#lv').onchange=e=>{lvSel=+e.target.value;q.unshift(it);n--;next();};}
       $('#cz').onclick=e=>{const w=e.target.closest('.hw[data-i]');if(!w)return;opened.add(+w.dataset.i);if(opened.size>=hidden.size)shown=true;draw();};
       if(!shown){$('#ans').onclick=()=>{hidden.forEach(i=>opened.add(i));shown=true;draw();};}
@@ -941,8 +966,13 @@ function clozeSession(el,items,opts){
   next();
 }
 function tabCloze(t,el){
-  const items=t.lines.map((l,i)=>({t,l,i,id:lid(t,i)}));
-  const run=()=>clozeSession(el,items,{showLevelSel:true,restart:run});
+  const g='L:'+t.id,all=t.lines.map((l,i)=>({t,l,i,id:lid(t,i)})),ids=all.map(x=>'L:'+x.id),solved=id=>!!S.last[id.slice(2)];
+  const run=()=>{
+    const pool=new Set(pmPool(g,ids,solved)),items=all.filter(x=>pool.has('L:'+x.id));
+    el.innerHTML=pmCard(g,ids,solved)+'<div id="czw"></div>';bindPm(el,g,run);
+    if(!items.length){$('#czw').innerHTML='<div class="card muted">'+pmEmptyMsg(pmGet(g))+'</div>';return;}
+    clozeSession($('#czw'),items,{showLevelSel:true,restart:run});
+  };
   run();
 }
 function renderDaily(){
@@ -1055,8 +1085,9 @@ function favRun(el,list){
         +'<div class="fibs" style="margin-top:4px">'+esc(before)+'<span class="key">'+esc(word)+'</span>'+esc(after)+'</div>'
         +(ok?'':'<div class="muted">あなたの答え：'+esc(word.slice(0,kp))+'<s>'+esc(typed||'（空欄）')+'</s></div>')
         +'<div class="row" style="margin-top:8px">'+fibStarHTML(fi)+'<span class="ken">'+esc(word)+'</span>'+(x[5]!==undefined?lvChip(x[5]):'')+'<span class="kja">'+esc(x[3]||'')+'</span><button class="spk right" id="sp" aria-label="文を聞く">🔊</button></div></div>'
+        +'<div class="card row" style="padding:8px 12px">'+pfavBtn('W:f'+fi)+'</div>'
         +'<div class="hero"><button class="pri" id="nx">'+(q.length||again.length||!ok?'次へ':'結果を見る')+'</button></div>';
-      $('#sp').onclick=()=>play(x[4]||'_',before+word+after);bindStars(w);
+      $('#sp').onclick=()=>play(x[4]||'_',before+word+after);bindStars(w);bindPfav(w);
       const nx=$('#nx');nx.onclick=()=>rate(ok?1:3);setTimeout(()=>{try{nx.focus();}catch(e){}},60);
     };
     inp.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();check();}};
@@ -1127,23 +1158,27 @@ const stepTier=(t,d)=>Math.max(0,Math.min(2,t+d));
 /* Fill in the Blanks */
 function fibIntro(el){
   const L=Lit(),st=litStats('fib'),sel=L.lvF||'auto',ti=L.tierF==null?1:L.tierF;
+  const fids=LIT.fib.map((x,i)=>'W:f'+i),allow=new Set(pmPool('fib',fids,solvedFib).map(id=>+id.slice(3))),N=Math.min(9,allow.size);
   const cnt={auto:LIT.fib.length};TIERS.forEach(([k])=>cnt[k]=LIT.fib.filter(x=>tierOf(x[5])===k).length);
   el.innerHTML='<div class="card"><div class="muted">本番と同じく1語20秒・9問。文の中の1語は<b>前半だけ</b>書いてあるので、残りの文字を打ちます（DET公式ガイド2026と同じ形）。</div><div class="stats" style="margin-top:6px"><span>解いた <b>'+st.done+'</b> / '+st.total+'</span>'+(st.pct!=null?'<span>正答率 <b>'+st.pct+'%</b></span>':'')+'</div></div>'
     +'<div class="card"><div style="font-weight:700;margin-bottom:6px">レベル（CEFR）</div>'+lvSelHTML(sel,cnt)
     +'<div class="note">'+(sel==='auto'?'正解すると1段難しく、まちがえると1段易しくなります（本番のDETと同じ考え方）。今回のスタート：<b>'+TIERS[ti][1]+'</b>':'答えの単語のレベルで絞ります。')+'</div></div>'
-    +'<div class="hero"><button class="pri" id="go">スタート（9問）</button></div>'
+    +pmCard('fib',fids,solvedFib)
+    +(N?'<div class="hero"><button class="pri" id="go">スタート（'+N+'問）</button></div>':'<div class="card muted">'+pmEmptyMsg(pmGet('fib'))+'</div>')
     +tipsHTML(['出てくるのは<b>名詞・動詞・形容詞・副詞</b>だけ（公式ガイド）。まず品詞を決める：a / the のあと→名詞、be動詞のあと→形容詞か過去分詞、動詞のあと→副詞（-ly）。',
       '<b>形</b>を落とさない：主語が he / she / it で現在→<b>-s</b>、yesterday・last year など過去→<b>-ed</b>、数が2つ以上→複数形 <b>-s</b>。',
       '「あと◯文字」が大きなヒント。同じ意味・反対の意味の語や、よくある言い回し（be based on など）からしぼる。',
       '採点は○か×だけ。<b>つづりが1文字でも違うと不正解</b>（公式ガイド）。それでも空欄よりは打つ。']);
-  el.querySelectorAll('.lvsel button').forEach(b=>b.onclick=()=>{L.lvF=b.dataset.lv;save();fibIntro(el);});
+  el.querySelectorAll('.lvsel button[data-lv]').forEach(b=>b.onclick=()=>{L.lvF=b.dataset.lv;save();fibIntro(el);});
+  bindPm(el,'fib',()=>fibIntro(el));
+  if(!N)return;
   $('#go').onclick=()=>{
     const used=new Set();let tier=ti;
     const weak=(a,b)=>{const A=L.fib[a],B=L.fib[b];return (A?A.b:-1)-(B?B.b:-1)||String(A?A.d:'').localeCompare(String(B?B.d:''));};
-    const pool=t=>shuffle(LIT.fib.map((x,i)=>i).filter(i=>!used.has(i)&&(t==null||tierOf(LIT.fib[i][5])===TN[t]))).sort(weak);
+    const pool=t=>shuffle(LIT.fib.map((x,i)=>i).filter(i=>allow.has(i)&&!used.has(i)&&(t==null||tierOf(LIT.fib[i][5])===TN[t]))).sort(weak);
     const mk=i=>{used.add(i);const x=LIT.fib[i];return {fi:i,key:'f'+i,before:x[0],w:x[1],after:x[2],ja:x[3],au:x[4],lv:x[5],src:'Fill in the Blanks'};};
-    if(sel!=='auto'){const t=TN.indexOf(sel);wordSession(el,pool(t).slice(0,9).map(mk),'fib');return;}
-    wordSession(el,new Array(9).fill(null),'fib',{
+    if(sel!=='auto'){const t=TN.indexOf(sel),a=pool(t).slice(0,9);if(!a.length){toast('このレベルには、その条件の問題がありません');return;}wordSession(el,a.map(mk),'fib');return;}
+    wordSession(el,new Array(N).fill(null),'fib',{
       pick:()=>{let i;for(const d of [0,1,-1,2,-2]){const t=tier+d;if(t<0||t>2)continue;i=pool(t)[0];if(i!=null)break;}if(i==null)i=pool(null)[0];return mk(i);},
       onResult:ok=>{tier=stepTier(tier,ok?1:-1);},
       done:()=>{L.tierF=tier;save();}});
@@ -1171,8 +1206,9 @@ function wordSession(el,items,mode,opt){
       +'<div class="fibs" style="margin-top:4px">'+esc(it.before)+'<span class="key">'+esc(it.w)+'</span>'+esc(it.after)+'</div>'
       +(ok?'':'<div class="muted">あなたの答え：'+esc(it.w.slice(0,kp))+'<s>'+esc(typed||'（空欄）')+'</s></div>')
       +'<div class="row" style="margin-top:8px">'+(it.fi!=null?fibStarHTML(it.fi):'')+'<span class="ken">'+esc(it.w)+'</span>'+(it.lv!==undefined?lvChip(it.lv):'')+'<span class="kja">'+esc(it.ja||'')+'</span><button class="spk right" id="sp" aria-label="文を聞く">🔊</button></div></div>'
+      +(it.fi!=null?'<div class="card row" style="padding:8px 12px">'+pfavBtn('W:f'+it.fi)+'</div>':'')
       +'<div class="hero"><button class="pri" id="nx">'+(k+1<items.length?'次へ':'結果を見る')+'</button></div>';
-    $('#sp').onclick=()=>play(it.au||'_',it.before+it.w+it.after);bindStars(el);
+    $('#sp').onclick=()=>play(it.au||'_',it.before+it.w+it.after);bindStars(el);bindPfav(el);
     const nx=$('#nx');nx.onclick=()=>{k++;show();};setTimeout(()=>{try{nx.focus();}catch(e){}},60);
   }
   function end(){
@@ -1209,26 +1245,32 @@ function missIntro(el){
 /* Read and Complete */
 function rcIntro(el){
   const L=Lit(),st=litStats('rc'),sel=L.lvR||'auto',ti=L.tierR==null?1:L.tierR;
+  const rids=LIT.rc.map((x,i)=>'P:r'+i),allow=new Set(pmPool('rc',rids,solvedRc).map(id=>+id.slice(3)));
   const cnt={auto:LIT.rc.length};TIERS.forEach(([k])=>cnt[k]=LIT.rc.filter(x=>tierOf(x.lv)===k).length);
   el.innerHTML='<div class="card"><div class="muted">本番と同じく3分で1本。タイトル・最初と最後の文はそのまま、間の文は1語おきに単語の<b>後半</b>が消えています（固有名詞・略語は消えない。DET公式ガイド2026と同じ形）。まだ解いていない文章・点の低い文章から出ます。</div><div class="stats" style="margin-top:6px"><span>解いた <b>'+st.done+'</b> / '+st.total+' 本</span>'+(st.pct!=null?'<span>正答率 <b>'+st.pct+'%</b></span>':'')+'</div></div>'
     +'<div class="card"><div style="font-weight:700;margin-bottom:6px">レベル（CEFR）</div>'+lvSelHTML(sel,cnt)
     +'<div class="note">'+(sel==='auto'?'80%以上で1段難しく、50%未満で1段易しくなります。次の文章：<b>'+TIERS[ti][1]+'</b>':'文章のレベルは、B2・C1以上の単語の数で決めています。')+'</div></div>'
-    +'<div class="hero"><button class="pri" id="go">スタート（3分）</button></div>'
+    +pmCard('rc',rids,solvedRc)
+    +(allow.size?'<div class="hero"><button class="pri" id="go">スタート（3分）</button></div>':'<div class="card muted">'+pmEmptyMsg(pmGet('rc'))+'</div>')
     +tipsHTML(['まず全体を読む。最初の1文で<b>話題</b>をつかみ、最後の1文もヒントにする。',
       '<b>やさしい語から</b>埋める：th__ → the / that、o_ → of / on。文法で決まる語は速く確実に。難しい語は最後（公式ガイドのコツ）。',
       '名詞は<b>単数か複数か</b>、動詞は<b>時制と -s</b> を確認。<b>-ing / -ed / -ly</b> の語尾も落としやすい。',
       '1語ずつ採点され、<b>つづりが正しくないと不正解</b>。分からない空欄は飛ばして、最後に戻る。']);
-  el.querySelectorAll('.lvsel button').forEach(b=>b.onclick=()=>{L.lvR=b.dataset.lv;save();rcIntro(el);});
+  el.querySelectorAll('.lvsel button[data-lv]').forEach(b=>b.onclick=()=>{L.lvR=b.dataset.lv;save();rcIntro(el);});
+  bindPm(el,'rc',()=>rcIntro(el));
+  if(!allow.size)return;
   $('#go').onclick=()=>{
     const t=sel==='auto'?ti:TN.indexOf(sel);
     const ord=a=>shuffle(a).sort((a,b)=>{const A=L.rc[a],B=L.rc[b];return (A?1:0)-(B?1:0)||(A?A.last:0)-(B?B.last:0);});
-    let cand=[];for(const d of (sel==='auto'?[0,1,-1,2,-2]:[0])){const u=t+d;if(u<0||u>2)continue;cand=LIT.rc.map((x,i)=>i).filter(i=>tierOf(LIT.rc[i].lv)===TN[u]);if(cand.length)break;}
-    if(!cand.length)cand=LIT.rc.map((x,i)=>i);
+    let cand=[];for(const d of (sel==='auto'?[0,1,-1,2,-2]:[0])){const u=t+d;if(u<0||u>2)continue;cand=LIT.rc.map((x,i)=>i).filter(i=>allow.has(i)&&tierOf(LIT.rc[i].lv)===TN[u]);if(cand.length)break;}
+    if(!cand.length){if(sel!=='auto'){toast('このレベルには、その条件の文章がありません');return;}cand=[...allow];}
     rcRun(el,ord(cand)[0]);};
 }
 function rcList(el){
-  const L=Lit();
-  el.innerHTML='<div class="card"><ul class="kl ml">'+LIT.rc.map((p,i)=>{const r=L.rc[i];return '<li><span class="role" style="color:'+(!r?'var(--sub)':r.last>=80?'var(--ok)':r.last>=60?'var(--mid)':'var(--ng)')+'">'+(r?r.last+'%':'未')+'</span><div class="kb"><div class="ken">'+(i+1)+'. '+esc(p.t)+' '+lvChip(p.lv)+'</div>'+(r?'<div class="muted">'+r.n+'回・最高 '+r.best+'%・'+esc(r.d)+'</div>':'')+'</div><button data-i="'+i+'">解く</button></li>';}).join('')+'</ul></div>';
+  const L=Lit(),rids=LIT.rc.map((x,i)=>'P:r'+i),allow=new Set(pmPool('rc',rids,solvedRc));
+  const rows=LIT.rc.map((p,i)=>i).filter(i=>allow.has('P:r'+i));
+  el.innerHTML=pmCard('rc',rids,solvedRc)+(rows.length?'<div class="card"><ul class="kl ml">'+rows.map(i=>{const p=LIT.rc[i],r=L.rc[i];return '<li><span class="role" style="color:'+(!r?'var(--sub)':r.last>=80?'var(--ok)':r.last>=60?'var(--mid)':'var(--ng)')+'">'+(r?r.last+'%':'未')+'</span><div class="kb"><div class="ken">'+(i+1)+'. '+esc(p.t)+' '+lvChip(p.lv)+'</div>'+(r?'<div class="muted">'+r.n+'回・最高 '+r.best+'%・'+esc(r.d)+'</div>':'')+'<div style="margin-top:4px">'+pfavBtn('P:r'+i)+'</div></div><button data-i="'+i+'">解く</button></li>';}).join('')+'</ul></div>':'<div class="card muted">'+pmEmptyMsg(pmGet('rc'))+'</div>');
+  bindPm(el,'rc',()=>rcList(el));bindPfav(el);
   el.querySelectorAll('button[data-i]').forEach(b=>b.onclick=()=>{rcRun(el,+b.dataset.i);window.scrollTo(0,0);});
 }
 function rcRun(el,i,opt){opt=opt||{};
@@ -1266,14 +1308,14 @@ function rcRun(el,i,opt){opt=opt||{};
       const L2=Lit();if((L2.lvR||'auto')==='auto'){L2.tierR=stepTier(tierOf(P.lv)==='low'?0:tierOf(P.lv)==='mid'?1:2,pct>=80?1:pct<50?-1:0);save();}}
     const miss=res.filter(r=>!r.ok);
     let h='<div class="card" style="text-align:center"><div class="big" style="font-weight:700">'+okN+' / '+res.length+' 語（'+pct+'%）</div><div class="muted">'+(pct>=80?'よくできました。':pct>=60?'あと少し。赤い語を見直そう。':'赤い語を「まちがえた単語」で復習しよう。')+'</div></div>';
-    h+='<div class="card"><div class="row"><span class="mh">'+esc(P.t)+'</span><button class="right" id="sp">🔊 聞く</button></div><div class="rcp" style="line-height:1.9;margin-top:6px">'+out.join('')+'</div><div class="note"><span class="okw">緑</span>＝正解　<span class="ngw">赤</span>＝まちがい</div></div>';
+    h+='<div class="card"><div class="row"><span class="mh">'+esc(P.t)+'</span><button class="right" id="sp">🔊 聞く</button></div><div class="row" style="margin-top:6px">'+pfavBtn('P:r'+i)+'</div><div class="rcp" style="line-height:1.9;margin-top:6px">'+out.join('')+'</div><div class="note"><span class="okw">緑</span>＝正解　<span class="ngw">赤</span>＝まちがい</div></div>';
     if(miss.length) h+='<div class="card"><div class="kh" style="font-weight:700">まちがえた単語（「まちがえた単語」タブで練習できます）</div><ul class="kl ml">'+miss.map(r=>'<li><div class="kb"><div class="ken">'+esc(r.w)+'</div><div class="muted">あなたの答え：'+esc(r.kept)+'<s>'+esc(r.typed||'（空欄）')+'</s>'+(r.g[2]?'　｜　'+esc(r.g[2]):'')+'</div></div></li>').join('')+'</ul></div>';
     h+='<div class="card"><details open><summary>日本語訳</summary><div style="font-size:14.5px;margin-top:6px">'+esc(P.ja)+'</div></details><details><summary>この文章の重要単語</summary><ul class="kl ml">'+P.g.map(([w,ja,lv])=>'<li><div class="kb"><span class="ken">'+esc(w)+'</span> '+lvChip(lv)+'　<span class="kja">'+esc(ja)+'</span></div></li>').join('')+'</ul></details><details><summary>この文章のレベル（'+P.lv+'）とB2以上の単語</summary><div class="note">文章のレベルは、B2・C1以上（リスト外を含む）の単語の数で決めています：B2 '+P.cnt.B2+'語・C1 '+P.cnt.C1+'語・C2 '+P.cnt.C2+'語・リスト外 '+P.cnt.X+'語</div><div style="margin-top:6px;line-height:2">'+P.hw.map(([w,lv])=>'<span style="white-space:nowrap;margin-right:10px">'+esc(w)+lvChip(lv)+'</span>').join('')+'</div></details></div>';
     if(opt.review){h+='<div class="card note">復習の記録：'+rvGradeLabel(rvGradeOf(pct))+'（'+pct+'%・80%以上で①、40%以上で②）　次は '+rvMd(rvSt('P:r'+i).due)+'</div><div class="hero"><button class="pri" id="rnext">'+(opt.last?'結果を見る':'次へ')+'</button></div>';
-      el.innerHTML=h;window.scrollTo(0,0);$('#sp').onclick=()=>play(P.au,P.sents.join(' '));$('#rnext').onclick=opt.next;return;}
+      el.innerHTML=h;window.scrollTo(0,0);bindPfav(el);$('#sp').onclick=()=>play(P.au,P.sents.join(' '));$('#rnext').onclick=opt.next;return;}
     h+='<div class="hero"><button class="pri" id="again">もう一度</button><button id="next">次の文章へ</button></div>';
     if(miss.length) h+='<div class="hero" style="margin-top:10px"><button id="toMiss">まちがえた単語を復習 '+missList().length+'</button></div>';
-    el.innerHTML=h;window.scrollTo(0,0);
+    el.innerHTML=h;window.scrollTo(0,0);bindPfav(el);
     const mt=document.querySelector('.tabs button[data-t="miss"]');if(mt)mt.textContent='まちがえた単語 '+missList().length;
     $('#sp').onclick=()=>play(P.au,P.sents.join(' '));
     $('#again').onclick=()=>rcRun(el,i);
@@ -2341,8 +2383,8 @@ function revShow(){
       h+='<div class="tpl big" id="cz">'+clozeHTML(toks,hidden,opened,lv)+'</div>';
       h+='<div class="muted" style="margin-top:8px">声に出して全文を言ってから、グレーをタップ（1語ずつ）か「答え」。</div>';
       if(!shown)h+='<div class="row" style="margin-top:12px"><button class="pri" id="ans" style="flex:1;padding:12px">答え</button></div>';
-      else h+='<div class="ex" style="margin-top:10px"><button class="spk" id="sp">🔊</button>'+exHTML(x.l.e)+'</div>'+rvGradeHtml('revGrade',{q:'答えを見る前に、かくれた部分を自分で言えましたか？'});
-      h+='</div>';el.innerHTML=h;revBindQuit();
+      else h+='<div class="ex" style="margin-top:10px"><button class="spk" id="sp">🔊</button>'+exHTML(x.l.e)+'</div>'+'<div class="row" style="margin-top:8px">'+pfavBtn(id)+'</div>'+rvGradeHtml('revGrade',{q:'答えを見る前に、かくれた部分を自分で言えましたか？'});
+      h+='</div>';el.innerHTML=h;revBindQuit();bindPfav(el);
       $('#cz').onclick=e=>{const w=e.target.closest('.hw[data-i]');if(!w)return;opened.add(+w.dataset.i);if(opened.size>=hidden.size)shown=true;draw();};
       if(!shown)$('#ans').onclick=()=>{hidden.forEach(i=>opened.add(i));shown=true;draw();};else $('#sp').onclick=()=>play(au,plain(x.l.e));
     };draw();return;
@@ -2367,10 +2409,10 @@ function revShow(){
         +'<div class="fibs" style="margin-top:4px">'+esc(w.before)+'<span class="key">'+esc(w.w)+'</span>'+esc(w.after)+'</div>'
         +(ok?'':'<div class="muted">あなたの答え：'+esc(w.w.slice(0,kp))+'<s>'+esc(typed||'（空欄）')+'</s></div>')
         +'<div class="row" style="margin-top:8px">'+(/^W:f\d+$/.test(id)?fibStarHTML(+id.slice(3)):'')+'<span class="ken">'+esc(w.w)+'</span>'+(w.lv!==undefined?lvChip(w.lv):'')+'<span class="kja">'+esc(w.ja||'')+'</span><button class="spk right" id="sp">🔊</button></div>'
-        +rvGradeHtml('revFix',{sel:rec.p,fix:true,q:'自動の判定です。つづりの小さなミスだけなら ② に直せます。'})+'</div>'
+        +(/^W:f\d+$/.test(id)?'<div class="row" style="margin-top:8px">'+pfavBtn(id)+'</div>':'')+rvGradeHtml('revFix',{sel:rec.p,fix:true,q:'自動の判定です。つづりの小さなミスだけなら ② に直せます。'})+'</div>'
         +'<div class="hero"><button class="pri" id="nx">'+(REV.k+1<REV.q.length?'次へ':'結果を見る')+'</button></div>';
       revBindQuit();
-      $('#sp').onclick=()=>play(w.au||'_',w.before+w.w+w.after);bindStars(el);
+      $('#sp').onclick=()=>play(w.au||'_',w.before+w.w+w.after);bindStars(el);bindPfav(el);
       const nx=$('#nx');nx.onclick=()=>{REV.k++;stopSpeak();revShow();window.scrollTo(0,0);};setTimeout(()=>{try{nx.focus();}catch(e){}},60);
     };
     window.revFix=p=>{rvRegrade(r.eid,p);rec.p=p;draw();};
@@ -2436,28 +2478,30 @@ function tabPrac(t,el,opt){
   opt=opt||{};const FX=opt.fixed, alive=opt.alive||(()=>V.view==='task'&&V.tab==='prac');
   const P=t.practice, k=P.kind;
   let prompt='', promptHTML='', photoId=pick(PHOTOS), dlg=null, dlgI=0, iwPair=null, isSet=null, isI=0, pI=0;
-  const rnd=a=>Math.floor(Math.random()*a.length);
+  const qk=qKeyOf(t),g='Q:'+t.id;
+  const allIdx=()=>{const a=[];for(let i=0;i<qCount(qk);i++)if(k!=='wsamp'||!P.tpl||((MODELS.wsamp[i]||{}).tpl===P.tpl))a.push(i);return a;};
+  const qIdsT=()=>allIdx().map(i=>'Q:'+qk+':'+i);
+  let cur=-1,EMPTY=false;
+  const setIdx=i=>{cur=i;
+    if(k==='photo')photoId=PHOTOS[i];
+    if(k==='iw'){pI=i;iwPair=PROMPTS.iw[i];}
+    if(k==='wsamp'||k==='ssamp'){pI=i;prompt=PROMPTS[k][i];}
+    if(k==='rts'){pI=i;const r=PROMPTS.rts[i];prompt=r[0];promptHTML='<div class="prompt">'+esc(r[0])+'<ul>'+r[1].map(b=>'<li>'+esc(b)+'</li>').join('')+'</ul></div>';}
+    if(k==='ispk'){isI=i;isSet=PROMPTS.ispk[i];}
+    if(k==='summ'){dlgI=i;dlg=PROMPTS.summ[i];}
+  };
+  /* 出題モード（すべて/解いた問題/未解答/お気に入り）の中から、今と別のお題を選ぶ */
   const newPrompt=()=>{
-    if(FX){const i=FX.idx;
-      if(k==='photo')photoId=PHOTOS[i];
-      if(k==='iw'){pI=i;iwPair=PROMPTS.iw[i];}
-      if(k==='wsamp'||k==='ssamp'){pI=i;prompt=PROMPTS[k][i];}
-      if(k==='rts'){pI=i;const r=PROMPTS.rts[i];prompt=r[0];promptHTML='<div class="prompt">'+esc(r[0])+'<ul>'+r[1].map(b=>'<li>'+esc(b)+'</li>').join('')+'</ul></div>';}
-      if(k==='ispk'){isI=i;isSet=PROMPTS.ispk[i];}
-      if(k==='summ'){dlgI=i;dlg=PROMPTS.summ[i];}
-      return;}
-    {let x;do{x=pick(PHOTOS);}while(x===photoId&&PHOTOS.length>1);photoId=x;}
-    if(k==='iw'){pI=rnd(PROMPTS.iw);iwPair=PROMPTS.iw[pI];}
-    if(k==='wsamp'){const ok=PROMPTS.wsamp.map((_,i)=>i).filter(i=>!P.tpl||((MODELS.wsamp[i]||{}).tpl===P.tpl));pI=pick(ok);prompt=PROMPTS.wsamp[pI];}
-    if(k==='ssamp'){pI=rnd(PROMPTS.ssamp);prompt=PROMPTS.ssamp[pI];}
-    if(k==='rts'){pI=rnd(PROMPTS.rts);const r=PROMPTS.rts[pI];prompt=r[0];promptHTML='<div class="prompt">'+esc(r[0])+'<ul>'+r[1].map(b=>'<li>'+esc(b)+'</li>').join('')+'</ul></div>';}
-    if(k==='ispk'){isI=Math.floor(Math.random()*PROMPTS.ispk.length);isSet=PROMPTS.ispk[isI];}
-    if(k==='summ'){dlgI=Math.floor(Math.random()*PROMPTS.summ.length);dlg=PROMPTS.summ[dlgI];}
+    if(FX){setIdx(FX.idx);return;}
+    const pool=pmPool(g,qIdsT(),solvedQ).map(id=>+id.split(':')[2]);
+    EMPTY=!pool.length;if(EMPTY)return;
+    setIdx(pick(pool.length>1?pool.filter(i=>i!==cur):pool));
   };
   newPrompt();
   const useRec=()=>P.speak?'<label class="row" style="gap:6px;font-size:14px"><input type="checkbox" id="recOn"> 録音して聞き返す</label>':'';
   function intro(){
-    let h=(opt.top||'')+'<div class="card"><div class="muted">本番と同じ時間で練習します。'+(P.prep?'準備 '+P.prep+'秒 → ':'')+'解答 '+fmt(P.ans)+(P.ans2?' → Step 2 '+fmt(P.ans2):'')+'　｜　目安 '+t.words[0]+'〜'+t.words[1]+'語</div></div>';
+    if(!FX&&EMPTY){el.innerHTML=pmCard(g,qIdsT(),solvedQ)+'<div class="card muted">'+pmEmptyMsg(pmGet(g))+'</div>';bindPm(el,g,()=>{newPrompt();intro();});return;}
+    let h=(opt.top||'')+(FX?'':pmCard(g,qIdsT(),solvedQ))+'<div class="card"><div class="muted">本番と同じ時間で練習します。'+(P.prep?'準備 '+P.prep+'秒 → ':'')+'解答 '+fmt(P.ans)+(P.ans2?' → Step 2 '+fmt(P.ans2):'')+'　｜　目安 '+t.words[0]+'〜'+t.words[1]+'語</div></div>';
     h+='<div class="card">';
     if(k==='photo') h+='<img class="photo" id="ph" alt="練習用の写真" src="'+photoURL(photoId)+'">';
     if(k==='iw') h+='<div class="muted">Step 1</div><div class="prompt">'+esc(iwPair[0])+'</div>';
@@ -2465,11 +2509,11 @@ function tabPrac(t,el,opt){
     if(k==='rts') h+=promptHTML;
     if(k==='ispk') h+='<div class="prompt">話題：<b>'+esc(isSet[0])+'</b>（3問）</div><div class="muted">質問は音声で1回だけ流れます。読み終わると35秒スタート。</div><label class="row" style="gap:6px;font-size:14px;margin-top:6px"><input type="checkbox" id="showQ"> 質問の文字も出す（慣れるまで）</label>';
     if(k==='summ') h+='<div class="prompt">会話を聞いて、75秒で要約を書きます。</div><div class="muted">'+esc(dlg.who.join(' と '))+' の会話。本番と同じく、まず1回だけ聞いてください。</div>';
-    h+='</div>';
+    h+='<div class="row" style="margin-top:10px">'+pfavBtn('Q:'+qk+':'+cur)+'</div></div>';
     if(!FX||P.speak)h+='<div class="card row">'+useRec()+(FX?'':'<button class="right" id="newP">別のお題</button>')+'</div>';
     h+='<div class="hero"><button class="pri" id="go">'+(k==='summ'?'▶ 会話を聞く':'スタート')+'</button></div>';
     h+='<div class="card">'+tplHint(t)+'</div>';
-    el.innerHTML=h;
+    el.innerHTML=h;bindPfav(el);if(!FX)bindPm(el,g,()=>{newPrompt();intro();});
     if($('#newP'))$('#newP').onclick=()=>{newPrompt();intro();};
     $('#go').onclick=()=>{const ro=$('#recOn');run(ro&&ro.checked);};
     const ph=$('#ph'); if(ph) ph.onerror=()=>{ph.replaceWith(Object.assign(document.createElement('div'),{className:'muted',textContent:'写真を読み込めませんでした（オフライン？）。「別のお題」で再読み込み。'}));};
@@ -2533,7 +2577,9 @@ function tabPrac(t,el,opt){
     if(k==='iw'&&step1Text) h+='<div class="card"><div class="muted">Step 1 の答え</div><div style="white-space:pre-wrap;font-size:15px">'+esc(step1Text)+'</div><div class="muted" style="margin-top:8px">Step 2 の答え</div><div style="white-space:pre-wrap;font-size:15px">'+esc(txt)+'</div></div>';
     else if(txt) h+='<div class="card"><div class="muted">自分の答え</div><div style="white-space:pre-wrap;font-size:15px">'+esc(txt)+'</div></div>';
     h+=answerCard();
-    if(FX){if(!alive())return;h+=opt.tail?opt.tail():'';el.innerHTML=h;logPractice(t,n);bindModel(el);if(opt.bindTail)opt.bindTail(el);window.scrollTo(0,0);return;}
+    const qid0='Q:'+qk+':'+qIdx();S.qdone=S.qdone||{};S.qdone[qid0]=today();
+    h+='<div class="card row" style="padding:8px 12px">'+pfavBtn(qid0)+'</div>';
+    if(FX){if(!alive())return;h+=opt.tail?opt.tail():'';el.innerHTML=h;logPractice(t,n);bindModel(el);bindPfav(el);if(opt.bindTail)opt.bindTail(el);window.scrollTo(0,0);return;}
     /* 本番練習で答えたお題を復習リストへ（初回だけ。2回目からは練習扱い） */
     const qid='Q:'+qKeyOf(t)+':'+qIdx();let qr=null;
     const fok0=isFok(qid);
@@ -2546,7 +2592,7 @@ function tabPrac(t,el,opt){
     h+='<div class="hero"><button class="pri" id="again2">別のお題で</button><button id="toSee">テンプレを見直す</button></div>';
     el.innerHTML=h;
     logPractice(t,n);
-    bindModel(el);
+    bindModel(el);bindPfav(el);
     window.pracFix=p=>{if(!qr)return;setFok(qid,rvGradeOf(p)===1);rvRegrade(qr.eid,p);$('#qg').innerHTML=qg(p);};
     $('#again2').onclick=()=>{newPrompt();intro();};
     $('#toSee').onclick=()=>{V.tab='see';renderTask(t);};
