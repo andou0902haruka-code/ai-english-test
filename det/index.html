@@ -642,6 +642,9 @@ function syncNoteHTML(){
   return '<div class="card syncc row"><div style="flex:1;min-width:0"><b>🔗 共有中</b>　<span class="muted">合言葉「'+esc(sid)+'」</span><div class="muted" style="font-size:12.5px;margin-top:2px">'+st+'</div></div><button id="syncSet">変更</button></div>';
 }
 const today=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};
+/* SNSゲート（5サイト共通の gate.js）に1問ぶん数える。今日の復習の中で答えたものは REV 側で数える（二重に数えない） */
+function gateCount(inRev){if(!inRev&&typeof REV!=='undefined'&&REV)return;try{if(window.SNSGate)window.SNSGate.count();}catch(e){}}
+window.SNS_GATE_START=function(){go({view:'home'});};
 function markDay(){const t=today(); if(!S.days.includes(t)){S.days.push(t); if(S.days.length>400)S.days=S.days.slice(-400);} save();}
 function streak(){const key=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');const d=new Date();if(!S.days.includes(key(d)))d.setDate(d.getDate()-1);let n=0;while(S.days.includes(key(d))){n++;d.setDate(d.getDate()-1);}return n;}
 const lid=(t,i)=>t.id+':'+i;
@@ -874,7 +877,7 @@ function wpxDiff(typed,model){
   return {same:n===m&&L[0][0]===m,html:out.join(' ')};
 }
 function wpxBindAns(k){
-  S.xdone=S.xdone||{};if(!S.xdone[k.id]){S.xdone[k.id]=today();save();}
+  S.xdone=S.xdone||{};if(!S.xdone[k.id]){S.xdone[k.id]=today();save();}gateCount();
   const x=wpxOf(k.id),box=$('#wpxBox'),hid=$('#wpxHid'),tg=$('#wpxTg');
   const set=h=>{box.style.display=h?'none':'';hid.style.display=h?'':'none';tg.textContent=h?'答えを見せる':'答えをかくす';tg.classList.toggle('pri',h);};
   let h=false;tg.onclick=()=>{h=!h;set(h);};
@@ -947,7 +950,7 @@ function clozeSession(el,items,opts){
         el.querySelectorAll('.rate button').forEach(b=>b.onclick=()=>{
           const r=+b.dataset.r, b0=boxOf(it.id);
           S.box[it.id]= r===1?Math.min(b0+1,5): r===2?Math.max(b0,0): 0;
-          S.last[it.id]=today(); S.czlv=S.czlv||{}; if(S.czlv[it.id]==null)S.czlv[it.id]=level; markDay();
+          S.last[it.id]=today(); S.czlv=S.czlv||{}; if(S.czlv[it.id]==null)S.czlv[it.id]=level; markDay(); gateCount();
           detFirst('L:'+it.id,r===1?100:r===2?60:0,'cloze');
           if(r===3) again.push(it);
           next();
@@ -1050,7 +1053,7 @@ function favRun(el,list){
   const rateHTML=(ttl)=>'<div class="muted" style="margin-top:10px">'+esc(ttl||'自分で言えましたか？')+'</div><div class="rate"><button class="r1" data-r="1">◎ 言えた</button><button class="r2" data-r="2">△ あいまい</button><button class="r3" data-r="3">× まだ</button></div>';
   const bindRate=w=>w.querySelectorAll('.rate button').forEach(b=>b.onclick=()=>rate(+b.dataset.r));
   function rate(r){const g=cur;if(!g)return;cur=null;
-    g.ks.forEach(k=>{const b0=fbox(k.id);S.fbox[k.id]=r===1?Math.min(b0+1,5):r===2?b0:0;S.last['f:'+k.id]=today();});markDay();
+    g.ks.forEach(k=>{const b0=fbox(k.id);S.fbox[k.id]=r===1?Math.min(b0+1,5):r===2?b0:0;S.last['f:'+k.id]=today();});markDay();gateCount();
     if(r===3&&!g.q)again.push(g);res.push({g,r});next();}
   function head(){return '<div class="row"><span class="prog">'+(n>total?'やり直し（×をもう一度）':n+' / '+total)+'</span><button class="right ghost" id="fvQuit" style="font-size:13px;padding:4px 10px">やめる</button></div>';}
   function next(){
@@ -1230,7 +1233,7 @@ function record(it,ok,mode){
   if(mode==='miss'){const m=L.miss[it.key];if(m){if(ok){m.b=(m.b||0)+1;if(m.b>=2)delete L.miss[it.key];}else m.b=0;}}
   else{detFirst('W:'+it.key,ok?100:0,'type');   /* 本番形式でまちがえた文だけ復習リストへ（最初に正解したものは入れない） */
     if(!ok)addMiss(it.key,{w:it.w,before:it.before,after:it.after,ja:it.ja,au:it.au||'',src:it.src});}
-  markDay();
+  markDay();gateCount();
 }
 
 /* まちがえた単語（課題ごと。Fill in the Blanks と Read and Complete は別々） */
@@ -1302,7 +1305,7 @@ function rcRun(el,i,opt){opt=opt||{};
         r.w=w;r.kept=kept;
         if(j>=0)addMiss('r'+i+':'+w.toLowerCase(),{w,before:s.slice(0,j),after:s.slice(j+w.length),ja:g[2]||'',au:'',src:'Read and Complete・'+P.t});}
     });
-    markDay();
+    markDay();gateCount();
     let rr=null;
     if(opt.review)rr=opt.review(pct);else{detFirst('P:r'+i,pct,'rc');   /* 本番形式で解いた文章は、最初が80%未満なら復習リストへ */
       const L2=Lit();if((L2.lvR||'auto')==='auto'){L2.tierR=stepTier(tierOf(P.lv)==='low'?0:tierOf(P.lv)==='mid'?1:2,pct>=80?1:pct<50?-1:0);save();}}
@@ -1518,6 +1521,10 @@ function rvSetCfg(k, v) {
   rvSave();
 }
 function rvIv() { var iv = rvEnv().intervals; return (iv && iv.length) ? iv : [1, 3, 7, 14, 35, 90]; }
+/* ①で進む段の数。2026-11-24 からは1段飛ばし（例 1→3→7→14 の「3日」で①なら次は14日）。
+   それより前の回答は1段ずつのまま計算する（過去の記録で今の予定日が急に動かないように） */
+var RV_SKIP_FROM = rvToDay('2026-11-24');
+function rvUp(d) { return d >= RV_SKIP_FROM ? 2 : 1; }
 
 /* ---------------- 保存 ---------------- */
 function rvKey() { return 'rv_' + (rvEnv().app || 'app'); }
@@ -1569,7 +1576,7 @@ function rvStep(s, e) {
   var iv = rvIv(), L = iv.length, c = rvCfg(), g = rvGradeOf(e.p), d = e.d;
   var box = Math.min(L - 1, Math.max(0, s.box | 0)), nb, due;
   if (g === 1) {
-    nb = Math.min(L - 1, box + 1);
+    nb = Math.min(L - 1, box + rvUp(d));
     /* 選択式で選べた＝自力で言える・書けるとは限らない。選択式の正解だけでは recogMax より上へ進めない */
     if (rvIsRecog(e.f) && nb > c.recogMax) nb = Math.max(box, Math.min(L - 1, c.recogMax));
     due = d + iv[nb];
@@ -1708,14 +1715,14 @@ function rvEnrollLeft() { return Math.max(0, rvEnrollLimit() - rvEnrolledToday()
 
 /* ---------------- 空いている日に予約して登録する（2026-11-20） ----------------
    登録待ちを復習対象へ入れるとき、最初の出題日を「期限の来る数が1日の上限に収まる日」に割り振る。
-   ・明日から先を順に見て、その日と、①で進んだときの2〜4回目の出題日（段の間隔ぶん先）が
+   ・明日から先を順に見て、その日と、①で進んだときの2〜4回目の出題日（段の間隔ぶん先・2026-11-24〜は1段飛ばし）が
      どれも上限未満で、その日に初めて出る問題が slotNew 件未満なら、その日に入れる
    ・今日の積み残し（期限の来た未消化のうち今日の残り枠に入らないぶん）は翌日以降へ繰り越して数える
    ・予約した問題は、30問に足りない日に前倒しで出す（rvFillWaiting） */
 function rvPlanner() {
   var lim = rvLimit(), c = rvCfg(), today = rvToday(), it = rvItems(), iv = rvIv();
-  var load = {}, fresh = {}, backlog = 0, offs = [0], acc = 0, b, id, t;
-  for (b = 1; b <= 3 && b < iv.length; b++) { acc += iv[b]; offs.push(acc); }
+  var load = {}, fresh = {}, backlog = 0, offs = [0], acc = 0, b, k0, id, t;
+  for (b = 0, k0 = 0; k0 < 3 && b < iv.length - 1; k0++) { b = Math.min(iv.length - 1, b + rvUp(today + 1)); acc += iv[b]; offs.push(acc); }
   for (id in it) {
     var s = it[id];
     if (!s.en || rvPaused(id)) continue;
@@ -2374,7 +2381,7 @@ function revShow(){
   while(REV.k<REV.q.length&&(!rvServeOk(REV.q[REV.k])||!revItemOk(REV.q[REV.k])))REV.k++;
   if(REV.k>=REV.q.length)return revEnd();
   const id=REV.q[REV.k],ty=id[0];let shown=false;
-  const grade=p=>{rvAnswer(id,p,{fmt:ty});REV.res.push({id,p});REV.k++;stopSpeak();revShow();window.scrollTo(0,0);};
+  const grade=p=>{rvAnswer(id,p,{fmt:ty});REV.res.push({id,p});gateCount(true);REV.k++;stopSpeak();revShow();window.scrollTo(0,0);};
   window.revGrade=grade;
   if(ty==='L'){
     const x=lineOf(id),lk=id.slice(2),lv=(S.czlv||{})[lk]||autoLevel(boxOf(lk)),toks=tokens(x.l.t),hidden=makeHidden(toks,lv),opened=new Set(),au='ex_'+x.t.id+'_'+x.i;
@@ -2390,7 +2397,7 @@ function revShow(){
     };draw();return;
   }
   if(ty==='P'){const i=+id.slice(3);el.innerHTML=revHead()+'<div id="rcw"></div>';revBindQuit();
-    rcRun($('#rcw'),i,{last:REV.k+1>=REV.q.length,review:p=>{const r=rvAnswer(id,p,{fmt:'rc'});REV.res.push({id,p});return r;},next:()=>{REV.k++;revShow();window.scrollTo(0,0);}});return;}
+    rcRun($('#rcw'),i,{last:REV.k+1>=REV.q.length,review:p=>{const r=rvAnswer(id,p,{fmt:'rc'});REV.res.push({id,p});gateCount(true);return r;},next:()=>{REV.k++;revShow();window.scrollTo(0,0);}});return;}
   if(ty==='Q'){const q=qOf(id);
     el.innerHTML=revHead()+'<div class="card"><div class="muted">🎯 '+esc(qLabel(q.key,q.idx))+'　｜　本番練習と同じ時間・形式</div></div><div id="pw"></div>';revBindQuit();
     tabPrac(taskForQ(q.key,q.idx),$('#pw'),{fixed:q,alive:()=>V.view==='rev'&&!!REV&&REV.q[REV.k]===id,
@@ -2403,7 +2410,7 @@ function revShow(){
   const inp=$('#ci');setTimeout(()=>{try{inp.focus();}catch(e){}},60);
   let fin=false;
   const check=()=>{if(fin)return;fin=true;clearInterval(timerH);timerH=null;const typed=inp.value.trim().toLowerCase(),ok=typed===ms.toLowerCase();
-    const r=rvAnswer(id,ok?100:0,{fmt:'type'});const rec={id,p:ok?100:0};REV.res.push(rec);
+    const r=rvAnswer(id,ok?100:0,{fmt:'type'});const rec={id,p:ok?100:0};REV.res.push(rec);gateCount(true);
     const draw=()=>{
       el.innerHTML=revHead()+'<div class="card"><div class="big" style="font-weight:700;color:'+(rec.p>=80?'var(--ok)':rec.p>=40?'var(--mid)':'var(--ng)')+'">'+(ok?'✓ 正解':'✗ 正解は '+esc(w.w))+'</div>'
         +'<div class="fibs" style="margin-top:4px">'+esc(w.before)+'<span class="key">'+esc(w.w)+'</span>'+esc(w.after)+'</div>'
@@ -2447,7 +2454,7 @@ function tabOrder(t,el){
     if(pool.length) h+='<div class="pool">'+pool.map((x,k)=>'<button class="opt" data-k="'+k+'">'+tplHTML(x.l.t)+'</button>').join('')+'</div>';
     else h+='<div class="card" style="text-align:center"><div class="big" style="font-weight:700">'+(miss?'ミス '+miss+' 回':'全部正解！')+'</div></div><div class="hero"><button class="pri" id="re">もう一回</button><button id="toCloze">穴埋めへ</button></div>';
     el.innerHTML=h;
-    el.querySelectorAll('.opt').forEach(b=>b.onclick=()=>{const x=pool[+b.dataset.k];const need=seq[done.length];if(x.i===need.i){done.push(x);pool.splice(+b.dataset.k,1);draw();if(!pool.length)markDay();}else{miss++;b.classList.remove('bad');void b.offsetWidth;b.classList.add('bad');}});
+    el.querySelectorAll('.opt').forEach(b=>b.onclick=()=>{const x=pool[+b.dataset.k];const need=seq[done.length];if(x.i===need.i){done.push(x);pool.splice(+b.dataset.k,1);draw();if(!pool.length){markDay();gateCount();}}else{miss++;b.classList.remove('bad');void b.offsetWidth;b.classList.add('bad');}});
     if(!pool.length){$('#re').onclick=()=>tabOrder(t,el);$('#toCloze').onclick=()=>{V.tab='cloze';renderTask(t);};}
   };
   draw();
@@ -2470,7 +2477,7 @@ async function startRec(){
   if(!navigator.mediaDevices||!window.MediaRecorder){toast('この端末では録音できません');return null;}
   try{const st=await navigator.mediaDevices.getUserMedia({audio:true});const chunks=[];const r=new MediaRecorder(st);r.ondataavailable=e=>chunks.push(e.data);r._done=new Promise(res=>r.onstop=()=>{st.getTracks().forEach(x=>x.stop());res(URL.createObjectURL(new Blob(chunks,{type:r.mimeType||'audio/mp4'})));});r.start();return r;}catch(e){toast('マイクが使えませんでした');return null;}
 }
-function logPractice(t,words){S.log.push({d:today(),t:t.id,w:words});if(S.log.length>500)S.log=S.log.slice(-500);markDay();}
+function logPractice(t,words){S.log.push({d:today(),t:t.id,w:words});if(S.log.length>500)S.log=S.log.slice(-500);markDay();gateCount();}
 
 /* 本番練習。opt.fixed={key,idx} でお題を固定（今日の復習・お気に入りの復習）。opt.top＝上に足す、opt.tail＝答えの下に足す */
 function taskForQ(key,idx){const id=key==='wsamp'&&(MODELS.wsamp[idx]||{}).tpl==='wsampU'?'wsampU':QTASK[key];return TASKS.find(x=>x.id===id);}
@@ -2622,6 +2629,356 @@ try{setTimeout(()=>{dsStart().then(()=>{try{if(V.view==='home')render();}catch(e
   if(n)save();
 }catch(e){}})();
 render();
+
+/* SNSGATE:JS:BEGIN */
+/* SNSゲート（5サイト共通）。正本は .claude/skills_assets/sns-gate/gate.js → inject.py で配る。
+   どのサイトでも答え合わせ1問ごとに SNSGate.count() を呼ぶ。30問ごとに1回ぶんたまり、
+   使うときにアプリを1つ選ぶと、そのアプリの分数（既定 YouTube 30分・X 5分・Instagram 5分）だけ開く。
+   開けるのは1アプリにつき1日 MAX_DAY 回まで（日本時間の0時で戻る。used_<アプリ> と usedDay に記録）。
+   解除時刻はアプリごとに reviewLists/{合言葉}__sns_gate の until_<アプリ> へ書き、
+   iPhoneのショートカット（アプリごとに1本）がそれを読んで、開かせるか日替わり学習ページへ飛ばすかを決める。
+   問数は Firestore の increment で足すので、どのサイト・どの端末で解いても1か所に合流する。
+   2026-11-24〜 たまった問数・使える回数はその日かぎり（日本時間0時に0へ戻る）。
+   問数は日付つきの項目 nd_YYYYMMDD に数えるので、日付が変わると自動で0から数え直しになる。 */
+(function (G) {
+  if (G.SNSGate) return;
+  var CFG = {
+    apiKey: 'AIzaSyASWojYpZ3KJBYG9V30Y4BmplUFORYOelw',
+    authDomain: 'ai-english-review.firebaseapp.com',
+    projectId: 'ai-english-review',
+    storageBucket: 'ai-english-review.firebasestorage.app',
+    messagingSenderId: '146537476580',
+    appId: '1:146537476580:web:4ef3dfdf9c0969f25b17f1'
+  };
+  var MAX_DAY = 3;
+  var N = 30, CK = 'sns_gate_cache2', PK = 'sns_gate_pend';   /* PK = まだクラウドへ送れていない問数 */
+  var DAILY = 'https://andou0902haruka-code.github.io/ai-english-test/daily/';
+  var APPS = [
+    { k: 'youtube', nm: 'YouTube', url: 'youtube://', web: 'https://www.youtube.com/', min: 30 },
+    { k: 'x', nm: 'X', url: 'twitter://', web: 'https://x.com/', min: 5 },
+    { k: 'instagram', nm: 'Instagram', url: 'instagram://', web: 'https://www.instagram.com/', min: 5 }
+  ];
+  /* iPhone はアプリを開く。Mac などはブラウザで開く（Chrome拡張「SNSゲート」が時間を見張る） */
+  var MOBILE = typeof navigator !== 'undefined' && /iPhone|iPad|iPod|Android/.test(navigator.userAgent || '');
+  var FB = 'https://www.gstatic.com/firebasejs/10.14.1/';
+  var st = load(), ref = null, db = null, pend = loadPend(), subs = [], lastHave = null;
+
+  function blank() {
+    var s = { n: 0, nDay: today(), u: {}, mins: {}, used: {}, usedDay: '' };
+    APPS.forEach(function (a) { s.u[a.k] = 0; s.mins[a.k] = a.min; s.used[a.k] = 0; });
+    return s;
+  }
+  function load() {
+    var s = blank();
+    try {
+      var v = JSON.parse(localStorage.getItem(CK));
+      if (v && typeof v === 'object') {
+        s.n = v.nDay === today() ? Math.max(0, v.n | 0) : 0;   /* 前の日の問数は持ち越さない */
+        APPS.forEach(function (a) {
+          if (v.u && v.u[a.k]) s.u[a.k] = +v.u[a.k] || 0;
+          if (v.mins && v.mins[a.k] > 0) s.mins[a.k] = v.mins[a.k] | 0;
+          if (v.used && v.used[a.k] > 0) s.used[a.k] = v.used[a.k] | 0;
+        });
+        s.usedDay = v.usedDay || '';
+      }
+    } catch (e) {}
+    return s;
+  }
+  /* まだ送れていない問数は解いた日と組で持つ（{d:日付, k:問数}）。日付が変わったら捨てる */
+  function loadPend() {
+    try {
+      var v = JSON.parse(localStorage.getItem(PK));
+      return (v && typeof v === 'object' && v.d === today()) ? Math.max(0, v.k | 0) : 0;
+    } catch (e) { return 0; }
+  }
+  function savePend() { try { localStorage.setItem(PK, JSON.stringify({ d: today(), k: pend })); } catch (e) {} }
+  function nField(day) { return 'nd_' + String(day || today()).replace(/-/g, ''); }   /* その日の問数を数える項目 */
+  /* 日付が変わっていたら、今日の問数を0から数え直す */
+  function rollDay() {
+    var d = today();
+    if (st.nDay === d) return false;
+    st.n = 0; st.nDay = d; pend = 0; savePend(); save();
+    return true;
+  }
+  function save() { try { localStorage.setItem(CK, JSON.stringify(st)); } catch (e) {} }
+  function sid() {
+    var v = null;
+    try { v = localStorage.getItem('aien_sync_id'); } catch (e) { return null; }
+    return (v && v !== '__none__') ? v : null;
+  }
+  function iso(ms) {   /* ショートカットの「入力から日付を取得」が読めるよう +09:00 つきにする */
+    return new Date(ms + 9 * 3600000).toISOString().slice(0, 19) + '+09:00';
+  }
+  function today() { return new Date(Date.now() + 9 * 3600000).toISOString().slice(0, 10); }   /* 日本時間の日付 */
+  function usedToday(k) { return st.usedDay === today() ? (st.used[k] | 0) : 0; }
+  function leftToday(k) { return Math.max(0, MAX_DAY - usedToday(k)); }
+  function app(k) { for (var i = 0; i < APPS.length; i++) if (APPS[i].k === k) return APPS[i]; return null; }
+  function cur() { return st.nDay === today() ? st.n : 0; }
+  function unlocks() { return Math.floor(cur() / N); }
+  function part() { return cur() % N; }
+  function leftMin(k) {
+    if (!k) return Math.max.apply(null, APPS.map(function (a) { return leftMin(a.k); }));
+    return Math.max(0, Math.ceil(((st.u[k] || 0) - Date.now()) / 60000));
+  }
+  function minsOf(k) { return st.mins[k] || (app(k) || {}).min || 5; }
+  function notify() {
+    var have = unlocks();
+    if (lastHave !== null && have > lastHave) toast('📵 ' + N + '問たまりました！ SNSを1つ開けます');
+    lastHave = have;
+    subs.forEach(function (f) { try { f(st); } catch (e) {} });
+    badge();
+    if (typeof document !== 'undefined' && document.getElementById && document.getElementById('sg-mask')) panel();
+  }
+  function stamp() { return G.firebase.firestore.FieldValue.serverTimestamp(); }
+
+  /* ---- クラウド ---- */
+  function script(src) {
+    return new Promise(function (ok, ng) {
+      var s = document.createElement('script'); s.src = src; s.onload = ok; s.onerror = ng;
+      document.head.appendChild(s);
+    });
+  }
+  function ensureFirebase() {
+    if (G.firebase && G.firebase.firestore) return Promise.resolve();
+    var p = G.firebase ? Promise.resolve() : script(FB + 'firebase-app-compat.js');
+    return p.then(function () { return G.firebase.firestore ? null : script(FB + 'firebase-firestore-compat.js'); });
+  }
+  function connect() {
+    var id = sid();
+    if (!id || typeof document === 'undefined') return;
+    ensureFirebase().then(function () {
+      var fb = G.firebase, a = null;
+      (fb.apps || []).forEach(function (x) { if (x.name === 'snsgate') a = x; });
+      a = a || fb.initializeApp(CFG, 'snsgate');
+      db = a.firestore();
+      ref = db.collection('reviewLists').doc(id + '__sns_gate');
+      ref.onSnapshot(function (s) {
+        var d = s.exists ? s.data() : {};
+        /* ショートカットが読みにいく先（until_<アプリ>）を先に作っておく（無いと判定できない） */
+        var miss = {};
+        APPS.forEach(function (x) { if (!d['until_' + x.k]) { miss['until_' + x.k] = iso(0); miss['untilMs_' + x.k] = 0; } });
+        if (Object.keys(miss).length) { miss.updatedAt = stamp(); ref.set(miss, { merge: true }); }
+        if (!s.exists) return;
+        rollDay();
+        st.n = Math.max(0, d[nField()] | 0) + pend;   /* 今日の問数だけ。pend = まだ送れていないぶん */
+        st.nDay = today();
+        APPS.forEach(function (x) {
+          st.u[x.k] = +d['untilMs_' + x.k] || 0;
+          if (d['mins_' + x.k] > 0) st.mins[x.k] = d['mins_' + x.k] | 0;
+          st.used[x.k] = d['used_' + x.k] | 0;
+        });
+        st.usedDay = d.usedDay || '';
+        save(); notify();
+      }, function (e) { console.warn('SNSゲートの同期に失敗しました', e); });
+      if (pend) flush();
+    }).catch(function (e) { console.warn('SNSゲート: Firebaseを読み込めませんでした', e); });
+  }
+  function flush() {
+    if (!ref || !pend) return;
+    var k = pend, day = today(), w = { updatedAt: stamp() }; pend = 0; savePend();
+    w[nField(day)] = G.firebase.firestore.FieldValue.increment(k);
+    ref.set(w, { merge: true })
+      .catch(function (e) { if (today() === day) { pend += k; savePend(); } console.warn('SNSゲートの送信に失敗しました', e); });
+  }
+
+  /* ---- 外から呼ぶもの ---- */
+  function count() {
+    rollDay();
+    st.n++; save(); pend++; savePend();
+    try { flush(); notify(); } catch (e) {}
+  }
+  /* 1回ぶん（N問）を使って、選んだアプリだけを分数ぶん開く */
+  function useApp(k) {
+    var a = app(k);
+    if (!a) return Promise.resolve(false);
+    if (!leftToday(k)) { alert(a.nm + ' は今日はもう ' + MAX_DAY + '回 開けました。明日（0時）まで待ちましょう。'); return Promise.resolve(false); }
+    if (unlocks() < 1) { alert('あと ' + (N - part()) + '問 解くと使えます。'); return Promise.resolve(false); }
+    if (!ref) { alert('ゲートを使うには合言葉の共有をONにしてください。\nショートカットがクラウドの記録を読みにいくためです。'); return Promise.resolve(false); }
+    var mins = minsOf(k);
+    if (!confirm(N + '問ぶん（1回）を使って、' + a.nm + ' を ' + mins + '分 開けます。\n（今日 ' + a.nm + ' を開けるのは、あと ' + leftToday(k) + '回）')) return Promise.resolve(false);
+    flush();
+    /* 答えた直後に押しても足りなくならないよう、まだ届いていない問数の送信を待ってから数える */
+    var wait = db.waitForPendingWrites ? Promise.race([db.waitForPendingWrites(), new Promise(function (r) { setTimeout(r, 8000); })]) : Promise.resolve();
+    var tries = 0;
+    function attempt() { return db.runTransaction(function (tx) {
+      return tx.get(ref).then(function (s) {
+        var d = s.exists ? s.data() : {}, day = today(), nf = nField(day), n = d[nf] | 0;
+        var w = { updatedAt: stamp(), usedDay: day };
+        /* 前の日までの問数（旧版の n も）は使えないので消しておく */
+        Object.keys(d).forEach(function (f) { if ((f === 'n' || /^nd_\d{8}$/.test(f)) && f !== nf) w[f] = G.firebase.firestore.FieldValue.delete(); });
+        if (d.usedDay !== day) APPS.forEach(function (x) { w['used_' + x.k] = 0; });   /* 日付が変わったら回数を戻す */
+        var used = d.usedDay === day ? (d['used_' + k] | 0) : 0;
+        if (used >= MAX_DAY) throw new Error('limit');
+        if (n < N) throw new Error('short');
+        var until = Math.max(Date.now(), +d['untilMs_' + k] || 0) + mins * 60000;   /* 残りがあれば足し算 */
+        w[nf] = n - N; w['used_' + k] = used + 1;
+        w['until_' + k] = iso(until); w['untilMs_' + k] = until;
+        tx.set(ref, w, { merge: true });
+        return { n: n - N, until: until, used: used + 1, day: day, reset: d.usedDay !== day };
+      });
+    }).catch(function (e) {   /* 送ったばかりの問数がまだ数えられていないときは、少し待って数え直す */
+      if (e && e.message === 'short' && ++tries < 4) return new Promise(function (r) { setTimeout(r, 1500); }).then(attempt);
+      throw e;
+    }); }
+    return wait.then(attempt).then(function (r) {
+      if (r.reset) APPS.forEach(function (x) { st.used[x.k] = 0; });
+      rollDay();
+      st.n = r.n + pend; st.nDay = r.day; st.u[k] = r.until; st.used[k] = r.used; st.usedDay = r.day;
+      save(); notify(); return true;
+    })
+      .catch(function (e) {
+        if (e && e.message === 'limit') { alert(a.nm + ' は今日はもう ' + MAX_DAY + '回 開けました（別の端末で使った可能性があります）。'); return false; }
+        alert(e && e.message === 'short' ? '問数が足りませんでした（別の端末で使った可能性があります）。'
+                                         : '送信できませんでした。通信状況を確かめてからもう一度押してください。');
+        return false;
+      });
+  }
+  function editMins() {
+    var next = {};
+    for (var i = 0; i < APPS.length; i++) {
+      var a = APPS[i];
+      var v = prompt(a.nm + ' を1回で何分開けますか？（1〜180）', String(minsOf(a.k)));
+      if (v === null) return;
+      var m = parseInt(v, 10);
+      if (!(m >= 1 && m <= 180)) { alert('1〜180の数字で入れてください。'); return; }
+      next[a.k] = m;
+    }
+    var w = { updatedAt: null };
+    APPS.forEach(function (a) { st.mins[a.k] = next[a.k]; w['mins_' + a.k] = next[a.k]; });
+    save(); notify();
+    if (ref) { w.updatedAt = stamp(); ref.set(w, { merge: true }); }
+  }
+  function setSyncId() {
+    var cur = sid() || '';
+    var input = prompt('ほかのサイト・端末と問数を共有する合言葉を入力してください（全部同じ言葉にします）。\n共有をやめる場合は空欄のままOKしてください。', cur);
+    if (input === null) return;
+    try { localStorage.setItem('aien_sync_id', input.trim() ? input.trim() : '__none__'); } catch (e) {}
+    location.reload();
+  }
+  function apiUrl() {
+    var id = sid();
+    if (!id) return '';
+    return 'https://firestore.googleapis.com/v1/projects/' + CFG.projectId + '/databases/(default)/documents/reviewLists/'
+      + encodeURIComponent(id + '__sns_gate') + '?key=' + CFG.apiKey;
+  }
+  function copyUrl() {
+    var u = apiUrl();
+    if (!u) { alert('先に合言葉の共有をONにしてください。'); return; }
+    var done = function () { alert('コピーしました。ショートカットの「URLの内容を取得」に貼ってください。'); };
+    if (G.navigator && navigator.clipboard) navigator.clipboard.writeText(u).then(done, function () { prompt('このURLをコピーしてください', u); });
+    else prompt('このURLをコピーしてください', u);
+  }
+  function hhmm(ms) { return new Date(ms).toTimeString().slice(0, 5); }
+  /* アプリごとの行（この札の板と、日替わり学習ページのカードで共用） */
+  function appsHtml() {
+    var have = unlocks();
+    return '<div class="sg-apps">' + APPS.map(function (a) {
+      var left = leftMin(a.k), m = minsOf(a.k), rest = leftToday(a.k);
+      return '<div class="sg-app-row' + (left ? ' on' : '') + '">'
+        + '<div class="sg-app-nm"><b>' + a.nm + ' <small>今日 ' + usedToday(a.k) + '/' + MAX_DAY + '回</small></b><span>'
+        + (left ? '🔓 あと' + left + '分（' + hhmm(st.u[a.k]) + 'まで）' : (rest ? '🔒 1回で' + m + '分' : '🔒 今日はおしまい（0時に戻ります）')) + '</span></div>'
+        + (left ? '<a class="sg-mini open" href="' + (MOBILE ? a.url : a.web) + '"' + (MOBILE ? '' : ' target="_blank" rel="noopener"') + '>開く</a>' : '')
+        + (rest ? '<button class="sg-mini" onclick="SNSGate.useApp(\'' + a.k + '\')"' + (have ? '' : ' disabled') + '>'
+        + (left ? '+' + m + '分' : m + '分 使う') + '</button>' : '')
+        + '</div>';
+    }).join('') + '</div>'
+      + '<span class="sg-link" onclick="SNSGate.editMins()">⚙️ 分数を変える</span>';
+  }
+
+  /* ---- 画面（右下の小さな札＋開くと出る板）。日替わり学習ページは自前のカードがあるので札を出さない ---- */
+  var CSS = '.sg-badge{position:fixed;right:10px;bottom:calc(10px + env(safe-area-inset-bottom));z-index:9998;'
+    + 'background:#8a5cf6;color:#fff;border:none;border-radius:99px;padding:6px 11px;font:600 12px/1.2 system-ui,sans-serif;'
+    + 'box-shadow:0 2px 8px rgba(0,0,0,.2);opacity:.9;cursor:pointer}'
+    + '.sg-badge.full{background:#1fa971}'
+    + '.sg-mask{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:9999;display:flex;align-items:flex-end;justify-content:center}'
+    + '.sg-panel{background:#fff;color:#222;width:100%;max-width:480px;border-radius:16px 16px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom));'
+    + 'font:14px/1.6 system-ui,sans-serif;max-height:90vh;overflow:auto}'
+    + '.sg-panel h3{margin:0 0 6px;font-size:16px}.sg-sub{color:#666;font-size:12.5px}'
+    + '.sg-bar{height:10px;background:#eef0f6;border-radius:6px;overflow:hidden;margin:8px 0}.sg-bar i{display:block;height:100%;background:#8a5cf6}'
+    + '.sg-row{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}'
+    + '.sg-btn{flex:1;text-align:center;border-radius:10px;padding:9px 8px;font-weight:600;border:none;font-size:14px;cursor:pointer;background:#8a5cf6;color:#fff}'
+    + '.sg-btn.ghost{background:#f1f2f6;color:#555}.sg-link{color:#666;font-size:12px;text-decoration:underline;cursor:pointer;margin-top:8px;display:inline-block}'
+    + '.sg-warn{background:#fff4e5;border-radius:10px;padding:9px 11px;margin:0 0 8px;font-size:13px}'
+    + '.sg-apps{display:flex;flex-direction:column;gap:6px;margin:8px 0 2px}'
+    + '.sg-app-row{display:flex;align-items:center;gap:8px;border:1px solid #e6e8f0;border-radius:10px;padding:7px 9px}'
+    + '.sg-app-row.on{background:#eafaf2;border-color:#bfe8d3}'
+    + '.sg-app-nm{flex:1;display:flex;flex-direction:column;line-height:1.3}.sg-app-nm b{font-size:14px}.sg-app-nm small{font-weight:400;color:#888;font-size:11px;margin-left:4px}.sg-app-nm span{font-size:12px;color:#666}'
+    + '.sg-mini{border:none;border-radius:8px;padding:7px 10px;font-weight:600;font-size:13px;background:#8a5cf6;color:#fff;cursor:pointer;text-decoration:none;white-space:nowrap}'
+    + '.sg-mini[disabled]{opacity:.4;cursor:default}.sg-mini.open{background:#1fa971}'
+    + '.sg-toast{position:fixed;left:50%;bottom:calc(56px + env(safe-area-inset-bottom));transform:translateX(-50%);background:#1fa971;color:#fff;'
+    + 'padding:9px 14px;border-radius:10px;z-index:10000;font:600 13px system-ui,sans-serif;box-shadow:0 2px 10px rgba(0,0,0,.2)}';
+  function el(tag, cls, html) { var e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; }
+  function css() {
+    if (typeof document === 'undefined' || !document.head || document.getElementById('sg-css')) return;
+    var s = el('style', null, CSS); s.id = 'sg-css'; document.head.appendChild(s);
+  }
+  function noBadge() { return !!G.SNS_GATE_NO_BADGE || typeof document === 'undefined' || !document.body; }
+  function badge() {
+    if (noBadge()) return;
+    var b = document.getElementById('sg-badge');
+    if (!b) { b = el('button', 'sg-badge'); b.id = 'sg-badge'; b.onclick = panel; document.body.appendChild(b); }
+    var open = APPS.filter(function (a) { return leftMin(a.k); }), have = unlocks();
+    b.textContent = (sid() ? '' : '⚠ ')
+      + (open.length ? '🔓 ' + open.map(function (a) { return a.nm + ' ' + leftMin(a.k) + '分'; }).join('・')
+                     : (have ? '📵 使える×' + have : '📵 ' + part() + '/' + N));
+    b.classList.toggle('full', !!(open.length || have));
+  }
+  function panel() {
+    var old = document.getElementById('sg-mask'); if (old) old.remove();
+    var have = unlocks(), p = part();
+    var m = el('div', 'sg-mask'); m.id = 'sg-mask';
+    m.onclick = function (e) { if (e.target === m) m.remove(); };
+    m.innerHTML = '<div class="sg-panel">'
+      + '<h3>📵 SNSゲート</h3>'
+      + (sid() ? '' : '<div class="sg-warn">⚠ このページは合言葉の共有がOFFです。ここで解いた問数がほかのサイトに足されません。'
+        + '<button class="sg-btn" id="sg-sync" style="margin-top:6px;width:100%">合言葉を設定する</button></div>')
+      + '<div class="sg-sub">どのサイトでも ' + N + '問 答え合わせをするごとに1回ぶんたまり、アプリを1つ選んで開けます。使わなかった回数と問数は0時に0へ戻ります。</div>'
+      + '<div style="margin-top:8px">次の1回まで <b>' + p + ' / ' + N + '問</b>' + (have ? '（使えるのが <b>' + have + '回</b> たまっています）' : '') + '</div>'
+      + '<div class="sg-bar"><i style="width:' + (have ? 100 : Math.round(p / N * 100)) + '%"></i></div>'
+      + appsHtml()
+      + '<div class="sg-row">'
+      + '<button class="sg-btn' + (have ? ' ghost' : '') + '" id="sg-solve">問題を解く（あと ' + (N - p) + '問）</button>'
+      + '<button class="sg-btn ghost" id="sg-close" style="flex:0 0 auto">閉じる</button></div>'
+      + '<a class="sg-link" href="' + DAILY + '">日替わり学習ページのゲートで解く</a>'
+      + (sid() ? '　<span class="sg-link" id="sg-sync2">🔗 共有ON（' + sid().replace(/[<>&"]/g, '') + '）</span>' : '')
+      + '</div>';
+    document.body.appendChild(m);
+    document.getElementById('sg-close').onclick = function () { m.remove(); };
+    ['sg-sync', 'sg-sync2'].forEach(function (k) { var b = document.getElementById(k); if (b) b.onclick = setSyncId; });
+    document.getElementById('sg-solve').onclick = function () {
+      m.remove();
+      /* 各サイトが「問題を選ぶ場所」へ連れていく関数を SNS_GATE_START に置いている。無ければ日替わり学習ページへ */
+      if (typeof G.SNS_GATE_START === 'function') G.SNS_GATE_START();
+      else location.href = DAILY + '?gate=1';
+    };
+  }
+  function toast(msg) {
+    if (typeof document === 'undefined' || !document.body) return;
+    var t = el('div', 'sg-toast', msg); document.body.appendChild(t);
+    setTimeout(function () { t.remove(); }, 3500);
+  }
+
+  G.SNSGate = {
+    N: N, APPS: APPS, MAX_DAY: MAX_DAY, usedToday: usedToday, leftToday: leftToday, today: today,
+    count: count, useApp: useApp, editMins: editMins, unlocks: unlocks, part: part, leftMin: leftMin, minsOf: minsOf, iso: iso,
+    state: function () { return JSON.parse(JSON.stringify(st)); },
+    onChange: function (f) { subs.push(f); },
+    appsHtml: appsHtml, apiUrl: apiUrl, copyUrl: copyUrl, setSyncId: setSyncId,
+    pending: function () { return pend; }, panel: panel, connect: connect,
+    _set: function (v) { var b = blank(); b.n = v.n | 0; if (v.nDay) b.nDay = v.nDay; if (v.u) Object.assign(b.u, v.u); if (v.mins) Object.assign(b.mins, v.mins); if (v.used) Object.assign(b.used, v.used); b.usedDay = v.usedDay || ''; st = b; save(); lastHave = unlocks(); }   /* テスト用 */
+  };
+  lastHave = unlocks();
+  function start() {
+    try { css(); badge(); connect(); } catch (e) { console.warn('SNSゲートを起動できませんでした', e); }
+    /* 開いたまま0時をまたいだら、たまった回数を0に戻して表示し直す */
+    setInterval(function () { if (rollDay()) { lastHave = 0; notify(); } }, 60000);
+  }
+  if (typeof document !== 'undefined' && document.createElement) {
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
+    else start();
+  }
+})(typeof window !== 'undefined' ? window : globalThis);
+/* SNSGATE:JS:END */
 </script>
 </body>
 </html>
