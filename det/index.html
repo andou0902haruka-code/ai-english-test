@@ -225,6 +225,11 @@ table.sw td:first-child{white-space:nowrap;color:var(--sub);width:5.5em}
 .rv-modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:9999;padding:16px;}
 .rv-modal-in{background:var(--rv-card);color:var(--rv-ink);border-radius:14px;max-width:560px;width:100%;max-height:85vh;overflow:auto;padding:16px;}
 .rv-modal-b{display:flex;gap:8px;justify-content:flex-end;margin-top:12px;}
+
+/* 定着した問題の目印（2026-11-24）。一覧の中に置くのでアプリの文字色に合わせる */
+.rv-master{display:inline-block;font-size:.72rem;font-weight:700;line-height:1.5;padding:1px 8px;margin:0 2px;border-radius:999px;
+  color:#8a5a00;background:#fff3d6;border:1px solid #f0d08a;white-space:nowrap;vertical-align:middle;}
+@media (prefers-color-scheme: dark){ .rv-master{color:#ffd27a;background:#3a2f14;border-color:#6b5520;} }
 /* RV:CSS:END */
 </style>
 </head>
@@ -764,6 +769,7 @@ function render(){
   if(V.view==='fav'){$('#title').textContent='⭐ お気に入り表現';renderFav();return;}
   if(V.view==='lit'){renderLit();return;}
   if(V.view==='rev'){renderRev();return;}
+  if(V.view==='mst'){$('#title').textContent='🏆 定着した問題';renderMst();return;}
   if(V.view==='task'){const t=TASKS.find(x=>x.id===V.id);$('#title').textContent=t.icon+' '+t.name;renderTask(t);return;}
 }
 
@@ -776,6 +782,7 @@ function homeHTML(){
   h+='<div class="hero"><button class="pri" id="goRev">📅 今日の復習　'+(rl?'あと <b>'+rl+'</b> 問':'<span style="font-weight:400">完了</span>')+'</button></div><div style="height:10px"></div>';
   h+='<div class="hero"><button id="goSheet">早見表をぜんぶ見る</button></div>';
   h+='<div class="hero" style="margin-top:10px"><button id="goFav">⭐ お気に入り表現 <b>'+Object.keys(S.fav).length+'</b></button></div>';
+  h+='<div class="hero" style="margin-top:10px"><button id="goMst">🏆 定着した問題 <b>'+mstIds('all').length+'</b></button></div>';
   h+='<div class="card skel"><div class="muted" style="margin-bottom:4px">骨組みは2つだけ</div><div><b>写真系</b>　全体 → 主役 → 周り → 推測 → 雰囲気</div><div><b>意見・体験系</b>　結論 → 理由 → 例 → 譲歩 → まとめ</div></div>';
   h+='<div class="sec">READING（単語を完成）</div><div class="grid">'+['fib','rc'].map(id=>{const t=LITS[id],st=litStats(id);return '<button class="tcard" data-lit="'+id+'"><div class="nm">'+t.icon+' '+t.name+'</div><div class="meta">'+t.jp+'　'+t.time+'</div><div class="meta" style="margin-top:3px">解いた '+st.done+' / '+st.total+(id==='fib'?' 文':' 本')+(st.pct!=null?'　正答率 '+st.pct+'%':'')+'</div></button>';}).join('')+'</div>';
   let sec='';
@@ -791,6 +798,7 @@ function bindHome(){
   $('#goRev').onclick=()=>go({view:'rev'});
   $('#syncSet').onclick=setSyncWord;
   $('#goFav').onclick=()=>go({view:'fav',ftab:'list'});
+  $('#goMst').onclick=()=>go({view:'mst',rg:'all'});
   $('#goSheet').onclick=()=>{V={view:'sheet'};renderSheet();};
 }
 function renderSheet(){
@@ -1294,7 +1302,8 @@ function rcRun(el,i,opt){opt=opt||{};
     const blanks=P.segs.filter(g=>typeof g!=='string');
     const res=blanks.map((g,k)=>({g,typed:ins[k].value.trim().toLowerCase(),ok:ins[k].value.trim().toLowerCase()===g[0].toLowerCase()}));
     const okN=res.filter(r=>r.ok).length,pct=Math.round(okN/res.length*100);
-    const L=Lit(),r0=L.rc[i]||{n:0,best:0};L.rc[i]={n:r0.n+1,best:Math.max(r0.best,pct),last:pct,d:today()};
+    const PR=!!opt.practice;   /* 定着テスト（練習）は成績・まちがえた単語・記録に入れない（2026-11-24） */
+    if(!PR){const L=Lit(),r0=L.rc[i]||{n:0,best:0};L.rc[i]={n:r0.n+1,best:Math.max(r0.best,pct),last:pct,d:today()};}
     // まちがえた単語を「まちがえた単語」へ（その単語が出てきた文ごと）
     let bi=0,prev='';const out=[];
     P.segs.forEach(g=>{if(typeof g==='string'){out.push(esc(g));prev=g;return;}
@@ -1303,18 +1312,18 @@ function rcRun(el,i,opt){opt=opt||{};
       else{out[out.length-1]=esc(prev.slice(0,prev.length-kept.length))+'<span class="ngw">'+esc(w)+'</span>';
         const s=P.sents[g[1]],j=s.search(new RegExp('\\b'+w+'\\b'));
         r.w=w;r.kept=kept;
-        if(j>=0)addMiss('r'+i+':'+w.toLowerCase(),{w,before:s.slice(0,j),after:s.slice(j+w.length),ja:g[2]||'',au:'',src:'Read and Complete・'+P.t});}
+        if(j>=0&&!PR)addMiss('r'+i+':'+w.toLowerCase(),{w,before:s.slice(0,j),after:s.slice(j+w.length),ja:g[2]||'',au:'',src:'Read and Complete・'+P.t});}
     });
-    markDay();gateCount();
+    if(!PR){markDay();gateCount();}
     let rr=null;
-    if(opt.review)rr=opt.review(pct);else{detFirst('P:r'+i,pct,'rc');   /* 本番形式で解いた文章は、最初が80%未満なら復習リストへ */
+    if(PR)opt.practice(pct);else if(opt.review)rr=opt.review(pct);else{detFirst('P:r'+i,pct,'rc');   /* 本番形式で解いた文章は、最初が80%未満なら復習リストへ */
       const L2=Lit();if((L2.lvR||'auto')==='auto'){L2.tierR=stepTier(tierOf(P.lv)==='low'?0:tierOf(P.lv)==='mid'?1:2,pct>=80?1:pct<50?-1:0);save();}}
     const miss=res.filter(r=>!r.ok);
     let h='<div class="card" style="text-align:center"><div class="big" style="font-weight:700">'+okN+' / '+res.length+' 語（'+pct+'%）</div><div class="muted">'+(pct>=80?'よくできました。':pct>=60?'あと少し。赤い語を見直そう。':'赤い語を「まちがえた単語」で復習しよう。')+'</div></div>';
     h+='<div class="card"><div class="row"><span class="mh">'+esc(P.t)+'</span><button class="right" id="sp">🔊 聞く</button></div><div class="row" style="margin-top:6px">'+pfavBtn('P:r'+i)+'</div><div class="rcp" style="line-height:1.9;margin-top:6px">'+out.join('')+'</div><div class="note"><span class="okw">緑</span>＝正解　<span class="ngw">赤</span>＝まちがい</div></div>';
     if(miss.length) h+='<div class="card"><div class="kh" style="font-weight:700">まちがえた単語（「まちがえた単語」タブで練習できます）</div><ul class="kl ml">'+miss.map(r=>'<li><div class="kb"><div class="ken">'+esc(r.w)+'</div><div class="muted">あなたの答え：'+esc(r.kept)+'<s>'+esc(r.typed||'（空欄）')+'</s>'+(r.g[2]?'　｜　'+esc(r.g[2]):'')+'</div></div></li>').join('')+'</ul></div>';
     h+='<div class="card"><details open><summary>日本語訳</summary><div style="font-size:14.5px;margin-top:6px">'+esc(P.ja)+'</div></details><details><summary>この文章の重要単語</summary><ul class="kl ml">'+P.g.map(([w,ja,lv])=>'<li><div class="kb"><span class="ken">'+esc(w)+'</span> '+lvChip(lv)+'　<span class="kja">'+esc(ja)+'</span></div></li>').join('')+'</ul></details><details><summary>この文章のレベル（'+P.lv+'）とB2以上の単語</summary><div class="note">文章のレベルは、B2・C1以上（リスト外を含む）の単語の数で決めています：B2 '+P.cnt.B2+'語・C1 '+P.cnt.C1+'語・C2 '+P.cnt.C2+'語・リスト外 '+P.cnt.X+'語</div><div style="margin-top:6px;line-height:2">'+P.hw.map(([w,lv])=>'<span style="white-space:nowrap;margin-right:10px">'+esc(w)+lvChip(lv)+'</span>').join('')+'</div></details></div>';
-    if(opt.review){h+='<div class="card note">復習の記録：'+rvGradeLabel(rvGradeOf(pct))+'（'+pct+'%・80%以上で①、40%以上で②）　次は '+rvMd(rvSt('P:r'+i).due)+'</div><div class="hero"><button class="pri" id="rnext">'+(opt.last?'結果を見る':'次へ')+'</button></div>';
+    if(opt.review||PR){h+='<div class="card note">'+(PR?'定着テスト（練習）：'+rvGradeLabel(rvGradeOf(pct))+'（'+pct+'%）。記録はしていません':'復習の記録：'+rvGradeLabel(rvGradeOf(pct))+'（'+pct+'%・80%以上で①、40%以上で②）　次は '+rvMd(rvSt('P:r'+i).due))+'</div><div class="hero"><button class="pri" id="rnext">'+(opt.last?'結果を見る':'次へ')+'</button></div>';
       el.innerHTML=h;window.scrollTo(0,0);bindPfav(el);$('#sp').onclick=()=>play(P.au,P.sents.join(' '));$('#rnext').onclick=opt.next;return;}
     h+='<div class="hero"><button class="pri" id="again">もう一度</button><button id="next">次の文章へ</button></div>';
     if(miss.length) h+='<div class="hero" style="margin-top:10px"><button id="toMiss">まちがえた単語を復習 '+missList().length+'</button></div>';
@@ -2040,6 +2049,29 @@ function rvWaitIds() {
 /* 登録待ちを今日の登録の残り枠まで登録する。2026-11-20〜 空いている日に予約する（rvReserve と同じ） */
 function rvEnrollWaiting(n) { return rvReserve(n); }
 
+/* ---------------- 定着した問題（2026-11-24） ----------------
+   いまの段の間隔が RV_MASTER_DAYS（30日）以上＝次の復習が30日以上先になる段まで上がった問題。
+   英単語ノート・表現メモは30日の段、ほか（1/3/7/14/35/90日）は35日の段から。②③で段が下がれば外れる。
+   定着した問題だけのテストは練習（記録しない）で、各アプリが自分の出題画面で出す */
+var RV_MASTER_DAYS = 30;
+function rvMasterBox() {
+  var iv = rvIv();
+  for (var i = 0; i < iv.length; i++) if (iv[i] >= RV_MASTER_DAYS) return i;
+  return iv.length - 1;
+}
+function rvMastered(id) { var s = rvSt(id); return !!(s.en && (s.box | 0) >= rvMasterBox()); }
+function rvMasteredIds(ids) { return (ids || rvLiveIds()).map(String).filter(rvMastered); }
+/* 一覧に付ける目印「🏆 定着・次 12/30」。定着していなければ空 */
+function rvMasterChip(id) {
+  if (!rvMastered(id)) return '';
+  return '<span class="rv-master" title="次の復習まで30日以上の段まで上がった">🏆 定着・次 ' + rvMd(rvSt(id).due) + '</span>';
+}
+/* 定着した問題の一覧・テストの見出しに出す説明 */
+function rvMasterNote() {
+  return '次の復習が' + RV_MASTER_DAYS + '日以上先になる段（' + rvIv()[rvMasterBox()] + '日の段）まで上がった' + rvUnit() + 'です。'
+    + '復習で②③を付けて段が下がると、ここから外れます。定着テストは練習なので記録しません（箱・今日の' + rvCfg().cap + rvUnit() + '・成績は動きません）。';
+}
+
 /* ---------------- 途中でやめた回の保留（この端末だけ） ---------------- */
 function rvHoldKey() { return rvKey() + '_hold'; }
 function rvHoldSave(h) { try { if (h && h.ids && h.ids.length) localStorage.setItem(rvHoldKey(), JSON.stringify(h)); else localStorage.removeItem(rvHoldKey()); } catch (e) {} }
@@ -2267,6 +2299,7 @@ function rvPanelHtml(ids) {
     + '<div><b>' + viewed + '</b><span>閲覧のみ</span></div>'
     + '<div><b>' + paused.length + '</b><span>休止中</span></div>'
     + '<div><b>' + rel.length + '</b><span>学び直し候補</span></div>'
+    + '<div><b>' + all.filter(rvMastered).length + '</b><span>定着（' + RV_MASTER_DAYS + '日以上の段）</span></div>'
     + '</div>'
     + '<div class="rv-p">今日の登録（登録待ち→復習対象）：<b>' + rvEnrolledToday() + '</b>／' + el + '件</div>';
   if (wait.length || rsv.length) {
@@ -2373,15 +2406,35 @@ function renderRev(){
   app.querySelectorAll('input[name=rg]').forEach(r=>r.onchange=()=>{V.rg=r.value;renderRev();});
   const b=$('#rvGo');if(b)b.onclick=()=>revStart();
 }
+/* ---------- 定着した問題（2026-11-24） ----------
+   rv.js の rvMastered（いまの段の間隔が30日以上＝35日・90日の段）。テストは今日の復習と同じ出し方で、練習（REV.prac＝記録しない） */
+const mstIds=g=>rgIds(g).filter(id=>rvMastered(id)&&revItemOk(id));
+let MST_N=10;
+function renderMst(){
+  const app=$('#app');app.classList.remove('blur');app.onclick=null;
+  const g=RG.some(x=>x[0]===V.rg)?V.rg:'all',ids=mstIds(g).sort((a,b)=>rvSt(a).due-rvSt(b).due),all=mstIds('all');
+  let h='<div class="card"><div style="font-weight:700;margin-bottom:6px">🏆 定着した問題 '+all.length+' 問</div><div class="muted">'+esc(rvMasterNote())+'</div></div>';
+  if(all.length){
+    h+='<div class="card"><div style="font-weight:700;margin-bottom:6px">ジャンル</div><div class="row" style="flex-wrap:wrap;gap:6px">'+RG.map(([k,nm])=>{const n=mstIds(k).length;return (k==='all'||n)?'<button class="'+(k===g?'pri':'ghost')+'" data-rg="'+k+'" style="font-size:13px;padding:5px 10px">'+esc(nm)+' '+n+'</button>':'';}).join('')+'</div>'
+      +'<div style="font-weight:700;margin:12px 0 6px">問題数</div><div class="row" style="gap:6px">'+[10,20,0].map(n=>'<button class="'+(n===MST_N?'pri':'ghost')+'" data-n="'+n+'" style="font-size:13px;padding:5px 12px">'+(n?n+'問':'ぜんぶ')+'</button>').join('')+'</div></div>';
+    h+='<div class="hero"><button class="pri" id="mstGo"'+(ids.length?'':' disabled')+'>定着した問題でテスト（練習・記録しない）</button></div>';
+    h+='<div class="card"><ul class="kl ml">'+ids.map(id=>'<li><div class="kb"><div class="ken">'+esc(RV_ENV.label(id))+'</div><div class="muted">'+rvMasterChip(id)+'</div></div></li>').join('')+'</ul></div>';
+  }else h+='<div class="card muted">まだ定着した問題はありません。今日の復習で①を付け続けると、次の復習が30日以上先の段に上がってここに入ります。</div>';
+  app.innerHTML=h;
+  app.querySelectorAll('[data-rg]').forEach(b=>b.onclick=()=>{V.rg=b.dataset.rg;renderMst();});
+  app.querySelectorAll('[data-n]').forEach(b=>b.onclick=()=>{MST_N=+b.dataset.n;renderMst();});
+  const go1=$('#mstGo');if(go1)go1.onclick=()=>mstStart(g);
+}
+function mstStart(g){let q=shuffle(mstIds(g));if(MST_N)q=q.slice(0,MST_N);if(!q.length)return;V={view:'rev',rg:g,mst:1};REV={q,k:0,res:[],prac:true};render();window.scrollTo(0,0);}
 function revStart(g){g=g||V.rg||'all';if(!RG.some(x=>x[0]===g))g='all';V={view:'rev',rg:g};REV={q:rvPick(rgIds(g)),k:0,res:[]};render();window.scrollTo(0,0);}
-function revHead(){return '<div class="row"><span class="prog">'+(REV.k+1)+' / '+REV.q.length+'</span><button class="right ghost" id="rvQuit" style="font-size:13px;padding:4px 10px">やめる</button></div>';}
-function revBindQuit(){const b=$('#rvQuit');if(b)b.onclick=()=>{if(REV.res.length&&!confirm('ここでやめますか？（答えた '+REV.res.length+' 問は記録ずみ）'))return;cleanup();REV=null;render();};}
+function revHead(){return '<div class="row"><span class="prog">'+(REV.prac?'🏆 定着テスト（練習・記録しない）　':'')+(REV.k+1)+' / '+REV.q.length+'</span><button class="right ghost" id="rvQuit" style="font-size:13px;padding:4px 10px">やめる</button></div>';}
+function revBindQuit(){const b=$('#rvQuit');if(b)b.onclick=()=>{if(REV.res.length&&!confirm(REV.prac?'定着テストをやめますか？（練習なので記録は変わりません）':'ここでやめますか？（答えた '+REV.res.length+' 問は記録ずみ）'))return;cleanup();if(REV.prac){REV=null;go({view:'mst',rg:V.rg});return;}REV=null;render();};}
 function revShow(){
   const el=$('#app');
-  while(REV.k<REV.q.length&&(!rvServeOk(REV.q[REV.k])||!revItemOk(REV.q[REV.k])))REV.k++;
+  while(REV.k<REV.q.length&&((!REV.prac&&!rvServeOk(REV.q[REV.k]))||!revItemOk(REV.q[REV.k])))REV.k++;
   if(REV.k>=REV.q.length)return revEnd();
   const id=REV.q[REV.k],ty=id[0];let shown=false;
-  const grade=p=>{rvAnswer(id,p,{fmt:ty});REV.res.push({id,p});gateCount(true);REV.k++;stopSpeak();revShow();window.scrollTo(0,0);};
+  const grade=p=>{if(!REV.prac){rvAnswer(id,p,{fmt:ty});gateCount(true);}REV.res.push({id,p});REV.k++;stopSpeak();revShow();window.scrollTo(0,0);};
   window.revGrade=grade;
   if(ty==='L'){
     const x=lineOf(id),lk=id.slice(2),lv=(S.czlv||{})[lk]||autoLevel(boxOf(lk)),toks=tokens(x.l.t),hidden=makeHidden(toks,lv),opened=new Set(),au='ex_'+x.t.id+'_'+x.i;
@@ -2397,10 +2450,10 @@ function revShow(){
     };draw();return;
   }
   if(ty==='P'){const i=+id.slice(3);el.innerHTML=revHead()+'<div id="rcw"></div>';revBindQuit();
-    rcRun($('#rcw'),i,{last:REV.k+1>=REV.q.length,review:p=>{const r=rvAnswer(id,p,{fmt:'rc'});REV.res.push({id,p});gateCount(true);return r;},next:()=>{REV.k++;revShow();window.scrollTo(0,0);}});return;}
+    rcRun($('#rcw'),i,{last:REV.k+1>=REV.q.length,review:REV.prac?null:p=>{const r=rvAnswer(id,p,{fmt:'rc'});REV.res.push({id,p});gateCount(true);return r;},practice:REV.prac?p=>{REV.res.push({id,p});}:null,next:()=>{REV.k++;revShow();window.scrollTo(0,0);}});return;}
   if(ty==='Q'){const q=qOf(id);
     el.innerHTML=revHead()+'<div class="card"><div class="muted">🎯 '+esc(qLabel(q.key,q.idx))+'　｜　本番練習と同じ時間・形式</div></div><div id="pw"></div>';revBindQuit();
-    tabPrac(taskForQ(q.key,q.idx),$('#pw'),{fixed:q,alive:()=>V.view==='rev'&&!!REV&&REV.q[REV.k]===id,
+    tabPrac(taskForQ(q.key,q.idx),$('#pw'),{fixed:q,nolog:!!REV.prac,alive:()=>V.view==='rev'&&!!REV&&REV.q[REV.k]===id,
       tail:()=>'<div class="card">'+rvGradeHtml('revGrade',{q:'模範解答とくらべて、テンプレの流れで答えられましたか？'})+'</div>'});
     return;}
   /* 単語：打って自動で判定 → つづりの小さなミスなどは付け直せる */
@@ -2410,7 +2463,7 @@ function revShow(){
   const inp=$('#ci');setTimeout(()=>{try{inp.focus();}catch(e){}},60);
   let fin=false;
   const check=()=>{if(fin)return;fin=true;clearInterval(timerH);timerH=null;const typed=inp.value.trim().toLowerCase(),ok=typed===ms.toLowerCase();
-    const r=rvAnswer(id,ok?100:0,{fmt:'type'});const rec={id,p:ok?100:0};REV.res.push(rec);gateCount(true);
+    const r=REV.prac?null:rvAnswer(id,ok?100:0,{fmt:'type'});const rec={id,p:ok?100:0};REV.res.push(rec);if(!REV.prac)gateCount(true);
     const draw=()=>{
       el.innerHTML=revHead()+'<div class="card"><div class="big" style="font-weight:700;color:'+(rec.p>=80?'var(--ok)':rec.p>=40?'var(--mid)':'var(--ng)')+'">'+(ok?'✓ 正解':'✗ 正解は '+esc(w.w))+'</div>'
         +'<div class="fibs" style="margin-top:4px">'+esc(w.before)+'<span class="key">'+esc(w.w)+'</span>'+esc(w.after)+'</div>'
@@ -2422,7 +2475,7 @@ function revShow(){
       $('#sp').onclick=()=>play(w.au||'_',w.before+w.w+w.after);bindStars(el);bindPfav(el);
       const nx=$('#nx');nx.onclick=()=>{REV.k++;stopSpeak();revShow();window.scrollTo(0,0);};setTimeout(()=>{try{nx.focus();}catch(e){}},60);
     };
-    window.revFix=p=>{rvRegrade(r.eid,p);rec.p=p;draw();};
+    window.revFix=p=>{if(r)rvRegrade(r.eid,p);rec.p=p;draw();};
     draw();
   };
   inp.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();check();}};
@@ -2432,15 +2485,15 @@ function revShow(){
 /* 消した（☆を外した）など、いま出せない問題は飛ばす */
 function revItemOk(id){return id[0]==='L'?!!lineOf(id):id[0]==='F'?false:id[0]==='P'?!!LIT.rc[+id.slice(3)]:id[0]==='Q'?!!qOf(id):!!wordOf(id);}
 function revEnd(){
-  const res=REV.res,rg=V.rg;REV=null;markDay();
+  const res=REV.res,rg=V.rg,prac=!!REV.prac;REV=null;if(!prac)markDay();
   const c=[0,0,0];res.forEach(r=>c[rvGradeOf(r.p)-1]++);
-  let h='<div class="card" style="text-align:center"><div class="big" style="font-weight:700">おわり</div><div class="muted">'+res.length+' 問を復習しました　① '+c[0]+'　② '+c[1]+'　③ '+c[2]+'</div></div>';
+  let h='<div class="card" style="text-align:center"><div class="big" style="font-weight:700">おわり</div><div class="muted">'+(prac?'🏆 定着テスト（練習なので記録していません。箱・次の復習日・今日の30問はそのままです）<br>'+res.length+' 問を解きました':res.length+' 問を復習しました')+'　① '+c[0]+'　② '+c[1]+'　③ '+c[2]+'</div></div>';
   if(res.length)h+='<div class="card"><ul class="kl ml">'+res.map(r=>{const g=rvGradeOf(r.p);const s=rvSt(r.id);
     return '<li><span class="role" style="color:'+(g===1?'var(--ok)':g===2?'var(--mid)':'var(--ng)')+'">'+'①②③'[g-1]+'</span><div class="kb"><div class="ken">'+esc(RV_ENV.label(r.id))+'</div><div class="muted">次は '+rvMd(s.due)+'</div></div></li>';}).join('')+'</ul></div>';
-  h+=rvBarHtml(RV_ENV.ids())+rvDoneHtml('revStart()');
-  h+='<div class="hero"><button class="pri" id="toRev">復習のトップへ</button><button id="home">ホームへ</button></div>';
+  if(!prac)h+=rvBarHtml(RV_ENV.ids())+rvDoneHtml('revStart()');
+  h+='<div class="hero"><button class="pri" id="toRev">'+(prac?'定着した問題へ':'復習のトップへ')+'</button><button id="home">ホームへ</button></div>';
   $('#app').innerHTML=h;window.scrollTo(0,0);
-  $('#toRev').onclick=()=>go({view:'rev',rg});$('#home').onclick=()=>go({view:'home'});
+  $('#toRev').onclick=()=>go({view:prac?'mst':'rev',rg});$('#home').onclick=()=>go({view:'home'});
 }
 
 /* 並べ替え */
@@ -2586,7 +2639,7 @@ function tabPrac(t,el,opt){
     h+=answerCard();
     const qid0='Q:'+qk+':'+qIdx();S.qdone=S.qdone||{};S.qdone[qid0]=today();
     h+='<div class="card row" style="padding:8px 12px">'+pfavBtn(qid0)+'</div>';
-    if(FX){if(!alive())return;h+=opt.tail?opt.tail():'';el.innerHTML=h;logPractice(t,n);bindModel(el);bindPfav(el);if(opt.bindTail)opt.bindTail(el);window.scrollTo(0,0);return;}
+    if(FX){if(!alive())return;h+=opt.tail?opt.tail():'';el.innerHTML=h;if(!opt.nolog)logPractice(t,n);bindModel(el);bindPfav(el);if(opt.bindTail)opt.bindTail(el);window.scrollTo(0,0);return;}
     /* 本番練習で答えたお題を復習リストへ（初回だけ。2回目からは練習扱い） */
     const qid='Q:'+qKeyOf(t)+':'+qIdx();let qr=null;
     const fok0=isFok(qid);
